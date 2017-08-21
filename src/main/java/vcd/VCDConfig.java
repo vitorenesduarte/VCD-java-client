@@ -15,10 +15,14 @@ public class VCDConfig {
     
     private Integer port;
     private String host;
+    private Integer ops;
+    private Integer conflictPercentage;
 
     private VCDConfig() {
         // set config defaults here
         this.host = "localhost";
+        this.ops = 100;
+        this.conflictPercentage = 100;
     }
 
     public Integer getPort() {
@@ -35,6 +39,22 @@ public class VCDConfig {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public Integer getOps() {
+        return ops;
+    }
+
+    public void setOps(String ops) {
+        this.ops = Integer.parseInt(ops);
+    }
+
+    public Integer getConflictPercentage() {
+        return conflictPercentage;
+    }
+
+    public void setConflictPercentage(String conflictPercentage) {
+        this.conflictPercentage = Integer.parseInt(conflictPercentage);
     }
 
     public static VCDConfig parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
@@ -58,6 +78,12 @@ public class VCDConfig {
                     break;
                 case "host":
                     config.setHost(value);
+                    break;
+                case "ops":
+                    config.setOps(value);
+                    break;
+                case "conflict_percentage":
+                    config.setConflictPercentage(value);
                     break;
                 default:
                     throw new InvalidArgumentException(arg);
