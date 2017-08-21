@@ -31,7 +31,7 @@ public class VCDClient {
         }
 
         Long latencyAverageNano = average(latency);
-        System.out.println("Latency (ms): " + toMilli(latencyAverageNano));
+        System.out.println("LATENCY: " + toMilli(latencyAverageNano));
     }
 
     private static String nextMessage(Integer conflictPercentage) {
