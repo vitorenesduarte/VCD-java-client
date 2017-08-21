@@ -11,9 +11,6 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class VCDClient {
 
-    public static Integer MESSAGE_NUMBER = 100;
-    public static List<String> MESSAGES = Arrays.asList("A", "B"); // 50% conflicts
-
     public static void main(String[] args) throws Exception {
         Thread.sleep(3000);
 
@@ -22,24 +19,34 @@ public class VCDClient {
 
         List<Long> latency = new ArrayList<>();
 
-        for (int i = 0; i < MESSAGE_NUMBER; i++) {
-            String message = nextMessage();
+        for (int i = 0; i < config.getOps(); i++) {
+            String op = nextMessage(config.getConflictPercentage());
 
             Long start = System.nanoTime();
-            socket.send(message);
+            socket.send(op);
             socket.receive();
             Long end = System.nanoTime();
 
             latency.add(end - start);
         }
 
-        Long latencyAverage = average(latency);
-        System.out.println("Latency: " + latencyAverage);
+        Long latencyAverageNano = average(latency);
+        System.out.println("Latency (ms): " + toMilli(latencyAverageNano));
     }
 
-    private static String nextMessage() {
-        int index = ThreadLocalRandom.current().nextInt(MESSAGES.size());
-        return MESSAGES.get(index);
+    private static String nextMessage(Integer conflictPercentage) {
+        Long result = System.nanoTime();
+
+        if (conflictPercentage > 0) {
+            Integer numberOfOps = 100 / conflictPercentage;
+            result = ThreadLocalRandom.current().nextLong(numberOfOps);
+        }
+
+        return "" + result;
+    }
+
+    private static Long toMilli(Long nano) {
+        return nano / 1000000;
     }
 
     private static Long average(List<Long> latency) {
