@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
 /**
  *
@@ -15,10 +14,12 @@ public class Socket {
 
     private final DataInputStream in;
     private final DataOutputStream out;
+    private final EncoderDecoder<MessageSet> ed;
 
     private Socket(InputStream in, OutputStream out) {
         this.in = new DataInputStream(in);
         this.out = new DataOutputStream(out);
+        this.ed = new EncoderDecoder<>(MessageSet.getClassSchema());
     }
 
     public static Socket create(Config config) throws IOException {
@@ -27,13 +28,11 @@ public class Socket {
     }
 
     public void send(MessageSet messageSet) throws IOException {
-        write(messageSet.toByteBuffer().array());
+        write(ed.encode(messageSet));
     }
-    
+
     public MessageSet receive() throws IOException {
-        byte[] data = read();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(data.length);
-        return MessageSet.fromByteBuffer(byteBuffer);
+        return ed.decode(read());
     }
 
     private void write(byte[] data) throws IOException {

@@ -1,7 +1,9 @@
 package org.imdea.vcd;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -19,10 +21,11 @@ public class Client {
         List<Long> latency = new ArrayList<>();
 
         for (int i = 0; i < config.getOps(); i++) {
-            String op = nextMessage(config.getConflictPercentage());
+            Message m = nextMessage(config.getConflictPercentage());
+            MessageSet messageSet = new MessageSet(Arrays.asList(m));
 
             Long start = System.nanoTime();
-            socket.send(new MessageSet());
+            socket.send(messageSet);
             socket.receive();
             Long end = System.nanoTime();
 
@@ -33,7 +36,7 @@ public class Client {
         System.out.println("LATENCY: " + toMilli(latencyAverageNano));
     }
 
-    private static String nextMessage(Integer conflictPercentage) {
+    private static Message nextMessage(Integer conflictPercentage) {
         Long result = System.nanoTime();
 
         if (conflictPercentage > 0) {
@@ -41,7 +44,10 @@ public class Client {
             result = ThreadLocalRandom.current().nextLong(numberOfOps);
         }
 
-        return "" + result;
+        String key = "" + result;
+        String value = UUID.randomUUID().toString();
+        Message message = new Message(key, value);
+        return message;
     }
 
     private static Long toMilli(Long nano) {
