@@ -1,4 +1,4 @@
-package vcd.exception;
+package org.imdea.vcd.exception;
 
 /**
  *

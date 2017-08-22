@@ -1,7 +1,7 @@
-package vcd;
+package org.imdea.vcd;
 
-import vcd.exception.MissingArgumentException;
-import vcd.exception.InvalidArgumentException;
+import org.imdea.vcd.exception.MissingArgumentException;
+import org.imdea.vcd.exception.InvalidArgumentException;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -9,7 +9,7 @@ import java.util.HashSet;
  *
  * @author Vitor Enes
  */
-public class VCDConfig {
+public class Config {
 
     private static final HashSet<String> REQUIRED = new HashSet<>(Arrays.asList("port"));
     
@@ -18,7 +18,7 @@ public class VCDConfig {
     private Integer ops;
     private Integer conflictPercentage;
 
-    private VCDConfig() {
+    private Config() {
         // set config defaults here
         this.host = "localhost";
         this.ops = 100;
@@ -57,8 +57,8 @@ public class VCDConfig {
         this.conflictPercentage = Integer.parseInt(conflictPercentage);
     }
 
-    public static VCDConfig parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
-        VCDConfig config = new VCDConfig();
+    public static Config parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
+        Config config = new Config();
 
         HashSet<String> missing = REQUIRED;
         

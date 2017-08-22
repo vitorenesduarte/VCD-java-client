@@ -1,37 +1,39 @@
-package vcd;
+package org.imdea.vcd;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
+import java.nio.ByteBuffer;
 
 /**
  *
  * @author Vitor Enes
  */
-public class VCDSocket {
+public class Socket {
 
     private final DataInputStream in;
     private final DataOutputStream out;
 
-    private VCDSocket(InputStream in, OutputStream out) {
+    private Socket(InputStream in, OutputStream out) {
         this.in = new DataInputStream(in);
         this.out = new DataOutputStream(out);
     }
 
-    public static VCDSocket create(VCDConfig config) throws IOException {
-        Socket socket = new Socket(config.getHost(), config.getPort());
-        return new VCDSocket(socket.getInputStream(), socket.getOutputStream());
+    public static Socket create(Config config) throws IOException {
+        java.net.Socket socket = new java.net.Socket(config.getHost(), config.getPort());
+        return new Socket(socket.getInputStream(), socket.getOutputStream());
     }
 
-    public void send(String data) throws IOException {
-        write(data.getBytes());
+    public void send(MessageSet messageSet) throws IOException {
+        write(messageSet.toByteBuffer().array());
     }
     
-    public String receive() throws IOException {
-        return new String(read());
+    public MessageSet receive() throws IOException {
+        byte[] data = read();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(data.length);
+        return MessageSet.fromByteBuffer(byteBuffer);
     }
 
     private void write(byte[] data) throws IOException {

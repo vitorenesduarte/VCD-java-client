@@ -1,7 +1,6 @@
-package vcd;
+package org.imdea.vcd;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -9,13 +8,13 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * @author Vitor Enes
  */
-public class VCDClient {
+public class Client {
 
     public static void main(String[] args) throws Exception {
         Thread.sleep(3000);
 
-        VCDConfig config = VCDConfig.parseArgs(args);
-        VCDSocket socket = VCDSocket.create(config);
+        Config config = Config.parseArgs(args);
+        Socket socket = Socket.create(config);
 
         List<Long> latency = new ArrayList<>();
 
@@ -23,7 +22,7 @@ public class VCDClient {
             String op = nextMessage(config.getConflictPercentage());
 
             Long start = System.nanoTime();
-            socket.send(op);
+            socket.send(new MessageSet());
             socket.receive();
             Long end = System.nanoTime();
 
