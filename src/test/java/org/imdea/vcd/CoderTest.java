@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +22,7 @@ import org.junit.Test;
  */
 public class CoderTest {
 
+    private final Integer REPETITIONS = 10000; // there's probably a better way
     private final String FILE = "/tmp/avro";
     private DataRW rw;
 
@@ -50,16 +50,29 @@ public class CoderTest {
     @Test
     public void testDatumEncodeDecode() throws FileNotFoundException, IOException {
         DatumCoder coder = new DatumCoder();
-        testEncodeDecode(coder);
+        for (int i = 0; i < REPETITIONS; i++) {
+            testEncodeDecode(coder);
+        }
+    }
+
+    @Test
+    public void sameEncoding() throws IOException {
+        for (int i = 0; i < REPETITIONS; i++) {
+            MessageSet ms = RandomMessageSet.generate();
+
+            byte[] expected = new DatumCoder().encode(ms);
+            byte[] result = new SimpleCoder().encode(ms);
+
+            Assert.assertArrayEquals(expected, result);
+        }
     }
 
     private void testEncodeDecode(Coder coder) throws IOException, IOException {
-        Message m = new Message("key", "value");
-        MessageSet expected = new MessageSet(Arrays.asList(m));
+        MessageSet ms = RandomMessageSet.generate();
 
-        this.rw.write(coder.encode(expected));
+        this.rw.write(coder.encode(ms));
         MessageSet result = coder.decode(this.rw.read());
 
-        Assert.assertEquals(expected, result);
+        Assert.assertEquals(ms, result);
     }
 }

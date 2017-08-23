@@ -1,0 +1,9 @@
+language: java
+jdk:
+  - oraclejdk8
+script:
+  - make test
+notifications:
+  email: false
+  slack: imdea-software:fdyPmym7oicfvSQTL5zy21n3
+sudo: false

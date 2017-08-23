@@ -1,10 +1,10 @@
 package org.imdea.vcd;
 
-import org.imdea.vcd.coding.DatumCoder;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.imdea.vcd.coding.Coder;
+import org.imdea.vcd.coding.SimpleCoder;
 
 /**
  *
@@ -17,7 +17,7 @@ public class Socket {
 
     private Socket(DataRW rw) {
         this.rw = rw;
-        this.coder = new DatumCoder();
+        this.coder = new SimpleCoder();
     }
 
     public static Socket create(Config config) throws IOException {
