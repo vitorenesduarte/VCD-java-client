@@ -18,8 +18,8 @@ public class RandomMessageSet {
     }
 
     public static MessageSet generate(Integer conflictPercentage) {
-        // maximum 100 messages per set generated
-        int size = RANDOM.nextInt(100);
+        // maximum 10 messages per set generated
+        int size = Math.max(RANDOM.nextInt(10), 1);
         List<Message> messages = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
@@ -34,7 +34,8 @@ public class RandomMessageSet {
         String alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         int n = alphabet.length();
 
-        int size = RANDOM.nextInt(n);
+        // maximum 10 characters per string generated
+        int size = RANDOM.nextInt(10);
 
         String result = "";
         for (int i = 0; i < size; i++) {
