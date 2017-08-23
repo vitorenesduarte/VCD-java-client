@@ -1,40 +1,36 @@
-package org.imdea.vcd;
+package org.imdea.vcd.coding;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
+import org.imdea.vcd.MessageSet;
 
 /**
  *
  * @author Vitor Enes
- * @param <T>
  *
  * As explained here:
  * https://cwiki.apache.org/confluence/display/AVRO/FAQ#FAQ-HowcanIserializedirectlyto/fromabytearray?
  *
  */
-public class EncoderDecoder<T extends org.apache.avro.specific.SpecificRecordBase> {
+public class DatumCoder implements Coder {
 
-    private final SpecificDatumWriter<T> writer;
-    private final SpecificDatumReader<T> reader;
-
-    public EncoderDecoder(Schema schema) {
-        this.writer = new SpecificDatumWriter<>(schema);
-        this.reader = new SpecificDatumReader<>(schema);
+    public DatumCoder() {
     }
 
-    public byte[] encode(T t) throws IOException {
+    @Override
+    public byte[] encode(MessageSet messageSet) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
 
-        writer.write(t, encoder);
-        
+        SpecificDatumWriter<MessageSet> writer = new SpecificDatumWriter<>(MessageSet.getClassSchema());
+        writer.write(messageSet, encoder);
+
         encoder.flush();
         out.close();
 
@@ -42,11 +38,13 @@ public class EncoderDecoder<T extends org.apache.avro.specific.SpecificRecordBas
         return data;
     }
 
-    public T decode(byte[] data) throws IOException {
+    @Override
+    public MessageSet decode(byte[] data) throws IOException {
         Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
-        
-        T t = reader.read(null, decoder);
-        
-        return t;
+
+        SpecificDatumReader<MessageSet> reader = new SpecificDatumReader<>(MessageSet.getClassSchema());
+        MessageSet messageSet = reader.read(null, decoder);
+
+        return messageSet;
     }
 }

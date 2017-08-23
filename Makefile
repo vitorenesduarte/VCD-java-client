@@ -1,5 +1,8 @@
 JAR=target/vcd-java-client-0.1.jar
 
+test:
+	mvn test
+
 rel:
 	mvn clean compile assembly:single
 	mv target/vcd-java-client-0.1-jar-with-dependencies.jar $(JAR)
