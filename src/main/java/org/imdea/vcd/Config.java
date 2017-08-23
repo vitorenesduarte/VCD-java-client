@@ -22,7 +22,7 @@ public class Config {
         // set config defaults here
         this.host = "localhost";
         this.ops = 100;
-        this.conflictPercentage = 50;
+        this.conflictPercentage = 100;
     }
 
     public Integer getPort() {
