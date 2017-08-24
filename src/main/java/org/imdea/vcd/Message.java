@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class Message extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -555238971096962593L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Message\",\"namespace\":\"org.imdea.vcd\",\"fields\":[{\"name\":\"key\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"data\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}");
+  private static final long serialVersionUID = -8820979975374381663L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Message\",\"namespace\":\"org.imdea.vcd\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -51,8 +51,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
     return DECODER.decode(b);
   }
 
-  @Deprecated public java.lang.String key;
-  @Deprecated public java.lang.String data;
+  @Deprecated public java.nio.ByteBuffer hash;
+  @Deprecated public java.nio.ByteBuffer data;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -63,11 +63,11 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
 
   /**
    * All-args constructor.
-   * @param key The new value for key
+   * @param hash The new value for hash
    * @param data The new value for data
    */
-  public Message(java.lang.String key, java.lang.String data) {
-    this.key = key;
+  public Message(java.nio.ByteBuffer hash, java.nio.ByteBuffer data) {
+    this.hash = hash;
     this.data = data;
   }
 
@@ -75,7 +75,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
   // Used by DatumWriter.  Applications should not call.
   public java.lang.Object get(int field$) {
     switch (field$) {
-    case 0: return key;
+    case 0: return hash;
     case 1: return data;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
@@ -85,33 +85,33 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
   @SuppressWarnings(value="unchecked")
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
-    case 0: key = (java.lang.String)value$; break;
-    case 1: data = (java.lang.String)value$; break;
+    case 0: hash = (java.nio.ByteBuffer)value$; break;
+    case 1: data = (java.nio.ByteBuffer)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
 
   /**
-   * Gets the value of the 'key' field.
-   * @return The value of the 'key' field.
+   * Gets the value of the 'hash' field.
+   * @return The value of the 'hash' field.
    */
-  public java.lang.String getKey() {
-    return key;
+  public java.nio.ByteBuffer getHash() {
+    return hash;
   }
 
   /**
-   * Sets the value of the 'key' field.
+   * Sets the value of the 'hash' field.
    * @param value the value to set.
    */
-  public void setKey(java.lang.String value) {
-    this.key = value;
+  public void setHash(java.nio.ByteBuffer value) {
+    this.hash = value;
   }
 
   /**
    * Gets the value of the 'data' field.
    * @return The value of the 'data' field.
    */
-  public java.lang.String getData() {
+  public java.nio.ByteBuffer getData() {
     return data;
   }
 
@@ -119,7 +119,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
    * Sets the value of the 'data' field.
    * @param value the value to set.
    */
-  public void setData(java.lang.String value) {
+  public void setData(java.nio.ByteBuffer value) {
     this.data = value;
   }
 
@@ -155,8 +155,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<Message>
     implements org.apache.avro.data.RecordBuilder<Message> {
 
-    private java.lang.String key;
-    private java.lang.String data;
+    private java.nio.ByteBuffer hash;
+    private java.nio.ByteBuffer data;
 
     /** Creates a new Builder */
     private Builder() {
@@ -169,8 +169,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
      */
     private Builder(org.imdea.vcd.Message.Builder other) {
       super(other);
-      if (isValidValue(fields()[0], other.key)) {
-        this.key = data().deepCopy(fields()[0].schema(), other.key);
+      if (isValidValue(fields()[0], other.hash)) {
+        this.hash = data().deepCopy(fields()[0].schema(), other.hash);
         fieldSetFlags()[0] = true;
       }
       if (isValidValue(fields()[1], other.data)) {
@@ -185,8 +185,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
      */
     private Builder(org.imdea.vcd.Message other) {
             super(SCHEMA$);
-      if (isValidValue(fields()[0], other.key)) {
-        this.key = data().deepCopy(fields()[0].schema(), other.key);
+      if (isValidValue(fields()[0], other.hash)) {
+        this.hash = data().deepCopy(fields()[0].schema(), other.hash);
         fieldSetFlags()[0] = true;
       }
       if (isValidValue(fields()[1], other.data)) {
@@ -196,40 +196,40 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
     }
 
     /**
-      * Gets the value of the 'key' field.
+      * Gets the value of the 'hash' field.
       * @return The value.
       */
-    public java.lang.String getKey() {
-      return key;
+    public java.nio.ByteBuffer getHash() {
+      return hash;
     }
 
     /**
-      * Sets the value of the 'key' field.
-      * @param value The value of 'key'.
+      * Sets the value of the 'hash' field.
+      * @param value The value of 'hash'.
       * @return This builder.
       */
-    public org.imdea.vcd.Message.Builder setKey(java.lang.String value) {
+    public org.imdea.vcd.Message.Builder setHash(java.nio.ByteBuffer value) {
       validate(fields()[0], value);
-      this.key = value;
+      this.hash = value;
       fieldSetFlags()[0] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'key' field has been set.
-      * @return True if the 'key' field has been set, false otherwise.
+      * Checks whether the 'hash' field has been set.
+      * @return True if the 'hash' field has been set, false otherwise.
       */
-    public boolean hasKey() {
+    public boolean hasHash() {
       return fieldSetFlags()[0];
     }
 
 
     /**
-      * Clears the value of the 'key' field.
+      * Clears the value of the 'hash' field.
       * @return This builder.
       */
-    public org.imdea.vcd.Message.Builder clearKey() {
-      key = null;
+    public org.imdea.vcd.Message.Builder clearHash() {
+      hash = null;
       fieldSetFlags()[0] = false;
       return this;
     }
@@ -238,7 +238,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
       * Gets the value of the 'data' field.
       * @return The value.
       */
-    public java.lang.String getData() {
+    public java.nio.ByteBuffer getData() {
       return data;
     }
 
@@ -247,7 +247,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
       * @param value The value of 'data'.
       * @return This builder.
       */
-    public org.imdea.vcd.Message.Builder setData(java.lang.String value) {
+    public org.imdea.vcd.Message.Builder setData(java.nio.ByteBuffer value) {
       validate(fields()[1], value);
       this.data = value;
       fieldSetFlags()[1] = true;
@@ -278,8 +278,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
     public Message build() {
       try {
         Message record = new Message();
-        record.key = fieldSetFlags()[0] ? this.key : (java.lang.String) defaultValue(fields()[0]);
-        record.data = fieldSetFlags()[1] ? this.data : (java.lang.String) defaultValue(fields()[1]);
+        record.hash = fieldSetFlags()[0] ? this.hash : (java.nio.ByteBuffer) defaultValue(fields()[0]);
+        record.data = fieldSetFlags()[1] ? this.data : (java.nio.ByteBuffer) defaultValue(fields()[1]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

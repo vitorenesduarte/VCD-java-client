@@ -1,5 +1,6 @@
 package org.imdea.vcd;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -12,44 +13,41 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RandomMessageSet {
 
     private static final Random RANDOM = new Random();
+    private static final int MAX_SET_SIZE = 10;
+    private static final int MAX_ARRAY_SIZE = 10;
 
     public static MessageSet generate() {
         return RandomMessageSet.generate(0);
     }
 
     public static MessageSet generate(Integer conflictPercentage) {
-        // maximum 10 messages per set generated
-        int size = Math.max(RANDOM.nextInt(10), 1);
+        // generate non-empty sets
+        int size = Math.max(RANDOM.nextInt(MAX_SET_SIZE), 1);
         List<Message> messages = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
-            Message m = new Message(randomKey(conflictPercentage), randomString());
+            Message m = new Message(randomHash(conflictPercentage), randomByteBuffer());
             messages.add(m);
         }
 
         return new MessageSet(messages);
     }
 
-    private static String randomString() {
-        String alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        int n = alphabet.length();
+    private static ByteBuffer randomByteBuffer() {
+        int size = RANDOM.nextInt(MAX_ARRAY_SIZE);
+        byte[] data = new byte[size];
 
-        // maximum 10 characters per string generated
-        int size = RANDOM.nextInt(10);
-
-        String result = "";
-        for (int i = 0; i < size; i++) {
-            result = result + alphabet.charAt(RANDOM.nextInt(n));
-        }
-        return result;
+        RANDOM.nextBytes(data);
+        return ByteBuffer.wrap(data);
     }
 
-    private static String randomKey(Integer conflictPercentage) {
+    private static ByteBuffer randomHash(Integer conflictPercentage) {
         if (conflictPercentage == 0) {
-            return randomString();
+            return randomByteBuffer();
         } else {
             Integer numberOfOps = 100 / conflictPercentage;
-            return "" + ThreadLocalRandom.current().nextLong(numberOfOps);
+            String hash = "" + ThreadLocalRandom.current().nextLong(numberOfOps);
+            return ByteBuffer.wrap(hash.getBytes());
         }
     }
 }

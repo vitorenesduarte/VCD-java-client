@@ -2,6 +2,7 @@ package org.imdea.vcd.coding;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import org.imdea.vcd.MessageSet;
 
 /**
@@ -11,7 +12,7 @@ import org.imdea.vcd.MessageSet;
  */
 public class SimpleCoder implements Coder {
 
-    private static final byte[] HEADER = {-61, 1, 73, 39, -31, -16, 39, -111, -90, -101};
+    private static final byte[] HEADER = {-61, 1, 51, -96, 122, -28, 12, -21, 99, 90};
 
     public SimpleCoder() {
     }
