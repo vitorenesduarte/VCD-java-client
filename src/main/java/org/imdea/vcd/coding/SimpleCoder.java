@@ -2,7 +2,6 @@ package org.imdea.vcd.coding;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import org.imdea.vcd.MessageSet;
 
 /**
