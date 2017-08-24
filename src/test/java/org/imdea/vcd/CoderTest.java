@@ -3,19 +3,21 @@ package org.imdea.vcd;
 import org.imdea.vcd.coding.Coder;
 import org.imdea.vcd.coding.DatumCoder;
 import org.imdea.vcd.coding.SimpleCoder;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  *
@@ -54,7 +56,9 @@ public class CoderTest {
     }
 
     private void testEncodeDecode(Coder coder) throws IOException, IOException {
-        Message m = new Message("key", "value");
+        ByteBuffer hash = ByteBuffer.wrap(new byte[0]);
+        ByteBuffer data = ByteBuffer.wrap(new byte[0]);
+        Message m = new Message(hash,data);
         MessageSet expected = new MessageSet(Arrays.asList(m));
 
         this.rw.write(coder.encode(expected));

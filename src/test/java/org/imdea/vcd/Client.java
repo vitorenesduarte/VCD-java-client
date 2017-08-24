@@ -1,5 +1,6 @@
 package org.imdea.vcd;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,9 +45,9 @@ public class Client {
             result = ThreadLocalRandom.current().nextLong(numberOfOps);
         }
 
-        String key = "" + result;
-        String value = UUID.randomUUID().toString();
-        Message message = new Message(key, value);
+        String hash = "" + result;
+        String data = UUID.randomUUID().toString();
+        Message message = new Message(ByteBuffer.wrap(hash.getBytes()), ByteBuffer.wrap(data.getBytes()));
         return message;
     }
 

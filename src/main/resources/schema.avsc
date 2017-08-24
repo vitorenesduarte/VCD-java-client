@@ -7,7 +7,7 @@
       "type":
         { "type":"array", "items":
           { "type":"record","name":"Message",
-            "fields":[{"name":"key","type":"string"},{"name":"data","type":"string"}]
+            "fields":[{"name":"hash","type":"bytes"},{"name":"data","type":"bytes"}]
           }
         }
     }

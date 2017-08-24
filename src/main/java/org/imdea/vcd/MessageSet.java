@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class MessageSet extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -7230932550965713079L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MessageSet\",\"namespace\":\"org.imdea.vcd\",\"fields\":[{\"name\":\"messages\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"Message\",\"fields\":[{\"name\":\"key\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"data\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}}]}}}]}");
+  private static final long serialVersionUID = 6513307926713245747L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MessageSet\",\"namespace\":\"org.imdea.vcd\",\"fields\":[{\"name\":\"messages\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"Message\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
