@@ -3,7 +3,6 @@ package org.imdea.vcd;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -12,17 +11,19 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RandomMessageSet {
 
-    private static final Random RANDOM = new Random();
     private static final int MAX_SET_SIZE = 10;
-    private static final int MAX_ARRAY_SIZE = 10;
+    private static final int ARRAY_SIZE = 100;
 
     public static MessageSet generate() {
-        return RandomMessageSet.generate(0);
+        return generate(RANDOM().nextInt(100));
     }
 
     public static MessageSet generate(Integer conflictPercentage) {
-        // generate non-empty sets
-        int size = Math.max(RANDOM.nextInt(MAX_SET_SIZE), 1);
+        return generate(conflictPercentage, MAX_SET_SIZE);
+    }
+
+    public static MessageSet generate(Integer conflictPercentage, Integer size) {
+        assert size > 0;
         List<Message> messages = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
@@ -33,11 +34,14 @@ public class RandomMessageSet {
         return new MessageSet(messages);
     }
 
-    private static ByteBuffer randomByteBuffer() {
-        int size = RANDOM.nextInt(MAX_ARRAY_SIZE);
-        byte[] data = new byte[size];
+    private static ThreadLocalRandom RANDOM() {
+        return ThreadLocalRandom.current();
+    }
 
-        RANDOM.nextBytes(data);
+    private static ByteBuffer randomByteBuffer() {
+        byte[] data = new byte[ARRAY_SIZE];
+
+        RANDOM().nextBytes(data);
         return ByteBuffer.wrap(data);
     }
 
@@ -46,7 +50,7 @@ public class RandomMessageSet {
             return randomByteBuffer();
         } else {
             Integer numberOfOps = 100 / conflictPercentage;
-            String hash = "" + ThreadLocalRandom.current().nextLong(numberOfOps);
+            String hash = "" + RANDOM().nextInt(numberOfOps);
             return ByteBuffer.wrap(hash.getBytes());
         }
     }

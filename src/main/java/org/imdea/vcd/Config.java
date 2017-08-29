@@ -21,8 +21,8 @@ public class Config {
     private Config() {
         // set config defaults here
         this.host = "localhost";
-        this.ops = 100;
-        this.conflictPercentage = 100;
+        this.ops = 1000;
+        this.conflictPercentage = 0;
     }
 
     public Integer getPort() {
