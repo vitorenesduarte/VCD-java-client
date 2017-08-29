@@ -3,21 +3,18 @@ package org.imdea.vcd;
 import org.imdea.vcd.coding.Coder;
 import org.imdea.vcd.coding.DatumCoder;
 import org.imdea.vcd.coding.SimpleCoder;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  *
@@ -25,6 +22,7 @@ import java.util.Arrays;
  */
 public class CoderTest {
 
+    private final Integer REPETITIONS = 1000; // there's probably a better way
     private final String FILE = "/tmp/avro";
     private DataRW rw;
 
@@ -52,18 +50,29 @@ public class CoderTest {
     @Test
     public void testDatumEncodeDecode() throws FileNotFoundException, IOException {
         DatumCoder coder = new DatumCoder();
-        testEncodeDecode(coder);
+        for (int i = 0; i < REPETITIONS; i++) {
+            testEncodeDecode(coder);
+        }
+    }
+
+    @Test
+    public void sameEncoding() throws IOException {
+        for (int i = 0; i < REPETITIONS; i++) {
+            MessageSet ms = RandomMessageSet.generate();
+
+            byte[] expected = new DatumCoder().encode(ms);
+            byte[] result = new SimpleCoder().encode(ms);
+
+            Assert.assertArrayEquals(expected, result);
+        }
     }
 
     private void testEncodeDecode(Coder coder) throws IOException, IOException {
-        ByteBuffer hash = ByteBuffer.wrap(new byte[0]);
-        ByteBuffer data = ByteBuffer.wrap(new byte[0]);
-        Message m = new Message(hash,data);
-        MessageSet expected = new MessageSet(Arrays.asList(m));
+        MessageSet ms = RandomMessageSet.generate();
 
-        this.rw.write(coder.encode(expected));
+        this.rw.write(coder.encode(ms));
         MessageSet result = coder.decode(this.rw.read());
 
-        Assert.assertEquals(expected, result);
+        Assert.assertEquals(ms, result);
     }
 }
