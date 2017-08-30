@@ -4,7 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.imdea.vcd.coding.Coder;
-import org.imdea.vcd.coding.SimpleCoder;
+import org.imdea.vcd.coding.DatumCoder;
 
 /**
  *
@@ -17,13 +17,14 @@ public class Socket {
 
     private Socket(DataRW rw) {
         this.rw = rw;
-        this.coder = new SimpleCoder();
+        this.coder = new DatumCoder();
     }
 
     public static Socket create(Config config) throws IOException {
         java.net.Socket socket = new java.net.Socket(config.getHost(), config.getPort());
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        socket.setTcpNoDelay(true);
         DataRW rw = new DataRW(in, out);
         return new Socket(rw);
     }

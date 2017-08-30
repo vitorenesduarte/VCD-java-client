@@ -8,6 +8,7 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
+import org.imdea.vcd.Debug;
 import org.imdea.vcd.MessageSet;
 
 /**
@@ -20,30 +21,40 @@ import org.imdea.vcd.MessageSet;
  */
 public class DatumCoder implements Coder {
 
+    private static final SpecificDatumWriter<MessageSet> WRITER = new SpecificDatumWriter<>(MessageSet.getClassSchema());
+    private static final SpecificDatumReader<MessageSet> READER = new SpecificDatumReader<>(MessageSet.getClassSchema());
+
     public DatumCoder() {
     }
 
     @Override
     public byte[] encode(MessageSet messageSet) throws IOException {
+        Debug.start("Encode");
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
 
-        SpecificDatumWriter<MessageSet> writer = new SpecificDatumWriter<>(MessageSet.getClassSchema());
-        writer.write(messageSet, encoder);
+        WRITER.write(messageSet, encoder);
 
         encoder.flush();
         out.close();
 
         byte[] data = out.toByteArray();
+
+        Debug.end("Encode");
+
         return data;
     }
 
     @Override
     public MessageSet decode(byte[] data) throws IOException {
+        Debug.start("Decode");
+
         Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
 
-        SpecificDatumReader<MessageSet> reader = new SpecificDatumReader<>(MessageSet.getClassSchema());
-        MessageSet messageSet = reader.read(null, decoder);
+        MessageSet messageSet = READER.read(null, decoder);
+
+        Debug.end("Decode");
 
         return messageSet;
     }
