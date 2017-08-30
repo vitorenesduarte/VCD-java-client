@@ -24,6 +24,7 @@ public class Socket {
         java.net.Socket socket = new java.net.Socket(config.getHost(), config.getPort());
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        socket.setTcpNoDelay(true);
         DataRW rw = new DataRW(in, out);
         return new Socket(rw);
     }
