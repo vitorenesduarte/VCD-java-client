@@ -1,8 +1,5 @@
 package org.imdea.vcd;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * @author Vitor Enes
@@ -28,6 +25,8 @@ public class Client {
 
             assert expected.equals(result);
         }
+
+        Debug.show();
 
         Thread.sleep(1000);
     }
