@@ -19,21 +19,19 @@ public class DataRW {
     }
 
     public void write(byte[] data) throws IOException {
-        Debug.start("DataRW.write");
+        Debug.start("SocketWrite");
         out.writeInt(data.length);
         out.write(data, 0, data.length);
         out.flush();
-        Debug.end("DataRW.write");
+        Debug.end("SocketWrite");
     }
 
     public byte[] read() throws IOException {
-        Debug.start("DataRW.readInt");
+        Debug.start("SocketRead");
         int length = in.readInt();
-        Debug.end("DataRW.readInt");
         byte data[] = new byte[length];
-        Debug.start("DataRW.read");
         in.read(data, 0, length);
-        Debug.end("DataRW.read");
+        Debug.end("SocketRead");
         return data;
     }
 }

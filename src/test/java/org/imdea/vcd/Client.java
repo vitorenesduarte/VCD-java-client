@@ -14,19 +14,16 @@ public class Client {
 
         for (int i = 1; i <= config.getOps(); i++) {
 
-            if (i % 100 == 0) {
+            if (i % 250 == 0) {
                 Debug.show();
             }
 
             MessageSet expected = RandomMessageSet.generate(config.getConflictPercentage(), 1);
-
             socket.send(expected);
             MessageSet result = socket.receive();
 
             assert expected.equals(result);
         }
-
-        Debug.show();
 
         Thread.sleep(1000);
     }

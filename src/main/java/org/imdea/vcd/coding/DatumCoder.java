@@ -29,7 +29,7 @@ public class DatumCoder implements Coder {
 
     @Override
     public byte[] encode(MessageSet messageSet) throws IOException {
-        Debug.start("DatumCoder.encode");
+        Debug.start("Encode");
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
@@ -41,20 +41,20 @@ public class DatumCoder implements Coder {
 
         byte[] data = out.toByteArray();
 
-        Debug.end("DatumCoder.encode");
+        Debug.end("Encode");
 
         return data;
     }
 
     @Override
     public MessageSet decode(byte[] data) throws IOException {
-        Debug.start("DatumCoder.decode");
+        Debug.start("Decode");
 
         Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
 
         MessageSet messageSet = READER.read(null, decoder);
 
-        Debug.end("DatumCoder.decode");
+        Debug.end("Decode");
 
         return messageSet;
     }
