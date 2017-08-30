@@ -13,17 +13,16 @@ public class Client {
         Socket socket = Socket.create(config);
 
         for (int i = 1; i <= config.getOps(); i++) {
-
-            if (i % 250 == 0) {
-                Debug.show();
-            }
-
             MessageSet expected = RandomMessageSet.generate(config.getConflictPercentage(), 1);
+            Debug.start("LATENCY");
             socket.send(expected);
             MessageSet result = socket.receive();
+            Debug.end("LATENCY");
 
             assert expected.equals(result);
         }
+
+        Debug.show();
 
         Thread.sleep(1000);
     }

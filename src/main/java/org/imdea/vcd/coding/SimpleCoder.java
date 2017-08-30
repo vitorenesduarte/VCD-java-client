@@ -19,8 +19,7 @@ public class SimpleCoder implements Coder {
 
     @Override
     public byte[] encode(MessageSet messageSet) throws IOException {
-        Debug.start("Encode");
-
+        //Debug.start("Encode");
         ByteBuffer bb = messageSet.toByteBuffer();
 
         // don't send the header
@@ -28,16 +27,13 @@ public class SimpleCoder implements Coder {
 
         byte[] data = new byte[bb.remaining()];
         bb.get(data);
-
-        Debug.end("Encode");
-
+        //Debug.end("Encode");
         return data;
     }
 
     @Override
     public MessageSet decode(byte[] data) throws IOException {
-        Debug.start("Decode");
-
+        //Debug.start("Decode");
         ByteBuffer bb = ByteBuffer.allocate(HEADER.length + data.length);
 
         // prepend the header
@@ -46,9 +42,7 @@ public class SimpleCoder implements Coder {
         bb.position(0);
 
         MessageSet messageSet = MessageSet.fromByteBuffer(bb);
-
-        Debug.end("Decode");
-
+        //Debug.end("Decode");
         return messageSet;
     }
 }
