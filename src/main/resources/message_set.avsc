@@ -1,6 +1,6 @@
 { "type":"record",
   "name":"MessageSet",
-  "namespace":"org.imdea.vcd",
+  "namespace":"org.imdea.vcd.datum",
   "fields":
   [
     { "name":"messages",

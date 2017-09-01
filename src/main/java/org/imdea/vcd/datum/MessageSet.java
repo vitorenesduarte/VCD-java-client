@@ -3,7 +3,7 @@
  *
  * DO NOT EDIT DIRECTLY
  */
-package org.imdea.vcd;
+package org.imdea.vcd.datum;
 
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.message.BinaryMessageEncoder;
@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class MessageSet extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 6513307926713245747L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MessageSet\",\"namespace\":\"org.imdea.vcd\",\"fields\":[{\"name\":\"messages\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"Message\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}}}]}");
+  private static final long serialVersionUID = -8232711214277665158L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MessageSet\",\"namespace\":\"org.imdea.vcd.datum\",\"fields\":[{\"name\":\"messages\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"Message\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -51,7 +51,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
     return DECODER.decode(b);
   }
 
-  @Deprecated public java.util.List<org.imdea.vcd.Message> messages;
+  @Deprecated public java.util.List<org.imdea.vcd.datum.Message> messages;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -64,7 +64,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
    * All-args constructor.
    * @param messages The new value for messages
    */
-  public MessageSet(java.util.List<org.imdea.vcd.Message> messages) {
+  public MessageSet(java.util.List<org.imdea.vcd.datum.Message> messages) {
     this.messages = messages;
   }
 
@@ -81,7 +81,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
   @SuppressWarnings(value="unchecked")
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
-    case 0: messages = (java.util.List<org.imdea.vcd.Message>)value$; break;
+    case 0: messages = (java.util.List<org.imdea.vcd.datum.Message>)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -90,7 +90,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
    * Gets the value of the 'messages' field.
    * @return The value of the 'messages' field.
    */
-  public java.util.List<org.imdea.vcd.Message> getMessages() {
+  public java.util.List<org.imdea.vcd.datum.Message> getMessages() {
     return messages;
   }
 
@@ -98,7 +98,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
    * Sets the value of the 'messages' field.
    * @param value the value to set.
    */
-  public void setMessages(java.util.List<org.imdea.vcd.Message> value) {
+  public void setMessages(java.util.List<org.imdea.vcd.datum.Message> value) {
     this.messages = value;
   }
 
@@ -106,8 +106,8 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
    * Creates a new MessageSet RecordBuilder.
    * @return A new MessageSet RecordBuilder
    */
-  public static org.imdea.vcd.MessageSet.Builder newBuilder() {
-    return new org.imdea.vcd.MessageSet.Builder();
+  public static org.imdea.vcd.datum.MessageSet.Builder newBuilder() {
+    return new org.imdea.vcd.datum.MessageSet.Builder();
   }
 
   /**
@@ -115,8 +115,8 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
    * @param other The existing builder to copy.
    * @return A new MessageSet RecordBuilder
    */
-  public static org.imdea.vcd.MessageSet.Builder newBuilder(org.imdea.vcd.MessageSet.Builder other) {
-    return new org.imdea.vcd.MessageSet.Builder(other);
+  public static org.imdea.vcd.datum.MessageSet.Builder newBuilder(org.imdea.vcd.datum.MessageSet.Builder other) {
+    return new org.imdea.vcd.datum.MessageSet.Builder(other);
   }
 
   /**
@@ -124,8 +124,8 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
    * @param other The existing instance to copy.
    * @return A new MessageSet RecordBuilder
    */
-  public static org.imdea.vcd.MessageSet.Builder newBuilder(org.imdea.vcd.MessageSet other) {
-    return new org.imdea.vcd.MessageSet.Builder(other);
+  public static org.imdea.vcd.datum.MessageSet.Builder newBuilder(org.imdea.vcd.datum.MessageSet other) {
+    return new org.imdea.vcd.datum.MessageSet.Builder(other);
   }
 
   /**
@@ -134,7 +134,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<MessageSet>
     implements org.apache.avro.data.RecordBuilder<MessageSet> {
 
-    private java.util.List<org.imdea.vcd.Message> messages;
+    private java.util.List<org.imdea.vcd.datum.Message> messages;
 
     /** Creates a new Builder */
     private Builder() {
@@ -145,7 +145,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(org.imdea.vcd.MessageSet.Builder other) {
+    private Builder(org.imdea.vcd.datum.MessageSet.Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.messages)) {
         this.messages = data().deepCopy(fields()[0].schema(), other.messages);
@@ -157,7 +157,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
      * Creates a Builder by copying an existing MessageSet instance
      * @param other The existing instance to copy.
      */
-    private Builder(org.imdea.vcd.MessageSet other) {
+    private Builder(org.imdea.vcd.datum.MessageSet other) {
             super(SCHEMA$);
       if (isValidValue(fields()[0], other.messages)) {
         this.messages = data().deepCopy(fields()[0].schema(), other.messages);
@@ -169,7 +169,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
       * Gets the value of the 'messages' field.
       * @return The value.
       */
-    public java.util.List<org.imdea.vcd.Message> getMessages() {
+    public java.util.List<org.imdea.vcd.datum.Message> getMessages() {
       return messages;
     }
 
@@ -178,7 +178,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
       * @param value The value of 'messages'.
       * @return This builder.
       */
-    public org.imdea.vcd.MessageSet.Builder setMessages(java.util.List<org.imdea.vcd.Message> value) {
+    public org.imdea.vcd.datum.MessageSet.Builder setMessages(java.util.List<org.imdea.vcd.datum.Message> value) {
       validate(fields()[0], value);
       this.messages = value;
       fieldSetFlags()[0] = true;
@@ -198,7 +198,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
       * Clears the value of the 'messages' field.
       * @return This builder.
       */
-    public org.imdea.vcd.MessageSet.Builder clearMessages() {
+    public org.imdea.vcd.datum.MessageSet.Builder clearMessages() {
       messages = null;
       fieldSetFlags()[0] = false;
       return this;
@@ -209,7 +209,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
     public MessageSet build() {
       try {
         MessageSet record = new MessageSet();
-        record.messages = fieldSetFlags()[0] ? this.messages : (java.util.List<org.imdea.vcd.Message>) defaultValue(fields()[0]);
+        record.messages = fieldSetFlags()[0] ? this.messages : (java.util.List<org.imdea.vcd.datum.Message>) defaultValue(fields()[0]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

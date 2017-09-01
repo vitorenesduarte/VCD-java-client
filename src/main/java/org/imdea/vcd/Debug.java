@@ -35,7 +35,6 @@ public class Debug {
         for(String method : TIMES.keySet()){
             System.out.println(method + ": " + average(TIMES.get(method)) + " (us)");
         }
-        System.out.println("------------");
     }
 
     private static Long average(List<Long> nanos) {

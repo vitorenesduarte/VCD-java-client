@@ -1,8 +1,5 @@
 package org.imdea.vcd;
 
-import org.imdea.vcd.coding.Coder;
-import org.imdea.vcd.coding.DatumCoder;
-import org.imdea.vcd.coding.SimpleCoder;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
@@ -12,6 +9,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.imdea.vcd.datum.DatumCoder;
+import static org.imdea.vcd.datum.DatumType.MESSAGE_SET;
+import static org.imdea.vcd.datum.DatumType.STATUS;
+import org.imdea.vcd.datum.MessageSet;
+import org.imdea.vcd.datum.Status;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,37 +44,24 @@ public class CoderTest {
     }
 
     @Test
-    public void testSimpleEncodeDecode() throws FileNotFoundException, IOException {
-        SimpleCoder coder = new SimpleCoder();
-        testEncodeDecode(coder);
-    }
-
-    @Test
-    public void testDatumEncodeDecode() throws FileNotFoundException, IOException {
-        DatumCoder coder = new DatumCoder();
+    public void testMessageSetEncodeDecode() throws FileNotFoundException, IOException {
         for (int i = 0; i < REPETITIONS; i++) {
-            testEncodeDecode(coder);
+            MessageSet record = RandomMessageSet.generate();
+
+            this.rw.write(DatumCoder.encode(MESSAGE_SET, record));
+            MessageSet result = (MessageSet) DatumCoder.decode(MESSAGE_SET, this.rw.read());
+
+            Assert.assertEquals(record, result);
         }
     }
 
     @Test
-    public void sameEncoding() throws IOException {
-        for (int i = 0; i < REPETITIONS; i++) {
-            MessageSet ms = RandomMessageSet.generate();
+    public void testStatusEncodeDecode() throws IOException, IOException {
+        Status record = Status.COMMITTED;
 
-            byte[] expected = new DatumCoder().encode(ms);
-            byte[] result = new SimpleCoder().encode(ms);
+        this.rw.write(DatumCoder.encode(STATUS, record));
+        Status result = (Status) DatumCoder.decode(STATUS, this.rw.read());
 
-            Assert.assertArrayEquals(expected, result);
-        }
-    }
-
-    private void testEncodeDecode(Coder coder) throws IOException, IOException {
-        MessageSet ms = RandomMessageSet.generate();
-
-        this.rw.write(coder.encode(ms));
-        MessageSet result = coder.decode(this.rw.read());
-
-        Assert.assertEquals(ms, result);
+        Assert.assertEquals(record, result);
     }
 }

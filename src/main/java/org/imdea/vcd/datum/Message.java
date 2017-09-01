@@ -3,7 +3,7 @@
  *
  * DO NOT EDIT DIRECTLY
  */
-package org.imdea.vcd;
+package org.imdea.vcd.datum;
 
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.message.BinaryMessageEncoder;
@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class Message extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -8820979975374381663L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Message\",\"namespace\":\"org.imdea.vcd\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}");
+  private static final long serialVersionUID = -2194210291063942808L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Message\",\"namespace\":\"org.imdea.vcd.datum\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -127,8 +127,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
    * Creates a new Message RecordBuilder.
    * @return A new Message RecordBuilder
    */
-  public static org.imdea.vcd.Message.Builder newBuilder() {
-    return new org.imdea.vcd.Message.Builder();
+  public static org.imdea.vcd.datum.Message.Builder newBuilder() {
+    return new org.imdea.vcd.datum.Message.Builder();
   }
 
   /**
@@ -136,8 +136,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
    * @param other The existing builder to copy.
    * @return A new Message RecordBuilder
    */
-  public static org.imdea.vcd.Message.Builder newBuilder(org.imdea.vcd.Message.Builder other) {
-    return new org.imdea.vcd.Message.Builder(other);
+  public static org.imdea.vcd.datum.Message.Builder newBuilder(org.imdea.vcd.datum.Message.Builder other) {
+    return new org.imdea.vcd.datum.Message.Builder(other);
   }
 
   /**
@@ -145,8 +145,8 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
    * @param other The existing instance to copy.
    * @return A new Message RecordBuilder
    */
-  public static org.imdea.vcd.Message.Builder newBuilder(org.imdea.vcd.Message other) {
-    return new org.imdea.vcd.Message.Builder(other);
+  public static org.imdea.vcd.datum.Message.Builder newBuilder(org.imdea.vcd.datum.Message other) {
+    return new org.imdea.vcd.datum.Message.Builder(other);
   }
 
   /**
@@ -167,7 +167,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(org.imdea.vcd.Message.Builder other) {
+    private Builder(org.imdea.vcd.datum.Message.Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.hash)) {
         this.hash = data().deepCopy(fields()[0].schema(), other.hash);
@@ -183,7 +183,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
      * Creates a Builder by copying an existing Message instance
      * @param other The existing instance to copy.
      */
-    private Builder(org.imdea.vcd.Message other) {
+    private Builder(org.imdea.vcd.datum.Message other) {
             super(SCHEMA$);
       if (isValidValue(fields()[0], other.hash)) {
         this.hash = data().deepCopy(fields()[0].schema(), other.hash);
@@ -208,7 +208,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
       * @param value The value of 'hash'.
       * @return This builder.
       */
-    public org.imdea.vcd.Message.Builder setHash(java.nio.ByteBuffer value) {
+    public org.imdea.vcd.datum.Message.Builder setHash(java.nio.ByteBuffer value) {
       validate(fields()[0], value);
       this.hash = value;
       fieldSetFlags()[0] = true;
@@ -228,7 +228,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
       * Clears the value of the 'hash' field.
       * @return This builder.
       */
-    public org.imdea.vcd.Message.Builder clearHash() {
+    public org.imdea.vcd.datum.Message.Builder clearHash() {
       hash = null;
       fieldSetFlags()[0] = false;
       return this;
@@ -247,7 +247,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
       * @param value The value of 'data'.
       * @return This builder.
       */
-    public org.imdea.vcd.Message.Builder setData(java.nio.ByteBuffer value) {
+    public org.imdea.vcd.datum.Message.Builder setData(java.nio.ByteBuffer value) {
       validate(fields()[1], value);
       this.data = value;
       fieldSetFlags()[1] = true;
@@ -267,7 +267,7 @@ public class Message extends org.apache.avro.specific.SpecificRecordBase impleme
       * Clears the value of the 'data' field.
       * @return This builder.
       */
-    public org.imdea.vcd.Message.Builder clearData() {
+    public org.imdea.vcd.datum.Message.Builder clearData() {
       data = null;
       fieldSetFlags()[1] = false;
       return this;

@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import org.imdea.vcd.datum.Message;
+import org.imdea.vcd.datum.MessageSet;
 
 /**
  *

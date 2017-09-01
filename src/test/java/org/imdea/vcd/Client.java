@@ -1,5 +1,8 @@
 package org.imdea.vcd;
 
+import static org.imdea.vcd.datum.DatumType.MESSAGE_SET;
+import org.imdea.vcd.datum.MessageSet;
+
 /**
  *
  * @author Vitor Enes
@@ -15,8 +18,8 @@ public class Client {
         for (int i = 1; i <= config.getOps(); i++) {
             MessageSet expected = RandomMessageSet.generate(config.getConflictPercentage(), 1);
             Debug.start("LATENCY");
-            socket.send(expected);
-            MessageSet result = socket.receive();
+            socket.send(MESSAGE_SET, expected);
+            MessageSet result = (MessageSet) socket.receive(MESSAGE_SET);
             Debug.end("LATENCY");
 
             assert expected.equals(result);

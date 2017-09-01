@@ -1,4 +1,4 @@
-package org.imdea.vcd.coding;
+package org.imdea.vcd.datum;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -6,10 +6,6 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.specific.SpecificDatumReader;
-import org.apache.avro.specific.SpecificDatumWriter;
-import org.imdea.vcd.Debug;
-import org.imdea.vcd.MessageSet;
 
 /**
  *
@@ -19,21 +15,14 @@ import org.imdea.vcd.MessageSet;
  * https://cwiki.apache.org/confluence/display/AVRO/FAQ#FAQ-HowcanIserializedirectlyto/fromabytearray?
  *
  */
-public class DatumCoder implements Coder {
+public class DatumCoder {
 
-    private static final SpecificDatumWriter<MessageSet> WRITER = new SpecificDatumWriter<>(MessageSet.getClassSchema());
-    private static final SpecificDatumReader<MessageSet> READER = new SpecificDatumReader<>(MessageSet.getClassSchema());
-
-    public DatumCoder() {
-    }
-
-    @Override
-    public byte[] encode(MessageSet messageSet) throws IOException {
+    public static byte[] encode(DatumType type, Object record) throws IOException {
         //Debug.start("Encode");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
 
-        WRITER.write(messageSet, encoder);
+        type.getWriter().write(record, encoder);
 
         encoder.flush();
         out.close();
@@ -43,12 +32,11 @@ public class DatumCoder implements Coder {
         return data;
     }
 
-    @Override
-    public MessageSet decode(byte[] data) throws IOException {
+    public static Object decode(DatumType type, byte[] data) throws IOException {
         //Debug.start("Decode");
         Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
-        MessageSet messageSet = READER.read(null, decoder);
+        Object record = type.getReader().read(null, decoder);
         //Debug.end("Decode");
-        return messageSet;
+        return record;
     }
 }
