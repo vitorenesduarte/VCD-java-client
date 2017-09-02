@@ -14,14 +14,21 @@ public class Debug {
     private static final Map<String, Long> START = new TreeMap<>();
     private static final Map<String, List<Long>> TIMES = new TreeMap<>();
 
+    public static Long start() {
+        return System.nanoTime();
+    }
+
     public static void start(String method) {
-        Long start = System.nanoTime();
+        Long start = start();
         START.put(method, start);
     }
 
     public static void end(String method) {
-        Long time = System.nanoTime() - START.get(method);
+        end(method, START.get(method));
+    }
 
+    public static void end(String method, Long start) {
+        Long time = System.nanoTime() - start;
         List<Long> times = TIMES.get(method);
         if (times == null) {
             times = new ArrayList<>();
@@ -32,7 +39,7 @@ public class Debug {
     }
 
     public static void show() {
-        for(String method : TIMES.keySet()){
+        for (String method : TIMES.keySet()) {
             System.out.println(method + ": " + average(TIMES.get(method)) + " (us)");
         }
     }
