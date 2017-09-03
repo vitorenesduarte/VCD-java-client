@@ -12,7 +12,7 @@ import java.util.HashSet;
 public class Config {
 
     private static final HashSet<String> REQUIRED = new HashSet<>(Arrays.asList("port"));
-    
+
     private Integer port;
     private String host;
     private Integer ops;
@@ -61,7 +61,7 @@ public class Config {
         Config config = new Config();
 
         HashSet<String> missing = REQUIRED;
-        
+
         for (String arg : args) {
             String[] parts = arg.split("=");
 

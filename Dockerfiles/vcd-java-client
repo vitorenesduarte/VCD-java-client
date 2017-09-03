@@ -1,0 +1,16 @@
+FROM openjdk:8-slim
+
+MAINTAINER Vitor Enes <vitorenesduarte@gmail.com>
+
+
+ENV NAME=vcd-java-client
+ENV JAR=$NAME-0.1.jar
+
+ADD target/$JAR $NAME/
+
+WORKDIR $NAME
+
+CMD java -jar $JAR host=${HOST} \
+                   port=${PORT} \
+                   ops=${OPS} \
+                   conflict_percentage=${CONFLICT_PERCENTAGE}
