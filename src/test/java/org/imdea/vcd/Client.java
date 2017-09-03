@@ -19,33 +19,23 @@ public class Client {
 
         for (int i = 1; i <= config.getOps(); i++) {
             MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage(), 1);
-            Long start = Debug.start();
+            Long start = Timer.start();
             socket.send(DatumType.MESSAGE_SET, messageSet);
-
             receiveStatus(socket, start);
         }
 
-        Debug.show();
+        Timer.show();
 
         Thread.sleep(1000);
     }
 
     private static void receiveStatus(Socket socket, Long start) throws IOException {
-        Status result = (Status) socket.receive(DatumType.STATUS);
+        Status status = (Status) socket.receive(DatumType.STATUS);
 
-        switch (result) {
-            case WRITTEN:
-                Debug.end("WRITTEN", start);
-                receiveStatus(socket, start);
-                break;
-            case COMMITTED:
-                Debug.end("COMMITTED", start);
-                receiveStatus(socket, start);
-                break;
-            case DELIVERED:
-                Debug.end("DELIVERED", start);
-                // block until this status is received
-                break;
+        Timer.end(status, start);
+        if (status != Status.DELIVERED) {
+            // block until delivered status is received
+            receiveStatus(socket, start);
         }
     }
 }

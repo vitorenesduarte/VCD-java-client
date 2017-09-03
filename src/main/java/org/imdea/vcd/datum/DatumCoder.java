@@ -18,7 +18,6 @@ import org.apache.avro.io.EncoderFactory;
 public class DatumCoder {
 
     public static byte[] encode(DatumType type, Object record) throws IOException {
-        //Debug.start("Encode");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
 
@@ -28,15 +27,12 @@ public class DatumCoder {
         out.close();
 
         byte[] data = out.toByteArray();
-        //Debug.end("Encode");
         return data;
     }
 
     public static Object decode(DatumType type, byte[] data) throws IOException {
-        //Debug.start("Decode");
         Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);
         Object record = type.getReader().read(null, decoder);
-        //Debug.end("Decode");
         return record;
     }
 }
