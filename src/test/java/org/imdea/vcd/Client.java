@@ -4,6 +4,7 @@ import java.io.IOException;
 import org.imdea.vcd.datum.DatumType;
 import org.imdea.vcd.datum.MessageSet;
 import org.imdea.vcd.datum.Status;
+import redis.clients.jedis.Jedis;
 
 /**
  *
@@ -26,6 +27,8 @@ public class Client {
 
         Timer.show();
 
+        push(config);
+
         Thread.sleep(1000);
     }
 
@@ -36,6 +39,17 @@ public class Client {
         if (status != Status.DELIVERED) {
             // block until delivered status is received
             receiveStatus(socket, start);
+        }
+    }
+
+    private static void push(Config config) {
+        String redis = config.getRedis();
+        String timestamp = config.getTimestamp();
+
+        if (redis != null) {
+            try (Jedis jedis = new Jedis(redis)) {
+                jedis.sadd(timestamp, Timer.serialize());
+            }
         }
     }
 }

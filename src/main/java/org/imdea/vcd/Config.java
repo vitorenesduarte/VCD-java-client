@@ -17,12 +17,16 @@ public class Config {
     private String host;
     private Integer ops;
     private Integer conflictPercentage;
+    private String timestamp;
+    private String redis;
 
     private Config() {
         // set config defaults here
         this.host = "localhost";
         this.ops = 1000;
         this.conflictPercentage = 0;
+        this.timestamp = null;
+        this.redis = null;
     }
 
     public Integer getPort() {
@@ -57,6 +61,22 @@ public class Config {
         this.conflictPercentage = Integer.parseInt(conflictPercentage);
     }
 
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getRedis() {
+        return redis;
+    }
+
+    public void setRedis(String redis) {
+        this.redis = redis;
+    }
+
     public static Config parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
         Config config = new Config();
 
@@ -65,31 +85,40 @@ public class Config {
         for (String arg : args) {
             String[] parts = arg.split("=");
 
-            if (parts.length != 2) {
+            if (parts.length > 2) {
                 throw new InvalidArgumentException(arg);
             }
 
-            String key = parts[0];
-            String value = parts[1];
+            if (parts.length == 2) {
+                // allow empty arguments
+                String key = parts[0];
+                String value = parts[1];
 
-            switch (key) {
-                case "port":
-                    config.setPort(value);
-                    break;
-                case "host":
-                    config.setHost(value);
-                    break;
-                case "ops":
-                    config.setOps(value);
-                    break;
-                case "conflict_percentage":
-                    config.setConflictPercentage(value);
-                    break;
-                default:
-                    throw new InvalidArgumentException(arg);
+                switch (key) {
+                    case "port":
+                        config.setPort(value);
+                        break;
+                    case "host":
+                        config.setHost(value);
+                        break;
+                    case "ops":
+                        config.setOps(value);
+                        break;
+                    case "conflict_percentage":
+                        config.setConflictPercentage(value);
+                        break;
+                    case "timestamp":
+                        config.setTimestamp(value);
+                        break;
+                    case "redis":
+                        config.setRedis(value);
+                        break;
+                    default:
+                        throw new InvalidArgumentException(arg);
+                }
+
+                missing.remove(key);
             }
-
-            missing.remove(key);
         }
 
         if (!missing.isEmpty()) {
