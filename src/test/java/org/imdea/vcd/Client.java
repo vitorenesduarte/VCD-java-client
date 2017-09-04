@@ -13,7 +13,7 @@ import redis.clients.jedis.Jedis;
 public class Client {
 
     public static void main(String[] args) throws Exception {
-        Thread.sleep(1000);
+        Thread.sleep(10 * 1000);
 
         Config config = Config.parseArgs(args);
         Socket socket = Socket.create(config);
