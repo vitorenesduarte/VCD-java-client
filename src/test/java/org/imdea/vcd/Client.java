@@ -19,6 +19,9 @@ public class Client {
         Socket socket = Socket.create(config);
 
         for (int i = 1; i <= config.getOps(); i++) {
+            if (i % 1000 == 0) {
+                System.out.println(i + " of " + config.getOps());
+            }
             MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage(), 1);
             Long start = Timer.start();
             socket.send(DatumType.MESSAGE_SET, messageSet);
