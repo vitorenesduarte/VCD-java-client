@@ -17,6 +17,8 @@ public class Client {
 
         Config config = Config.parseArgs(args);
         Socket socket = Socket.create(config);
+        
+        System.out.println("Connect OK!");
 
         for (int i = 1; i <= config.getOps(); i++) {
             if (i % 1000 == 0) {
