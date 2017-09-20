@@ -15,6 +15,7 @@ public class Config {
 
     private Integer port;
     private String host;
+    private Integer clients;
     private Integer ops;
     private Integer conflictPercentage;
     private String timestamp;
@@ -23,6 +24,7 @@ public class Config {
     private Config() {
         // set config defaults here
         this.host = "localhost";
+        this.clients = 1;
         this.ops = 1000;
         this.conflictPercentage = 0;
         this.timestamp = null;
@@ -43,6 +45,14 @@ public class Config {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public Integer getClients() {
+        return clients;
+    }
+
+    public void setClients(String clients) {
+        this.clients = Integer.parseInt(clients);
     }
 
     public Integer getOps() {
@@ -100,6 +110,9 @@ public class Config {
                         break;
                     case "host":
                         config.setHost(value);
+                        break;
+                    case "clients":
+                        config.setClients(value);
                         break;
                     case "ops":
                         config.setOps(value);

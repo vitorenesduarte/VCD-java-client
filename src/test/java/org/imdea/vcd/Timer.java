@@ -10,15 +10,21 @@ import org.imdea.vcd.datum.Status;
  */
 public class Timer {
 
-    private static final List<Long> WRITTEN_TIMES = new ArrayList<>();
-    private static final List<Long> COMMITTED_TIMES = new ArrayList<>();
-    private static final List<Long> DELIVERED_TIMES = new ArrayList<>();
+    private final List<Long> WRITTEN_TIMES;
+    private final List<Long> COMMITTED_TIMES;
+    private final List<Long> DELIVERED_TIMES;
 
-    public static Long start() {
+    public Timer() {
+        this.WRITTEN_TIMES = new ArrayList<>();
+        this.COMMITTED_TIMES = new ArrayList<>();
+        this.DELIVERED_TIMES = new ArrayList<>();
+    }
+
+    public Long start() {
         return System.nanoTime();
     }
 
-    public static void end(Status status, Long start) {
+    public void end(Status status, Long start) {
         Long time = System.nanoTime() - start;
 
         switch (status) {
@@ -43,15 +49,26 @@ public class Timer {
         }
     }
 
-    public static void show() {
+    public String show() {
         assert WRITTEN_TIMES.size() == COMMITTED_TIMES.size()
                 && COMMITTED_TIMES.size() == DELIVERED_TIMES.size();
-        System.out.println(Status.WRITTEN + ": " + average(WRITTEN_TIMES) + " (us)");
-        System.out.println(Status.COMMITTED + ": " + average(COMMITTED_TIMES) + " (us)");
-        System.out.println(Status.DELIVERED + ": " + average(DELIVERED_TIMES) + " (us)");
+        StringBuilder sb = new StringBuilder();
+        sb.append(Status.WRITTEN)
+                .append(": ")
+                .append(average(WRITTEN_TIMES))
+                .append(" (us)\n");
+        sb.append(Status.COMMITTED)
+                .append(": ")
+                .append(average(COMMITTED_TIMES))
+                .append(" (us)\n");
+        sb.append(Status.DELIVERED)
+                .append(": ")
+                .append(average(DELIVERED_TIMES))
+                .append(" (us)\n");
+        return sb.toString();
     }
 
-    public static String serialize() {
+    public String serialize() {
         StringBuilder sb = new StringBuilder();
         append(sb, "written", WRITTEN_TIMES);
         append(sb, "committed", COMMITTED_TIMES);
@@ -60,7 +77,7 @@ public class Timer {
         return sb.toString();
     }
 
-    private static void append(StringBuilder sb, String key, List<Long> times) {
+    private void append(StringBuilder sb, String key, List<Long> times) {
         sb.append(key).append("=");
         for (Long time : times) {
             sb.append(time).append(",");
@@ -69,7 +86,7 @@ public class Timer {
         sb.append(";");
     }
 
-    private static Long average(List<Long> nanos) {
+    private Long average(List<Long> nanos) {
         Long sum = 0L;
         for (Long nano : nanos) {
             sum += nano;
@@ -77,8 +94,7 @@ public class Timer {
         return toMicro(sum / nanos.size());
     }
 
-    private static Long toMicro(Long nano) {
+    private Long toMicro(Long nano) {
         return nano / 1000;
     }
-
 }

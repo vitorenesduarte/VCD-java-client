@@ -13,6 +13,7 @@ WORKDIR $NAME
 CMD java -jar $JAR host=${HOST} \
                    port=${PORT} \
                    ops=${OPS} \
+                   clients=${CLIENTS} \
                    conflict_percentage=${CONFLICT_PERCENTAGE} \
                    timestamp=${TIMESTAMP} \
                    redis=${REDIS}
