@@ -1,7 +1,6 @@
 package org.imdea.vcd;
 
 import java.io.IOException;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.imdea.vcd.datum.DatumType;
