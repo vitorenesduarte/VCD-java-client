@@ -59,7 +59,7 @@ public class Client {
                 println("Connect OK!");
 
                 for (int i = 1; i <= config.getOps(); i++) {
-                    if (i % 1000 == 0) {
+                    if (i % 100 == 0) {
                         println(i + " of " + config.getOps());
                     }
                     MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage(), 1);
