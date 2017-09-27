@@ -1,9 +1,13 @@
 package org.imdea.vcd;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.imdea.vcd.datum.DatumType;
+import org.imdea.vcd.datum.Message;
 import org.imdea.vcd.datum.MessageSet;
 import org.imdea.vcd.datum.Status;
 import redis.clients.jedis.Jedis;
@@ -63,9 +67,10 @@ public class Client {
                         println(i + " of " + config.getOps());
                     }
                     MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage(), 1);
+                    ByteBuffer id = messageSet.getMessages().get(0).getData();
                     Long start = this.timer.start();
                     socket.send(DatumType.MESSAGE_SET, messageSet);
-                    receiveStatus(socket, start);
+                    receiveMessage(start, id, socket);
                 }
 
                 println(this.timer.show());
@@ -76,13 +81,33 @@ public class Client {
             }
         }
 
-        private void receiveStatus(Socket socket, Long start) throws IOException {
-            Status status = (Status) socket.receive(DatumType.STATUS);
+        private void receiveMessage(Long start, ByteBuffer id, Socket socket) throws IOException {
+            MessageSet messageSet = (MessageSet) socket.receive(DatumType.MESSAGE_SET);
+            List<Message> messages = messageSet.getMessages();
+            Status status = messageSet.getStatus();
 
-            this.timer.end(status, start);
-            if (status != Status.DELIVERED) {
-                // block until delivered status is received
-                receiveStatus(socket, start);
+            switch (status) {
+                case COMMITTED:
+                    this.timer.end(status, start);
+                    // wait for delivery
+                    receiveMessage(start, id, socket);
+                    break;
+                case DELIVERED:
+                    boolean found = false;
+                    Iterator<Message> it = messages.iterator();
+
+                    // try to find the message I just sent
+                    while (it.hasNext() && !found) {
+                        found = it.next().getData().equals(id);
+                    }
+
+                    // if found, send another
+                    // otherwise wait
+                    if (found) {
+                        this.timer.end(status, start);
+                    } else {
+                        receiveMessage(start, id, socket);
+                    }
             }
         }
 

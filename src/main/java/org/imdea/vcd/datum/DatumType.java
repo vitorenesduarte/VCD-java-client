@@ -14,8 +14,7 @@ import org.apache.avro.specific.SpecificDatumWriter;
  * @author user
  */
 public enum DatumType {
-    MESSAGE_SET(MessageSet.getClassSchema()),
-    STATUS(Status.getClassSchema());
+    MESSAGE_SET(MessageSet.getClassSchema());
     
     private final SpecificDatumReader<Object> reader;
     private final SpecificDatumWriter<Object> writer;

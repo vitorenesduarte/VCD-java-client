@@ -11,9 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.imdea.vcd.datum.DatumCoder;
 import static org.imdea.vcd.datum.DatumType.MESSAGE_SET;
-import static org.imdea.vcd.datum.DatumType.STATUS;
 import org.imdea.vcd.datum.MessageSet;
-import org.imdea.vcd.datum.Status;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,15 +51,5 @@ public class CoderTest {
 
             Assert.assertEquals(record, result);
         }
-    }
-
-    @Test
-    public void testStatusEncodeDecode() throws IOException, IOException {
-        Status record = Status.COMMITTED;
-
-        this.rw.write(DatumCoder.encode(STATUS, record));
-        Status result = (Status) DatumCoder.decode(STATUS, this.rw.read());
-
-        Assert.assertEquals(record, result);
     }
 }

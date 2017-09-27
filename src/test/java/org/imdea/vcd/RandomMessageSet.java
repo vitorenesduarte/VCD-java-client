@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.imdea.vcd.datum.Message;
 import org.imdea.vcd.datum.MessageSet;
+import org.imdea.vcd.datum.Status;
 
 /**
  *
@@ -33,7 +34,7 @@ public class RandomMessageSet {
             messages.add(m);
         }
 
-        return new MessageSet(messages);
+        return new MessageSet(messages, Status.START);
     }
 
     private static ThreadLocalRandom RANDOM() {

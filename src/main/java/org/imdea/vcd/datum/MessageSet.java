@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class MessageSet extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -8232711214277665158L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MessageSet\",\"namespace\":\"org.imdea.vcd.datum\",\"fields\":[{\"name\":\"messages\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"Message\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}}}]}");
+  private static final long serialVersionUID = -227006695831428869L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"MessageSet\",\"namespace\":\"org.imdea.vcd.datum\",\"fields\":[{\"name\":\"messages\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"Message\",\"fields\":[{\"name\":\"hash\",\"type\":\"bytes\"},{\"name\":\"data\",\"type\":\"bytes\"}]}}},{\"name\":\"status\",\"type\":{\"type\":\"enum\",\"name\":\"Status\",\"symbols\":[\"START\",\"COMMITTED\",\"DELIVERED\"]}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -52,6 +52,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
   }
 
   @Deprecated public java.util.List<org.imdea.vcd.datum.Message> messages;
+  @Deprecated public org.imdea.vcd.datum.Status status;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -63,9 +64,11 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
   /**
    * All-args constructor.
    * @param messages The new value for messages
+   * @param status The new value for status
    */
-  public MessageSet(java.util.List<org.imdea.vcd.datum.Message> messages) {
+  public MessageSet(java.util.List<org.imdea.vcd.datum.Message> messages, org.imdea.vcd.datum.Status status) {
     this.messages = messages;
+    this.status = status;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
@@ -73,6 +76,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
   public java.lang.Object get(int field$) {
     switch (field$) {
     case 0: return messages;
+    case 1: return status;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -82,6 +86,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
     case 0: messages = (java.util.List<org.imdea.vcd.datum.Message>)value$; break;
+    case 1: status = (org.imdea.vcd.datum.Status)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -100,6 +105,22 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
    */
   public void setMessages(java.util.List<org.imdea.vcd.datum.Message> value) {
     this.messages = value;
+  }
+
+  /**
+   * Gets the value of the 'status' field.
+   * @return The value of the 'status' field.
+   */
+  public org.imdea.vcd.datum.Status getStatus() {
+    return status;
+  }
+
+  /**
+   * Sets the value of the 'status' field.
+   * @param value the value to set.
+   */
+  public void setStatus(org.imdea.vcd.datum.Status value) {
+    this.status = value;
   }
 
   /**
@@ -135,6 +156,7 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
     implements org.apache.avro.data.RecordBuilder<MessageSet> {
 
     private java.util.List<org.imdea.vcd.datum.Message> messages;
+    private org.imdea.vcd.datum.Status status;
 
     /** Creates a new Builder */
     private Builder() {
@@ -151,6 +173,10 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
         this.messages = data().deepCopy(fields()[0].schema(), other.messages);
         fieldSetFlags()[0] = true;
       }
+      if (isValidValue(fields()[1], other.status)) {
+        this.status = data().deepCopy(fields()[1].schema(), other.status);
+        fieldSetFlags()[1] = true;
+      }
     }
 
     /**
@@ -162,6 +188,10 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
       if (isValidValue(fields()[0], other.messages)) {
         this.messages = data().deepCopy(fields()[0].schema(), other.messages);
         fieldSetFlags()[0] = true;
+      }
+      if (isValidValue(fields()[1], other.status)) {
+        this.status = data().deepCopy(fields()[1].schema(), other.status);
+        fieldSetFlags()[1] = true;
       }
     }
 
@@ -204,12 +234,52 @@ public class MessageSet extends org.apache.avro.specific.SpecificRecordBase impl
       return this;
     }
 
+    /**
+      * Gets the value of the 'status' field.
+      * @return The value.
+      */
+    public org.imdea.vcd.datum.Status getStatus() {
+      return status;
+    }
+
+    /**
+      * Sets the value of the 'status' field.
+      * @param value The value of 'status'.
+      * @return This builder.
+      */
+    public org.imdea.vcd.datum.MessageSet.Builder setStatus(org.imdea.vcd.datum.Status value) {
+      validate(fields()[1], value);
+      this.status = value;
+      fieldSetFlags()[1] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'status' field has been set.
+      * @return True if the 'status' field has been set, false otherwise.
+      */
+    public boolean hasStatus() {
+      return fieldSetFlags()[1];
+    }
+
+
+    /**
+      * Clears the value of the 'status' field.
+      * @return This builder.
+      */
+    public org.imdea.vcd.datum.MessageSet.Builder clearStatus() {
+      status = null;
+      fieldSetFlags()[1] = false;
+      return this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public MessageSet build() {
       try {
         MessageSet record = new MessageSet();
         record.messages = fieldSetFlags()[0] ? this.messages : (java.util.List<org.imdea.vcd.datum.Message>) defaultValue(fields()[0]);
+        record.status = fieldSetFlags()[1] ? this.status : (org.imdea.vcd.datum.Status) defaultValue(fields()[1]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

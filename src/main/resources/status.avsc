@@ -1,7 +1,0 @@
-{ "type":"enum",
-  "name":"Status",
-  "namespace":"org.imdea.vcd.datum",
-  "symbols" : ["WRITTEN", "COMMITTED", "DELIVERED"]
-}
-
-

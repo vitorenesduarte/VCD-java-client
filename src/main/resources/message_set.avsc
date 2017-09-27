@@ -10,6 +10,13 @@
             "fields":[{"name":"hash","type":"bytes"},{"name":"data","type":"bytes"}]
           }
         }
+    },
+    { "name":"status",
+      "type":
+        { "type":"enum",
+          "name":"Status",
+          "symbols" : ["START", "COMMITTED", "DELIVERED"]
+        }
     }
   ]
 }

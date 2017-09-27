@@ -7,7 +7,7 @@ package org.imdea.vcd.datum;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public enum Status {
-  WRITTEN, COMMITTED, DELIVERED  ;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"enum\",\"name\":\"Status\",\"namespace\":\"org.imdea.vcd.datum\",\"symbols\":[\"WRITTEN\",\"COMMITTED\",\"DELIVERED\"]}");
+  START, COMMITTED, DELIVERED  ;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"enum\",\"name\":\"Status\",\"namespace\":\"org.imdea.vcd.datum\",\"symbols\":[\"START\",\"COMMITTED\",\"DELIVERED\"]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 }
