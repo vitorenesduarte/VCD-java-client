@@ -9,8 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.imdea.vcd.datum.DatumCoder;
-import static org.imdea.vcd.datum.DatumType.MESSAGE_SET;
+import org.imdea.vcd.datum.MessageSetCoder;
 import org.imdea.vcd.datum.MessageSet;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,11 +42,12 @@ public class CoderTest {
 
     @Test
     public void testMessageSetEncodeDecode() throws FileNotFoundException, IOException {
+        MessageSetCoder coder = new MessageSetCoder();
         for (int i = 0; i < REPETITIONS; i++) {
             MessageSet record = RandomMessageSet.generate();
 
-            this.rw.write(DatumCoder.encode(MESSAGE_SET, record));
-            MessageSet result = (MessageSet) DatumCoder.decode(MESSAGE_SET, this.rw.read());
+            this.rw.write(coder.encode(record));
+            MessageSet result = coder.decode(this.rw.read());
 
             Assert.assertEquals(record, result);
         }
