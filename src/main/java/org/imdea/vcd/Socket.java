@@ -3,8 +3,7 @@ package org.imdea.vcd;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import org.imdea.vcd.datum.DatumCoder;
-import org.imdea.vcd.datum.DatumType;
+import org.imdea.vcd.datum.Proto.MessageSet;
 
 /**
  *
@@ -27,11 +26,11 @@ public class Socket {
         return new Socket(rw);
     }
 
-    public void send(DatumType type, Object record) throws IOException {
-        this.rw.write(DatumCoder.encode(type, record));
+    public void send(MessageSet messageSet) throws IOException {
+        this.rw.write(messageSet);
     }
 
-    public Object receive(DatumType type) throws IOException {
-        return DatumCoder.decode(type, this.rw.read());
+    public MessageSet receive() throws IOException {
+        return this.rw.read();
     }
 }

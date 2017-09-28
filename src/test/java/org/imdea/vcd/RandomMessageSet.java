@@ -1,12 +1,10 @@
 package org.imdea.vcd;
 
+import com.google.protobuf.ByteString;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import org.imdea.vcd.datum.Message;
-import org.imdea.vcd.datum.MessageSet;
-import org.imdea.vcd.datum.Status;
+import org.imdea.vcd.datum.Proto.Message;
+import org.imdea.vcd.datum.Proto.MessageSet;
 
 /**
  *
@@ -27,14 +25,19 @@ public class RandomMessageSet {
 
     public static MessageSet generate(Integer conflictPercentage, Integer size) {
         assert size > 0;
-        List<Message> messages = new ArrayList<>();
+        MessageSet.Builder builder = MessageSet.newBuilder();
 
         for (int i = 0; i < size; i++) {
-            Message m = new Message(randomHash(conflictPercentage), randomByteBuffer());
-            messages.add(m);
+            Message m = Message.newBuilder()
+                    .setHash(ByteString.copyFrom(randomHash(conflictPercentage)))
+                    .setData(ByteString.copyFrom(randomByteBuffer()))
+                    .build();
+            builder.addMessages(m);
         }
-
-        return new MessageSet(messages, Status.START);
+        
+        builder.setStatus(MessageSet.Status.START);
+        
+        return builder.build();
     }
 
     private static ThreadLocalRandom RANDOM() {
