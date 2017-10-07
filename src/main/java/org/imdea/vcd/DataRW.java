@@ -1,5 +1,6 @@
 package org.imdea.vcd;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -30,7 +31,11 @@ public class DataRW {
         int length = in.readInt();
         byte data[] = new byte[length];
         in.read(data, 0, length);
-        MessageSet messageSet = MessageSet.parseFrom(data);
+        MessageSet messageSet = parse(data);
         return messageSet;
+    }
+
+    private synchronized MessageSet parse(byte[] data) throws InvalidProtocolBufferException {
+        return MessageSet.parseFrom(data);
     }
 }
