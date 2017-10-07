@@ -65,6 +65,10 @@ public class Timer {
     }
 
     private Long average(List<Long> nanos) {
+        int size = nanos.size();
+        if (size == 0) {
+            return 0L;
+        }
         Long sum = 0L;
         for (Long nano : nanos) {
             sum += nano;
