@@ -35,7 +35,9 @@ public class DataRW {
         return messageSet;
     }
 
-    private synchronized MessageSet parse(byte[] data) throws InvalidProtocolBufferException {
-        return MessageSet.parseFrom(data);
+    private MessageSet parse(byte[] data) throws InvalidProtocolBufferException {
+        synchronized (MessageSet.class) {
+            return MessageSet.parseFrom(data);
+        }
     }
 }
