@@ -1,7 +1,5 @@
 package org.imdea.vcd;
 
-import com.google.protobuf.ByteString;
-import java.nio.ByteBuffer;
 import java.util.concurrent.ThreadLocalRandom;
 import org.imdea.vcd.datum.Proto.Message;
 import org.imdea.vcd.datum.Proto.MessageSet;
@@ -12,11 +10,13 @@ import org.imdea.vcd.datum.Proto.MessageSet;
  */
 public class RandomMessageSet {
 
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
     public static MessageSet generate() {
         return generate(RANDOM().nextInt(100), RANDOM().nextInt(100));
     }
 
-    public static MessageSet generate(Config config){
+    public static MessageSet generate(Config config) {
         return generate(config.getConflictPercentage(), config.getPayloadSize());
     }
 
@@ -24,8 +24,8 @@ public class RandomMessageSet {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
-                .setHash(ByteString.copyFrom(randomHash(conflictPercentage, payloadSize)))
-                .setData(ByteString.copyFrom(randomByteBuffer(payloadSize)))
+                .setHash(randomHash(conflictPercentage, payloadSize))
+                .setData(randomString(payloadSize))
                 .build();
         builder.addMessages(m);
 
@@ -38,20 +38,22 @@ public class RandomMessageSet {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteBuffer randomByteBuffer(Integer payloadSize) {
-        byte[] data = new byte[payloadSize];
+    private static String randomString(Integer payloadSize) {
+        StringBuilder sb = new StringBuilder(payloadSize);
+        for (int i = 0; i < payloadSize; i++) {
+            sb.append(CHARACTERS.charAt(RANDOM().nextInt(CHARACTERS.length())));
+        }
 
-        RANDOM().nextBytes(data);
-        return ByteBuffer.wrap(data);
+        return sb.toString();
     }
 
-    private static ByteBuffer randomHash(Integer conflictPercentage, Integer payloadSize) {
+    private static String randomHash(Integer conflictPercentage, Integer payloadSize) {
         if (conflictPercentage == 0) {
-            return randomByteBuffer(payloadSize);
+            return randomString(payloadSize);
         } else {
             Integer numberOfOps = 100 / conflictPercentage;
             String hash = "" + RANDOM().nextInt(numberOfOps);
-            return ByteBuffer.wrap(hash.getBytes());
+            return hash;
         }
     }
 }

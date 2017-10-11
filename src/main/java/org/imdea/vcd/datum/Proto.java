@@ -19,14 +19,24 @@ public final class Proto {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>bytes hash = 1;</code>
+     * <code>string hash = 1;</code>
      */
-    com.google.protobuf.ByteString getHash();
+    java.lang.String getHash();
+    /**
+     * <code>string hash = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getHashBytes();
 
     /**
-     * <code>bytes data = 2;</code>
+     * <code>string data = 2;</code>
      */
-    com.google.protobuf.ByteString getData();
+    java.lang.String getData();
+    /**
+     * <code>string data = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getDataBytes();
   }
   /**
    * Protobuf type {@code Message}
@@ -41,8 +51,8 @@ public final class Proto {
       super(builder);
     }
     private Message() {
-      hash_ = com.google.protobuf.ByteString.EMPTY;
-      data_ = com.google.protobuf.ByteString.EMPTY;
+      hash_ = "";
+      data_ = "";
     }
 
     @java.lang.Override
@@ -74,13 +84,15 @@ public final class Proto {
               break;
             }
             case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
 
-              hash_ = input.readBytes();
+              hash_ = s;
               break;
             }
             case 18: {
+              java.lang.String s = input.readStringRequireUtf8();
 
-              data_ = input.readBytes();
+              data_ = s;
               break;
             }
           }
@@ -108,21 +120,71 @@ public final class Proto {
     }
 
     public static final int HASH_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString hash_;
+    private volatile java.lang.Object hash_;
     /**
-     * <code>bytes hash = 1;</code>
+     * <code>string hash = 1;</code>
      */
-    public com.google.protobuf.ByteString getHash() {
-      return hash_;
+    public java.lang.String getHash() {
+      java.lang.Object ref = hash_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        hash_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string hash = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getHashBytes() {
+      java.lang.Object ref = hash_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        hash_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int DATA_FIELD_NUMBER = 2;
-    private com.google.protobuf.ByteString data_;
+    private volatile java.lang.Object data_;
     /**
-     * <code>bytes data = 2;</code>
+     * <code>string data = 2;</code>
      */
-    public com.google.protobuf.ByteString getData() {
-      return data_;
+    public java.lang.String getData() {
+      java.lang.Object ref = data_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        data_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string data = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDataBytes() {
+      java.lang.Object ref = data_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        data_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     private byte memoizedIsInitialized = -1;
@@ -137,11 +199,11 @@ public final class Proto {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!hash_.isEmpty()) {
-        output.writeBytes(1, hash_);
+      if (!getHashBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, hash_);
       }
-      if (!data_.isEmpty()) {
-        output.writeBytes(2, data_);
+      if (!getDataBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, data_);
       }
       unknownFields.writeTo(output);
     }
@@ -151,13 +213,11 @@ public final class Proto {
       if (size != -1) return size;
 
       size = 0;
-      if (!hash_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, hash_);
+      if (!getHashBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, hash_);
       }
-      if (!data_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, data_);
+      if (!getDataBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, data_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -323,9 +383,9 @@ public final class Proto {
       }
       public Builder clear() {
         super.clear();
-        hash_ = com.google.protobuf.ByteString.EMPTY;
+        hash_ = "";
 
-        data_ = com.google.protobuf.ByteString.EMPTY;
+        data_ = "";
 
         return this;
       }
@@ -392,11 +452,13 @@ public final class Proto {
 
       public Builder mergeFrom(org.imdea.vcd.datum.Proto.Message other) {
         if (other == org.imdea.vcd.datum.Proto.Message.getDefaultInstance()) return this;
-        if (other.getHash() != com.google.protobuf.ByteString.EMPTY) {
-          setHash(other.getHash());
+        if (!other.getHash().isEmpty()) {
+          hash_ = other.hash_;
+          onChanged();
         }
-        if (other.getData() != com.google.protobuf.ByteString.EMPTY) {
-          setData(other.getData());
+        if (!other.getData().isEmpty()) {
+          data_ = other.data_;
+          onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -425,17 +487,43 @@ public final class Proto {
         return this;
       }
 
-      private com.google.protobuf.ByteString hash_ = com.google.protobuf.ByteString.EMPTY;
+      private java.lang.Object hash_ = "";
       /**
-       * <code>bytes hash = 1;</code>
+       * <code>string hash = 1;</code>
        */
-      public com.google.protobuf.ByteString getHash() {
-        return hash_;
+      public java.lang.String getHash() {
+        java.lang.Object ref = hash_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          hash_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>bytes hash = 1;</code>
+       * <code>string hash = 1;</code>
        */
-      public Builder setHash(com.google.protobuf.ByteString value) {
+      public com.google.protobuf.ByteString
+          getHashBytes() {
+        java.lang.Object ref = hash_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          hash_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string hash = 1;</code>
+       */
+      public Builder setHash(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -445,7 +533,7 @@ public final class Proto {
         return this;
       }
       /**
-       * <code>bytes hash = 1;</code>
+       * <code>string hash = 1;</code>
        */
       public Builder clearHash() {
         
@@ -453,18 +541,58 @@ public final class Proto {
         onChanged();
         return this;
       }
-
-      private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>bytes data = 2;</code>
+       * <code>string hash = 1;</code>
        */
-      public com.google.protobuf.ByteString getData() {
-        return data_;
+      public Builder setHashBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        hash_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object data_ = "";
+      /**
+       * <code>string data = 2;</code>
+       */
+      public java.lang.String getData() {
+        java.lang.Object ref = data_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          data_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>bytes data = 2;</code>
+       * <code>string data = 2;</code>
        */
-      public Builder setData(com.google.protobuf.ByteString value) {
+      public com.google.protobuf.ByteString
+          getDataBytes() {
+        java.lang.Object ref = data_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          data_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string data = 2;</code>
+       */
+      public Builder setData(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -474,11 +602,25 @@ public final class Proto {
         return this;
       }
       /**
-       * <code>bytes data = 2;</code>
+       * <code>string data = 2;</code>
        */
       public Builder clearData() {
         
         data_ = getDefaultInstance().getData();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string data = 2;</code>
+       */
+      public Builder setDataBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        data_ = value;
         onChanged();
         return this;
       }
@@ -1507,7 +1649,7 @@ public final class Proto {
   static {
     java.lang.String[] descriptorData = {
       "\n\021message_set.proto\"%\n\007Message\022\014\n\004hash\030\001" +
-      " \001(\014\022\014\n\004data\030\002 \001(\014\"\177\n\nMessageSet\022\032\n\010mess" +
+      " \001(\t\022\014\n\004data\030\002 \001(\t\"\177\n\nMessageSet\022\032\n\010mess" +
       "ages\030\001 \003(\0132\010.Message\022\"\n\006status\030\002 \001(\0162\022.M" +
       "essageSet.Status\"1\n\006Status\022\t\n\005START\020\000\022\r\n" +
       "\tCOMMITTED\020\001\022\r\n\tDELIVERED\020\002B\034\n\023org.imdea" +

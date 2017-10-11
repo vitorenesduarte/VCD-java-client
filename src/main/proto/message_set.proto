@@ -4,8 +4,8 @@ option java_package = "org.imdea.vcd.datum";
 option java_outer_classname = "Proto";
 
 message Message {
-  bytes hash = 1;
-  bytes data = 2;
+  string hash = 1;
+  string data = 2;
 }
 
 message MessageSet {

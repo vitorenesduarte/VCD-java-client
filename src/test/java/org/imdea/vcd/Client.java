@@ -1,6 +1,5 @@
 package org.imdea.vcd;
 
-import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -63,7 +62,7 @@ public class Client {
                 for (int i = 1; i <= config.getOps(); i++) {
                     println("START: " + i + " of " + config.getOps());
                     MessageSet messageSet = RandomMessageSet.generate(config);
-                    ByteString id = messageSet.getMessagesList().get(0).getData();
+                    String id = messageSet.getMessagesList().get(0).getData();
                     Long start = this.timer.start();
                     socket.send(messageSet);
                     receiveMessage(start, id, socket);
@@ -78,7 +77,7 @@ public class Client {
             }
         }
 
-        private void receiveMessage(Long start, ByteString id, Socket socket) throws IOException {
+        private void receiveMessage(Long start, String id, Socket socket) throws IOException {
             boolean found = false;
             while (!found) {
                 MessageSet messageSet = socket.receive();
