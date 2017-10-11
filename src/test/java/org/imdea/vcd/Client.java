@@ -2,7 +2,6 @@ package org.imdea.vcd;
 
 import com.google.protobuf.ByteString;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
