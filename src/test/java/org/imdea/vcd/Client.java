@@ -58,11 +58,13 @@ public class Client {
 
                 println("Connect OK!");
 
+                Thread.sleep(2000);
+
                 for (int i = 1; i <= config.getOps(); i++) {
                     if (i % 100 == 0) {
                         println(i + " of " + config.getOps());
                     }
-                    MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage(), 1);
+                    MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage());
                     ByteString id = messageSet.getMessagesList().get(0).getData();
                     Long start = this.timer.start();
                     socket.send(messageSet);
@@ -72,7 +74,7 @@ public class Client {
                 println(this.timer.show());
 
                 push(config);
-            } catch (IOException ex) {
+            } catch (IOException | InterruptedException ex) {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
