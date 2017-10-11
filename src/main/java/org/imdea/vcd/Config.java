@@ -18,6 +18,7 @@ public class Config {
     private Integer clients;
     private Integer ops;
     private Integer conflictPercentage;
+    private Integer payloadSize;
     private String timestamp;
     private String redis;
 
@@ -27,6 +28,7 @@ public class Config {
         this.clients = 1;
         this.ops = 1000;
         this.conflictPercentage = 0;
+        this.payloadSize = 100;
         this.timestamp = null;
         this.redis = null;
     }
@@ -69,6 +71,14 @@ public class Config {
 
     public void setConflictPercentage(String conflictPercentage) {
         this.conflictPercentage = Integer.parseInt(conflictPercentage);
+    }
+
+    public Integer getPayloadSize() {
+        return payloadSize;
+    }
+
+    public void setPayloadSize(String payloadSize) {
+        this.payloadSize = Integer.parseInt(payloadSize);
     }
 
     public String getTimestamp() {
@@ -119,6 +129,9 @@ public class Config {
                         break;
                     case "conflict_percentage":
                         config.setConflictPercentage(value);
+                        break;
+                    case "payload_size":
+                        config.setPayloadSize(value);
                         break;
                     case "timestamp":
                         config.setTimestamp(value);

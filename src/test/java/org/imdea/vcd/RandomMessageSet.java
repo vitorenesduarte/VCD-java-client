@@ -12,18 +12,20 @@ import org.imdea.vcd.datum.Proto.MessageSet;
  */
 public class RandomMessageSet {
 
-    private static final int ARRAY_SIZE = 1000;
-
     public static MessageSet generate() {
-        return generate(RANDOM().nextInt(100));
+        return generate(RANDOM().nextInt(100), RANDOM().nextInt(100));
     }
 
-    public static MessageSet generate(Integer conflictPercentage) {
+    public static MessageSet generate(Config config){
+        return generate(config.getConflictPercentage(), config.getPayloadSize());
+    }
+
+    public static MessageSet generate(Integer conflictPercentage, Integer payloadSize) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
-                .setHash(ByteString.copyFrom(randomHash(conflictPercentage)))
-                .setData(ByteString.copyFrom(randomByteBuffer()))
+                .setHash(ByteString.copyFrom(randomHash(conflictPercentage, payloadSize)))
+                .setData(ByteString.copyFrom(randomByteBuffer(payloadSize)))
                 .build();
         builder.addMessages(m);
 
@@ -36,16 +38,16 @@ public class RandomMessageSet {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteBuffer randomByteBuffer() {
-        byte[] data = new byte[ARRAY_SIZE];
+    private static ByteBuffer randomByteBuffer(Integer payloadSize) {
+        byte[] data = new byte[payloadSize];
 
         RANDOM().nextBytes(data);
         return ByteBuffer.wrap(data);
     }
 
-    private static ByteBuffer randomHash(Integer conflictPercentage) {
+    private static ByteBuffer randomHash(Integer conflictPercentage, Integer payloadSize) {
         if (conflictPercentage == 0) {
-            return randomByteBuffer();
+            return randomByteBuffer(payloadSize);
         } else {
             Integer numberOfOps = 100 / conflictPercentage;
             String hash = "" + RANDOM().nextInt(numberOfOps);

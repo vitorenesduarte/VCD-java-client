@@ -62,7 +62,7 @@ public class Client {
 
                 for (int i = 1; i <= config.getOps(); i++) {
                     println("START: " + i + " of " + config.getOps());
-                    MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage());
+                    MessageSet messageSet = RandomMessageSet.generate(config);
                     ByteString id = messageSet.getMessagesList().get(0).getData();
                     Long start = this.timer.start();
                     socket.send(messageSet);
