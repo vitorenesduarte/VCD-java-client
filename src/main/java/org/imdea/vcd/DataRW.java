@@ -28,18 +28,9 @@ public class DataRW {
     }
 
     public MessageSet read() throws IOException {
-        int index = 0;
         int length = in.readInt();
         byte data[] = new byte[length];
-
-        while (index < length) {
-            byte b = in.readByte();
-            if (b != 0) {
-                data[index] = b;
-                index++;
-            }
-        }
-
+        in.readFully(data, 0, length);
         MessageSet messageSet = MessageSet.parseFrom(data);
         return messageSet;
     }
