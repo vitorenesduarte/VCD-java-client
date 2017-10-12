@@ -28,16 +28,19 @@ public class DataRW {
     }
 
     public MessageSet read() throws IOException {
+        int index = 0;
         int length = in.readInt();
         byte data[] = new byte[length];
-        in.read(data, 0, length);
-        MessageSet messageSet = parse(data);
-        return messageSet;
-    }
 
-    private MessageSet parse(byte[] data) throws InvalidProtocolBufferException {
-        synchronized (MessageSet.class) {
-            return MessageSet.parseFrom(data);
+        while (index < length) {
+            byte b = in.readByte();
+            if (b != 0) {
+                data[index] = b;
+                index++;
+            }
         }
+
+        MessageSet messageSet = MessageSet.parseFrom(data);
+        return messageSet;
     }
 }
