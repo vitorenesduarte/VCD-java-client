@@ -10,7 +10,9 @@ import org.imdea.vcd.datum.Proto.MessageSet;
  */
 public class RandomMessageSet {
 
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final Integer MIN_ASCII = 33;
+    private static final Integer MAX_ASCII = 126;
+    private static final String CHARACTERS = chars(MIN_ASCII, MAX_ASCII);
 
     public static MessageSet generate() {
         return generate(RANDOM().nextInt(100), RANDOM().nextInt(100));
@@ -55,5 +57,14 @@ public class RandomMessageSet {
             String hash = "" + RANDOM().nextInt(numberOfOps);
             return hash;
         }
+    }
+
+    private static String chars(Integer min, Integer max) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = min; i <= max; i++) {
+            char c = (char) i;
+            sb.append(c);
+        }
+        return sb.toString();
     }
 }
