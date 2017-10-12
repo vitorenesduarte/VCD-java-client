@@ -49,9 +49,7 @@ public class Timer {
 
     public String serialize() {
         StringBuilder sb = new StringBuilder();
-        if (!COMMITTED_TIMES.isEmpty()) {
-            append(sb, "committed", COMMITTED_TIMES);
-        }
+        append(sb, "committed", COMMITTED_TIMES);
         append(sb, "delivered", DELIVERED_TIMES);
         sb.append("|");
         return sb.toString();
