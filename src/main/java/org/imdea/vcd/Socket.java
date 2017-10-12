@@ -12,11 +12,9 @@ import org.imdea.vcd.datum.Proto.MessageSet;
 public class Socket {
 
     private final DataRW rw;
-    private final MessageSetCoder coder;
 
     private Socket(DataRW rw) {
         this.rw = rw;
-        this.coder = new MessageSetCoder();
     }
 
     public static Socket create(Config config) throws IOException {

@@ -41,7 +41,6 @@ public class CoderTest {
 
     @Test
     public void testMessageSetEncodeDecode() throws FileNotFoundException, IOException {
-        MessageSetCoder coder = new MessageSetCoder();
         for (int i = 0; i < REPETITIONS; i++) {
             MessageSet messageSet = RandomMessageSet.generate();
 
