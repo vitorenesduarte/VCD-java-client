@@ -60,13 +60,14 @@ public class Client {
                 Thread.sleep(2000);
 
                 for (int i = 1; i <= config.getOps(); i++) {
-                    println("START: " + i + " of " + config.getOps());
+                    if (i % 100 == 0) {
+                        println("START: " + i + " of " + config.getOps());
+                    }
                     MessageSet messageSet = RandomMessageSet.generate(config);
                     String id = messageSet.getMessagesList().get(0).getData();
                     Long start = this.timer.start();
                     socket.send(messageSet);
                     receiveMessage(start, id, socket);
-                    println("END: " + i + " of " + config.getOps());
                 }
 
                 println(this.timer.show());
