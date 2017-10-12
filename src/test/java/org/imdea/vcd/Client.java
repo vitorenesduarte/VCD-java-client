@@ -61,7 +61,7 @@ public class Client {
 
                 for (int i = 1; i <= config.getOps(); i++) {
                     if (i % 100 == 0) {
-                        println("START: " + i + " of " + config.getOps());
+                        println(i + " of " + config.getOps());
                     }
                     MessageSet messageSet = RandomMessageSet.generate(config);
                     String id = messageSet.getMessagesList().get(0).getData();
