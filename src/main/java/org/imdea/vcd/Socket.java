@@ -12,17 +12,21 @@ import org.imdea.vcd.datum.Proto.MessageSet;
 public class Socket {
 
     private final DataRW rw;
+    private final MessageSetCoder coder;
 
     private Socket(DataRW rw) {
         this.rw = rw;
+        this.coder = new MessageSetCoder();
     }
 
     public static Socket create(Config config) throws IOException {
         java.net.Socket socket = new java.net.Socket(config.getHost(), config.getPort());
+        socket.setTcpNoDelay(true);
+
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-        socket.setTcpNoDelay(true);
         DataRW rw = new DataRW(in, out);
+
         return new Socket(rw);
     }
 
