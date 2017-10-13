@@ -3,6 +3,7 @@ package org.imdea.vcd;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.imdea.vcd.datum.Proto.Message;
@@ -72,7 +73,7 @@ public class Client {
 
                 println(this.timer.show());
 
-                push(config);
+                push();
             } catch (IOException | InterruptedException ex) {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -108,13 +109,15 @@ public class Client {
             }
         }
 
-        private void push(Config config) {
-            String redis = config.getRedis();
-            String timestamp = config.getTimestamp();
+        private void push() {
+            String redis = this.config.getRedis();
 
             if (redis != null) {
                 try (Jedis jedis = new Jedis(redis)) {
-                    jedis.sadd(timestamp, this.timer.serialize());
+                    Map<String, String> push = this.timer.serialize(config);
+                    for (String key : push.keySet()) {
+                        jedis.sadd(key, push.get(key));
+                    }
                 }
             }
         }
