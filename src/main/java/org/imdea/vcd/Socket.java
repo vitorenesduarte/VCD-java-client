@@ -3,8 +3,7 @@ package org.imdea.vcd;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import org.imdea.vcd.datum.MessageSetCoder;
-import org.imdea.vcd.datum.MessageSet;
+import org.imdea.vcd.datum.Proto.MessageSet;
 
 /**
  *
@@ -13,11 +12,9 @@ import org.imdea.vcd.datum.MessageSet;
 public class Socket {
 
     private final DataRW rw;
-    private final MessageSetCoder coder;
 
     private Socket(DataRW rw) {
         this.rw = rw;
-        this.coder = new MessageSetCoder();
     }
 
     public static Socket create(Config config) throws IOException {
@@ -31,14 +28,11 @@ public class Socket {
         return new Socket(rw);
     }
 
-    public void send( MessageSet messageSet) throws IOException {
-        byte data[] = this.coder.encode(messageSet);
-        this.rw.write(data);
+    public void send(MessageSet messageSet) throws IOException {
+        this.rw.write(messageSet);
     }
 
     public MessageSet receive() throws IOException {
-        byte data[] = this.rw.read();
-        MessageSet messageSet = this.coder.decode(data);
-        return messageSet;
+        return this.rw.read();
     }
 }

@@ -1,12 +1,14 @@
 package org.imdea.vcd;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import org.imdea.vcd.datum.Proto.MessageSet;
 
 /**
  *
- * @author Vitor Enses
+ * @author Vitor Enes
  */
 public class DataRW {
 
@@ -18,16 +20,18 @@ public class DataRW {
         this.out = out;
     }
 
-    public void write(byte[] data) throws IOException {
+    public void write(MessageSet messageSet) throws IOException {
+        byte[] data = messageSet.toByteArray();
         out.writeInt(data.length);
         out.write(data, 0, data.length);
         out.flush();
     }
 
-    public byte[] read() throws IOException {
+    public MessageSet read() throws IOException {
         int length = in.readInt();
         byte data[] = new byte[length];
-        in.read(data, 0, length);
-        return data;
+        in.readFully(data, 0, length);
+        MessageSet messageSet = MessageSet.parseFrom(data);
+        return messageSet;
     }
 }

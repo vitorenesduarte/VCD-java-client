@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_package = "org.imdea.vcd.datum";
+option java_outer_classname = "Proto";
+
+message Message {
+  string hash = 1;
+  string data = 2;
+}
+
+message MessageSet {
+  repeated Message messages = 1;
+  enum Status {
+    START = 0;
+    COMMITTED = 1;
+    DELIVERED = 2;
+  }
+  Status status = 2;
+}

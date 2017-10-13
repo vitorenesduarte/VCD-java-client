@@ -2,7 +2,7 @@ package org.imdea.vcd;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.imdea.vcd.datum.Status;
+import org.imdea.vcd.datum.Proto.MessageSet;
 
 /**
  *
@@ -22,7 +22,7 @@ public class Timer {
         return System.nanoTime();
     }
 
-    public void end(Status status, Long start) {
+    public void end(MessageSet.Status status, Long start) {
         Long time = System.nanoTime() - start;
 
         switch (status) {
@@ -30,9 +30,6 @@ public class Timer {
                 COMMITTED_TIMES.add(time);
                 break;
             case DELIVERED:
-                if (COMMITTED_TIMES.size() == DELIVERED_TIMES.size()) {
-                    COMMITTED_TIMES.add(time);
-                }
                 DELIVERED_TIMES.add(time);
                 break;
         }
@@ -41,12 +38,10 @@ public class Timer {
     public String show() {
         assert COMMITTED_TIMES.isEmpty() || COMMITTED_TIMES.size() == DELIVERED_TIMES.size();
         StringBuilder sb = new StringBuilder();
-        sb.append(Status.COMMITTED)
-                .append(": ")
+        sb.append("COMMITTED: ")
                 .append(average(COMMITTED_TIMES))
                 .append(" (us)\n");
-        sb.append(Status.DELIVERED)
-                .append(": ")
+        sb.append("DELIVERED: ")
                 .append(average(DELIVERED_TIMES))
                 .append(" (us)\n");
         return sb.toString();
@@ -70,6 +65,10 @@ public class Timer {
     }
 
     private Long average(List<Long> nanos) {
+        int size = nanos.size();
+        if (size == 0) {
+            return 0L;
+        }
         Long sum = 0L;
         for (Long nano : nanos) {
             sum += nano;

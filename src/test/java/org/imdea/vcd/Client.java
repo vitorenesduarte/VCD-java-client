@@ -1,14 +1,12 @@
 package org.imdea.vcd;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.imdea.vcd.datum.Message;
-import org.imdea.vcd.datum.MessageSet;
-import org.imdea.vcd.datum.Status;
+import org.imdea.vcd.datum.Proto.Message;
+import org.imdea.vcd.datum.Proto.MessageSet;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -18,8 +16,6 @@ import redis.clients.jedis.Jedis;
 public class Client {
 
     public static void main(String[] args) throws Exception {
-        Thread.sleep(10 * 1000);
-
         Config config = Config.parseArgs(args);
         Integer clients = config.getClients();
         ClientRunner runners[] = new ClientRunner[clients];
@@ -61,12 +57,14 @@ public class Client {
 
                 println("Connect OK!");
 
+                Thread.sleep(2000);
+
                 for (int i = 1; i <= config.getOps(); i++) {
                     if (i % 100 == 0) {
                         println(i + " of " + config.getOps());
                     }
-                    MessageSet messageSet = RandomMessageSet.generate(config.getConflictPercentage(), 1);
-                    ByteBuffer id = messageSet.getMessages().get(0).getData();
+                    MessageSet messageSet = RandomMessageSet.generate(config);
+                    String id = messageSet.getMessagesList().get(0).getData();
                     Long start = this.timer.start();
                     socket.send(messageSet);
                     receiveMessage(start, id, socket);
@@ -75,17 +73,17 @@ public class Client {
                 println(this.timer.show());
 
                 push(config);
-            } catch (IOException ex) {
+            } catch (IOException | InterruptedException ex) {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
-        private void receiveMessage(Long start, ByteBuffer id, Socket socket) throws IOException {
+        private void receiveMessage(Long start, String id, Socket socket) throws IOException {
             boolean found = false;
             while (!found) {
                 MessageSet messageSet = socket.receive();
-                List<Message> messages = messageSet.getMessages();
-                Status status = messageSet.getStatus();
+                List<Message> messages = messageSet.getMessagesList();
+                MessageSet.Status status = messageSet.getStatus();
 
                 switch (status) {
                     case COMMITTED:
