@@ -1,6 +1,5 @@
 package org.imdea.vcd;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

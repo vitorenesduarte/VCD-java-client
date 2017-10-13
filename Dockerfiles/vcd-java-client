@@ -16,5 +16,7 @@ CMD java -jar $JAR host=${HOST} \
                    clients=${CLIENTS} \
                    conflict_percentage=${CONFLICT_PERCENTAGE} \
                    payload_size=${PAYLOAD_SIZE} \
+                   context=${CONTEXT} \
+                   node_number=${NODE_NUMBER} \
                    timestamp=${TIMESTAMP} \
                    redis=${REDIS}
