@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
+if [ -z "$1" ]; then
+  TAG=latest
+else
+  TAG="$1"
+fi
+
 DIR=$(dirname "$0")
-IMAGE=vitorenesduarte/vcd-java-client
+IMAGE=vitorenesduarte/vcd-java-client:${TAG}
 DOCKERFILE=${DIR}/../Dockerfiles/vcd-java-client
 
 # release vcd-java-client
@@ -14,3 +20,4 @@ docker build \
 
 # push image
 docker push "${IMAGE}"
+
