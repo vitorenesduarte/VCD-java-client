@@ -35,4 +35,8 @@ public class Socket {
     public MessageSet receive() throws IOException {
         return this.rw.read();
     }
+
+    public void closeRw() throws IOException {
+        this.rw.close();
+    }
 }

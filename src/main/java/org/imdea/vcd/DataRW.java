@@ -33,4 +33,9 @@ public class DataRW {
         MessageSet messageSet = MessageSet.parseFrom(data);
         return messageSet;
     }
+
+    public void close() throws IOException {
+        this.in.close();
+        this.out.close();
+    }
 }
