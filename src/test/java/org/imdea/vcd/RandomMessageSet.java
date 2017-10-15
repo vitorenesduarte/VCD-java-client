@@ -1,5 +1,6 @@
 package org.imdea.vcd;
 
+import com.google.protobuf.ByteString;
 import java.util.concurrent.ThreadLocalRandom;
 import org.imdea.vcd.datum.Proto.Message;
 import org.imdea.vcd.datum.Proto.MessageSet;
@@ -10,6 +11,7 @@ import org.imdea.vcd.datum.Proto.MessageSet;
  */
 public class RandomMessageSet {
 
+    private static final Integer KEY_SIZE = 8;
     private static final Integer MIN_ASCII = 33;
     private static final Integer MAX_ASCII = 126;
     private static final String CHARACTERS = chars(MIN_ASCII, MAX_ASCII);
@@ -27,7 +29,7 @@ public class RandomMessageSet {
 
         Message m = Message.newBuilder()
                 .setHash(randomHash(conflictPercentage, payloadSize))
-                .setData(randomString(payloadSize))
+                .setData(randomBytString(payloadSize))
                 .build();
         builder.addMessages(m);
 
@@ -40,23 +42,27 @@ public class RandomMessageSet {
         return ThreadLocalRandom.current();
     }
 
-    private static String randomString(Integer payloadSize) {
+    private static ByteString randomBytString(Integer payloadSize) {
         StringBuilder sb = new StringBuilder(payloadSize);
         for (int i = 0; i < payloadSize; i++) {
             sb.append(CHARACTERS.charAt(RANDOM().nextInt(CHARACTERS.length())));
         }
 
-        return sb.toString();
+        return bs(sb.toString());
     }
 
-    private static String randomHash(Integer conflictPercentage, Integer payloadSize) {
+    private static ByteString randomHash(Integer conflictPercentage, Integer payloadSize) {
         if (conflictPercentage == 0) {
-            return randomString(payloadSize);
+            return randomBytString(KEY_SIZE);
         } else {
             Integer numberOfOps = 100 / conflictPercentage;
             String hash = "" + RANDOM().nextInt(numberOfOps);
-            return hash;
+            return bs(hash);
         }
+    }
+    
+    private static ByteString bs(String s){
+        return ByteString.copyFrom(s.getBytes());
     }
 
     private static String chars(Integer min, Integer max) {
