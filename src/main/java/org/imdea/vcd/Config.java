@@ -19,7 +19,7 @@ public class Config {
     private Integer ops;
     private Integer conflictPercentage;
     private Integer payloadSize;
-    private String context;
+    private String cluster;
     private Integer nodeNumber;
     private String timestamp;
     private String redis;
@@ -31,7 +31,7 @@ public class Config {
         this.ops = 1000;
         this.conflictPercentage = 0;
         this.payloadSize = 100;
-        this.context = "undefined";
+        this.cluster = "undefined";
         this.nodeNumber = 1;
         this.timestamp = null;
         this.redis = null;
@@ -85,12 +85,12 @@ public class Config {
         this.payloadSize = Integer.parseInt(payloadSize);
     }
 
-    public String getContext() {
-        return context;
+    public String getCluster() {
+        return cluster;
     }
 
-    public void setContext(String context) {
-        this.context = context;
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
     }
 
     public Integer getNodeNumber() {
@@ -153,8 +153,8 @@ public class Config {
                     case "payload_size":
                         config.setPayloadSize(value);
                         break;
-                    case "context":
-                        config.setContext(value);
+                    case "cluster":
+                        config.setCluster(value);
                         break;
                     case "node_number":
                         config.setNodeNumber(value);

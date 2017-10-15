@@ -52,7 +52,7 @@ public class Timer {
     public Map<String, String> serialize(Config config) {
         Map<String, String> m = new HashMap<>();
         m.put(
-                key("VCD-commit", config),
+                key("VCDCommit", config),
                 serialize(COMMITTED_TIMES)
         );
         m.put(
@@ -67,7 +67,7 @@ public class Timer {
         return "" + config.getNodeNumber() + "/"
                 + "log-"
                 + protocol + "-"
-                + config.getContext() + "-"
+                + config.getCluster() + "-"
                 + config.getClients() + "-"
                 + config.getConflictPercentage() + "-"
                 + config.getOps() + "-"
