@@ -47,7 +47,7 @@ public class RandomMessageSet {
 
         switch (op) {
             case "GET":
-                hash = repeat((byte) 0, KEY_SIZE);
+                hash = repeat((byte) 0, 1);
                 break;
             case "PUT":
                 if (conflicts) {
