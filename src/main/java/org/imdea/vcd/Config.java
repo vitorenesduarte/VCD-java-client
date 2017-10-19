@@ -20,11 +20,11 @@ public class Config {
     private Boolean conflicts;
     private Integer payloadSize;
     private Integer nodeNumber;
+    private Integer maxFaults;
+    private String cluster;
     private String timestamp;
     private String redis;
     private String zk;
-    private String cluster;
-    private String algorithm;
 
     private Config() {
         // set config defaults here
@@ -34,11 +34,11 @@ public class Config {
         this.conflicts = false;
         this.payloadSize = 100;
         this.nodeNumber = 1;
+        this.maxFaults = null;
+        this.cluster = "undefined";
         this.timestamp = null;
         this.redis = null;
         this.zk = null;
-        this.cluster = "undefined";
-        this.algorithm = "undefined";
     }
 
     public Integer getPort() {
@@ -97,6 +97,22 @@ public class Config {
         this.nodeNumber = Integer.parseInt(nodeNumber);
     }
 
+    public Integer getMaxFaults() {
+        return maxFaults;
+    }
+
+    public void setMaxFaults(String maxFaults) {
+        this.maxFaults = Integer.parseInt(maxFaults);
+    }
+
+    public String getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
+    }
+
     public String getTimestamp() {
         return timestamp;
     }
@@ -121,22 +137,6 @@ public class Config {
         this.zk = zk;
     }
 
-    public String getCluster() {
-        return cluster;
-    }
-
-    public void setCluster(String cluster) {
-        this.cluster = cluster;
-    }
-
-    public String getAlgorithm() {
-        return algorithm;
-    }
-
-    public void setAlgorithm(String algorithm) {
-        this.algorithm = algorithm;
-    }
-    
     public static Config parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
         Config config = new Config();
 
@@ -176,6 +176,12 @@ public class Config {
                     case "node_number":
                         config.setNodeNumber(value);
                         break;
+                    case "max_faults":
+                        config.setMaxFaults(value);
+                        break;
+                    case "cluster":
+                        config.setCluster(value);
+                        break;
                     case "timestamp":
                         config.setTimestamp(value);
                         break;
@@ -183,12 +189,6 @@ public class Config {
                         config.setRedis(value);
                     case "zk":
                         config.setZk(value);
-                        break;
-                    case "cluster":
-                        config.setCluster(value);
-                        break;
-                    case "algorithm":
-                        config.setAlgorithm(value);
                         break;
                     default:
                         throw new InvalidArgumentException(arg);

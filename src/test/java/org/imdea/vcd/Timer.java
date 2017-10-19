@@ -52,26 +52,34 @@ public class Timer {
     public Map<String, String> serialize(Config config) {
         Map<String, String> m = new HashMap<>();
         m.put(
-                key(config.getAlgorithm() + "Commit", config),
+                key(config, "Commit"),
                 serialize(COMMITTED_TIMES)
         );
         m.put(
-                key(config.getAlgorithm(), config),
+                key(config),
                 serialize(DELIVERED_TIMES)
         );
 
         return m;
     }
 
-    private String key(String protocol, Config config) {
+    private String key(Config config) {
+        return key(config, "");
+    }
+
+    private String key(Config config, String protocolSuffix) {
         return "" + config.getNodeNumber() + "/"
                 + "log-"
-                + protocol + "-"
+                + protocol(config.getMaxFaults(), protocolSuffix) + "-"
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
                 + conflictPercentage(config.getConflicts()) + "-"
                 + config.getOps() + "-"
                 + "PUT";
+    }
+
+    private String protocol(Integer maxFaults, String protocolSuffix) {
+        return "VCD" + "f" + maxFaults + protocolSuffix;
     }
 
     private String conflictPercentage(boolean conflicts) {
