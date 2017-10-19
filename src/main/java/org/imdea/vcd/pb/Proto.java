@@ -1512,10 +1512,6 @@ public final class Proto {
     int getPort();
   }
   /**
-   * <pre>
-   * stored on zk: timestamp/id/protobuf-binary
-   * </pre>
-   *
    * Protobuf type {@code NodeSpec}
    */
   public  static final class NodeSpec extends
@@ -1826,10 +1822,6 @@ public final class Proto {
       return builder;
     }
     /**
-     * <pre>
-     * stored on zk: timestamp/id/protobuf-binary
-     * </pre>
-     *
      * Protobuf type {@code NodeSpec}
      */
     public static final class Builder extends
