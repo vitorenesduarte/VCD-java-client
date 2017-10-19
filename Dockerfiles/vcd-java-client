@@ -13,6 +13,7 @@ WORKDIR $NAME
 CMD java -jar $JAR host=${HOST} \
                    port=${PORT} \
                    ops=${OPS} \
+                   op=${OP} \
                    clients=${CLIENTS} \
                    conflicts=${CONFLICTS} \
                    payload_size=${PAYLOAD_SIZE} \

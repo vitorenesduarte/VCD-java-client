@@ -17,6 +17,7 @@ public class Config {
     private String host;
     private Integer clients;
     private Integer ops;
+    private String op;
     private Boolean conflicts;
     private Integer payloadSize;
     private Integer nodeNumber;
@@ -31,6 +32,7 @@ public class Config {
         this.host = "localhost";
         this.clients = 1;
         this.ops = 1000;
+        this.op = "PUT";
         this.conflicts = false;
         this.payloadSize = 100;
         this.nodeNumber = 1;
@@ -71,6 +73,14 @@ public class Config {
 
     public void setOps(String ops) {
         this.ops = Integer.parseInt(ops);
+    }
+
+    public String getOp() {
+        return op;
+    }
+
+    public void setOp(String op) {
+        this.op = op;
     }
 
     public Boolean getConflicts() {
@@ -167,6 +177,9 @@ public class Config {
                     case "ops":
                         config.setOps(value);
                         break;
+                    case "op":
+                        config.setOp(value);
+                        break;
                     case "conflicts":
                         config.setConflicts(value);
                         break;
@@ -187,6 +200,7 @@ public class Config {
                         break;
                     case "redis":
                         config.setRedis(value);
+                        break;
                     case "zk":
                         config.setZk(value);
                         break;

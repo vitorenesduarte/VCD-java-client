@@ -75,7 +75,7 @@ public class Timer {
                 + config.getClients() + "-"
                 + conflictPercentage(config.getConflicts()) + "-"
                 + config.getOps() + "-"
-                + "PUT";
+                + config.getOp();
     }
 
     private String protocol(Integer maxFaults, String protocolSuffix) {
