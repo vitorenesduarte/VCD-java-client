@@ -21,7 +21,7 @@ public class RandomMessageSet {
     }
 
     public static MessageSet generate(Config config) {
-        return generate("PUT", config.getConflicts(), config.getPayloadSize());
+        return generate(config.getOp(), config.getConflicts(), config.getPayloadSize());
     }
 
     public static MessageSet generate(String op, Boolean conflicts, Integer payloadSize) {
