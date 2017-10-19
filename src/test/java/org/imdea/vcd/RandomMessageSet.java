@@ -87,7 +87,7 @@ public class RandomMessageSet {
     private static byte[] chars(Integer min, Integer max) {
         byte[] ba = new byte[max - min + 1];
         for (int i = min; i <= max; i++) {
-            ba[i] = (byte) i;
+            ba[i - min] = (byte) i;
         }
         return ba;
     }
