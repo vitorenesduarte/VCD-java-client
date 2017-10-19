@@ -76,10 +76,6 @@ public class RandomMessageSet {
         return bs(ba);
     }
 
-    private static ByteString bs(String s) {
-        return bs(s.getBytes());
-    }
-
     private static ByteString bs(byte[] ba) {
         return ByteString.copyFrom(ba);
     }

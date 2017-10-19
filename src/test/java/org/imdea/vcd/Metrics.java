@@ -10,14 +10,24 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  *
  * @author Vitor Enes
  */
-public class Timer {
+public class Metrics {
 
+    private final List<Long> CHAIN_LENGTHS;
     private final List<Long> COMMITTED_TIMES;
     private final List<Long> DELIVERED_TIMES;
 
-    public Timer() {
+    public Metrics() {
+        this.CHAIN_LENGTHS = new ArrayList<>();
         this.COMMITTED_TIMES = new ArrayList<>();
         this.DELIVERED_TIMES = new ArrayList<>();
+    }
+
+    public void chain(Integer size) {
+        chain(new Long(size));
+    }
+
+    public void chain(Long size) {
+        CHAIN_LENGTHS.add(size);
     }
 
     public Long start() {
@@ -40,6 +50,9 @@ public class Timer {
     public String show() {
         assert COMMITTED_TIMES.isEmpty() || COMMITTED_TIMES.size() == DELIVERED_TIMES.size();
         StringBuilder sb = new StringBuilder();
+        sb.append("CHAINS: ")
+                .append(average(CHAIN_LENGTHS))
+                .append("\n");
         sb.append("COMMITTED: ")
                 .append(average(COMMITTED_TIMES))
                 .append(" (us)\n");
@@ -51,6 +64,10 @@ public class Timer {
 
     public Map<String, String> serialize(Config config) {
         Map<String, String> m = new HashMap<>();
+        m.put(
+                key(config, "Chains"),
+                serialize(CHAIN_LENGTHS)
+        );
         m.put(
                 key(config, "Commit"),
                 serialize(COMMITTED_TIMES)

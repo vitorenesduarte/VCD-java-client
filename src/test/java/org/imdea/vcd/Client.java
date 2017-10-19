@@ -45,11 +45,11 @@ public class Client {
     private static class ClientRunner extends Thread {
 
         private final Config config;
-        private final Timer timer;
+        private final Metrics metrics;
 
         public ClientRunner(Config config) {
             this.config = config;
-            this.timer = new Timer();
+            this.metrics = new Metrics();
         }
 
         @Override
@@ -67,12 +67,12 @@ public class Client {
                     }
                     MessageSet messageSet = RandomMessageSet.generate(config);
                     ByteString id = messageSet.getMessagesList().get(0).getData();
-                    Long start = this.timer.start();
+                    Long start = this.metrics.start();
                     socket.send(messageSet);
                     receiveMessage(start, id, socket);
                 }
 
-                println(this.timer.show());
+                println(this.metrics.show());
 
                 push();
             } catch (IOException | InterruptedException ex) {
@@ -87,9 +87,12 @@ public class Client {
                 List<Message> messages = messageSet.getMessagesList();
                 MessageSet.Status status = messageSet.getStatus();
 
+                // record chain size
+                this.metrics.chain(messages.size());
+
                 switch (status) {
                     case COMMITTED:
-                        this.timer.end(status, start);
+                        this.metrics.end(status, start);
                         // keep waiting
                         break;
                     case DELIVERED:
@@ -103,7 +106,7 @@ public class Client {
                         // if found, the cycle breaks
                         // otherwise, keep waiting
                         if (found) {
-                            this.timer.end(status, start);
+                            this.metrics.end(status, start);
                         }
                         break;
                 }
@@ -115,7 +118,7 @@ public class Client {
 
             if (redis != null) {
                 try (Jedis jedis = new Jedis(redis)) {
-                    Map<String, String> push = this.timer.serialize(config);
+                    Map<String, String> push = this.metrics.serialize(config);
                     for (String key : push.keySet()) {
                         jedis.sadd(key, push.get(key));
                     }
