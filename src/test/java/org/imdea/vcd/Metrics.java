@@ -54,10 +54,10 @@ public class Metrics {
                 .append(average(CHAIN_LENGTHS))
                 .append("\n");
         sb.append("COMMITTED: ")
-                .append(average(COMMITTED_TIMES))
+                .append(toMs(average(COMMITTED_TIMES)))
                 .append(" (us)\n");
         sb.append("DELIVERED: ")
-                .append(average(DELIVERED_TIMES))
+                .append(toMs(average(DELIVERED_TIMES)))
                 .append(" (us)\n");
         return sb.toString();
     }
@@ -126,11 +126,11 @@ public class Metrics {
         for (Long nano : nanos) {
             sum += nano;
         }
-        return toMicro(sum / nanos.size());
+        return sum / nanos.size();
     }
 
-    private Long toMicro(Long nano) {
-        return nano / 1000;
+    private Long toMs(Long nano) {
+        return nano / 1000000;
     }
 
 }
