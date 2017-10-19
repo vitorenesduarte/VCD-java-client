@@ -17,24 +17,28 @@ public class Config {
     private String host;
     private Integer clients;
     private Integer ops;
-    private Integer conflictPercentage;
+    private Boolean conflicts;
     private Integer payloadSize;
-    private String cluster;
     private Integer nodeNumber;
     private String timestamp;
     private String redis;
+    private String zk;
+    private String cluster;
+    private String algorithm;
 
     private Config() {
         // set config defaults here
         this.host = "localhost";
         this.clients = 1;
         this.ops = 1000;
-        this.conflictPercentage = 0;
+        this.conflicts = false;
         this.payloadSize = 100;
-        this.cluster = "undefined";
         this.nodeNumber = 1;
         this.timestamp = null;
         this.redis = null;
+        this.zk = null;
+        this.cluster = "undefined";
+        this.algorithm = "undefined";
     }
 
     public Integer getPort() {
@@ -69,12 +73,12 @@ public class Config {
         this.ops = Integer.parseInt(ops);
     }
 
-    public Integer getConflictPercentage() {
-        return conflictPercentage;
+    public Boolean getConflicts() {
+        return conflicts;
     }
 
-    public void setConflictPercentage(String conflictPercentage) {
-        this.conflictPercentage = Integer.parseInt(conflictPercentage);
+    public void setConflicts(String conflicts) {
+        this.conflicts = Boolean.parseBoolean(conflicts);
     }
 
     public Integer getPayloadSize() {
@@ -83,14 +87,6 @@ public class Config {
 
     public void setPayloadSize(String payloadSize) {
         this.payloadSize = Integer.parseInt(payloadSize);
-    }
-
-    public String getCluster() {
-        return cluster;
-    }
-
-    public void setCluster(String cluster) {
-        this.cluster = cluster;
     }
 
     public Integer getNodeNumber() {
@@ -117,6 +113,30 @@ public class Config {
         this.redis = redis;
     }
 
+    public String getZk() {
+        return zk;
+    }
+
+    public void setZk(String zk) {
+        this.zk = zk;
+    }
+
+    public String getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
+    }
+    
     public static Config parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
         Config config = new Config();
 
@@ -147,14 +167,11 @@ public class Config {
                     case "ops":
                         config.setOps(value);
                         break;
-                    case "conflict_percentage":
-                        config.setConflictPercentage(value);
+                    case "conflicts":
+                        config.setConflicts(value);
                         break;
                     case "payload_size":
                         config.setPayloadSize(value);
-                        break;
-                    case "cluster":
-                        config.setCluster(value);
                         break;
                     case "node_number":
                         config.setNodeNumber(value);
@@ -164,6 +181,14 @@ public class Config {
                         break;
                     case "redis":
                         config.setRedis(value);
+                    case "zk":
+                        config.setZk(value);
+                        break;
+                    case "cluster":
+                        config.setCluster(value);
+                        break;
+                    case "algorithm":
+                        config.setAlgorithm(value);
                         break;
                     default:
                         throw new InvalidArgumentException(arg);

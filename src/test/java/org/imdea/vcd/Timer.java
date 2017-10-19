@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.imdea.vcd.datum.Proto.MessageSet;
+import org.imdea.vcd.pb.Proto.MessageSet;
 
 /**
  *
@@ -52,11 +52,11 @@ public class Timer {
     public Map<String, String> serialize(Config config) {
         Map<String, String> m = new HashMap<>();
         m.put(
-                key("VCDCommit", config),
+                key(config.getAlgorithm() + "Commit", config),
                 serialize(COMMITTED_TIMES)
         );
         m.put(
-                key("VCD", config),
+                key(config.getAlgorithm(), config),
                 serialize(DELIVERED_TIMES)
         );
 
@@ -69,9 +69,17 @@ public class Timer {
                 + protocol + "-"
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
-                + config.getConflictPercentage() + "-"
+                + conflictPercentage(config.getConflicts()) + "-"
                 + config.getOps() + "-"
                 + "PUT";
+    }
+
+    private String conflictPercentage(boolean conflicts) {
+        if (conflicts) {
+            return "100";
+        } else {
+            return "0";
+        }
     }
 
     private String serialize(List<Long> times) {

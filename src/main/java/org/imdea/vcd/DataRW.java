@@ -3,7 +3,7 @@ package org.imdea.vcd;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import org.imdea.vcd.datum.Proto.MessageSet;
+import org.imdea.vcd.pb.Proto.MessageSet;
 
 /**
  *

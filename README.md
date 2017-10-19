@@ -15,6 +15,6 @@ $ docker run --net=host --env HOST=127.0.0.1 \
                         --env PORT=6000 \
                         --env CLIENTS=3 \
                         --env OPS=10000 \
-                        --env CONFLICT_PERCENTAGE=100 \
+                        --env CONFLICTS=true \
                         -ti vitorenesduarte/vcd-java-client
 ```

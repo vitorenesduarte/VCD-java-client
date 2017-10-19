@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.imdea.vcd.datum.Proto.MessageSet;
+import org.imdea.vcd.pb.Proto.MessageSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

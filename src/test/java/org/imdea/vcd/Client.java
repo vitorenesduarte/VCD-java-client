@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.imdea.vcd.datum.Proto.Message;
-import org.imdea.vcd.datum.Proto.MessageSet;
+import org.imdea.vcd.pb.Proto.Message;
+import org.imdea.vcd.pb.Proto.MessageSet;
 import redis.clients.jedis.Jedis;
 
 /**

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "org.imdea.vcd.datum";
+option java_package = "org.imdea.vcd.pb";
 option java_outer_classname = "Proto";
 
 message Message {
@@ -16,4 +16,10 @@ message MessageSet {
     DELIVERED = 2;
   }
   Status status = 2;
+}
+
+message NodeSpec {
+  int32 id = 1;
+  string ip = 2;
+  int32 port = 3;
 }
