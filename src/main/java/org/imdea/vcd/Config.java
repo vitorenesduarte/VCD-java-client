@@ -1,62 +1,50 @@
 package org.imdea.vcd;
 
-import org.imdea.vcd.exception.MissingArgumentException;
 import org.imdea.vcd.exception.InvalidArgumentException;
-import java.util.Arrays;
-import java.util.HashSet;
-
+import org.imdea.vcd.exception.MissingArgumentException;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 /**
  *
  * @author Vitor Enes
  */
 public class Config {
 
-    private static final HashSet<String> REQUIRED = new HashSet<>(Arrays.asList("port"));
+    @Option(name = "-zk", usage = "zk server (host:port)")
+    private String zk = "127.0.0.1:2181";
 
-    private Integer port;
-    private String host;
-    private Integer clients;
-    private Integer ops;
-    private String op;
-    private Boolean conflicts;
-    private Integer payloadSize;
-    private Integer nodeNumber;
-    private Integer maxFaults;
+    @Option(name = "-clients")
+    private Integer clients = 1;
+
+    @Option(name = "-ops")
+    private Integer ops = 1000;
+
+    @Option(name = "-op")
+    private String op = "PUT";
+
+    @Option(name = "-conflicts")
+    private Boolean conflicts = false;
+
+    @Option(name = "-payload_size")
+    private Integer payloadSize = 100;
+
+    @Option(name = "-node_number")
+    private Integer nodeNumber = 1;
+
+    @Option(name = "-max_faults")
+    private Integer maxFaults ;
+
+    @Option(name = "-cluster")
     private String cluster;
-    private String timestamp;
+
+    @Option(name = "-timestamp")
+    private String timestamp = "undefined";
+
+    @Option(name = "-redis")
     private String redis;
-    private String zk;
 
     private Config() {
-        // set config defaults here
-        this.host = "localhost";
-        this.clients = 1;
-        this.ops = 1000;
-        this.op = "PUT";
-        this.conflicts = false;
-        this.payloadSize = 100;
-        this.nodeNumber = 1;
-        this.maxFaults = null;
-        this.cluster = "undefined";
-        this.timestamp = null;
-        this.redis = null;
-        this.zk = null;
-    }
-
-    public Integer getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = Integer.parseInt(port);
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
     }
 
     public Integer getClients() {
@@ -149,74 +137,25 @@ public class Config {
 
     public static Config parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
         Config config = new Config();
-
-        HashSet<String> missing = REQUIRED;
-
-        for (String arg : args) {
-            String[] parts = arg.split("=");
-
-            if (parts.length > 2) {
-                throw new InvalidArgumentException(arg);
-            }
-
-            if (parts.length == 2) {
-                // allow empty arguments
-                String key = parts[0];
-                String value = parts[1];
-
-                switch (key) {
-                    case "port":
-                        config.setPort(value);
-                        break;
-                    case "host":
-                        config.setHost(value);
-                        break;
-                    case "clients":
-                        config.setClients(value);
-                        break;
-                    case "ops":
-                        config.setOps(value);
-                        break;
-                    case "op":
-                        config.setOp(value);
-                        break;
-                    case "conflicts":
-                        config.setConflicts(value);
-                        break;
-                    case "payload_size":
-                        config.setPayloadSize(value);
-                        break;
-                    case "node_number":
-                        config.setNodeNumber(value);
-                        break;
-                    case "max_faults":
-                        config.setMaxFaults(value);
-                        break;
-                    case "cluster":
-                        config.setCluster(value);
-                        break;
-                    case "timestamp":
-                        config.setTimestamp(value);
-                        break;
-                    case "redis":
-                        config.setRedis(value);
-                        break;
-                    case "zk":
-                        config.setZk(value);
-                        break;
-                    default:
-                        throw new InvalidArgumentException(arg);
-                }
-
-                missing.remove(key);
-            }
-        }
-
-        if (!missing.isEmpty()) {
-            throw new MissingArgumentException(missing.iterator().next());
-        }
-
+        config.doParseArgs(args);
         return config;
+    }
+
+    public void doParseArgs(String[] args) {
+
+        CmdLineParser parser = new CmdLineParser(this);
+
+        parser.setUsageWidth(80);
+
+        try {
+            parser.parseArgument(args);
+
+        } catch (CmdLineException e) {
+            System.err.println(e.getMessage());
+            parser.printUsage(System.err);
+            System.err.println();
+        }
+
     }
 
 }
