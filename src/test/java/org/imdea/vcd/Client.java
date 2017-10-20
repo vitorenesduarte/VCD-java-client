@@ -115,10 +115,14 @@ public class Client {
 
         private void push() {
             String redis = this.config.getRedis();
-
+            Map<String, String> push = this.metrics.serialize(config);
+            for (String key : push.keySet()) {
+                if (key.contains("Chains")) {
+                    println(push.get(key));
+                }
+            }
             if (redis != null) {
                 try (Jedis jedis = new Jedis(redis)) {
-                    Map<String, String> push = this.metrics.serialize(config);
                     for (String key : push.keySet()) {
                         jedis.sadd(key, push.get(key));
                     }
