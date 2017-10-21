@@ -36,6 +36,8 @@ public class Socket {
 
         try {
 
+            System.out.println("Connecting to: "+config.getZk());
+
             ZooKeeper zk = new ZooKeeper(
                     config.getZk()+ "/",
                     5000, new ZkWatcher());
