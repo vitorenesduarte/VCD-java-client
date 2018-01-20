@@ -23,7 +23,7 @@ public class Client {
         ClientRunner runners[] = new ClientRunner[clients];
 
         for (int i = 0; i < clients; i++) {
-            ClientRunner runner = new ClientRunner(config);
+            ClientRunner runner = new ClientRunner(i, config);
             runners[i] = runner;
         }
 
@@ -44,10 +44,12 @@ public class Client {
 
     private static class ClientRunner extends Thread {
 
+        private final int clientId;
         private final Config config;
         private final Metrics metrics;
 
-        public ClientRunner(Config config) {
+        public ClientRunner(int id, Config config) {
+            this.clientId = id;
             this.config = config;
             this.metrics = new Metrics();
         }
@@ -62,7 +64,7 @@ public class Client {
                 Thread.sleep(2000);
 
                 for (int i = 1; i <= config.getOps(); i++) {
-                    if (i % 100 == 0) {
+                    if (i % 50 == 0) {
                         println(i + " of " + config.getOps());
                     }
                     MessageSet messageSet = RandomMessageSet.generate(config);
@@ -116,11 +118,6 @@ public class Client {
         private void push() {
             String redis = this.config.getRedis();
             Map<String, String> push = this.metrics.serialize(config);
-            for (String key : push.keySet()) {
-                if (key.contains("Chains")) {
-                    println(push.get(key));
-                }
-            }
             if (redis != null) {
                 try (Jedis jedis = new Jedis(redis)) {
                     for (String key : push.keySet()) {
