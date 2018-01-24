@@ -23,7 +23,7 @@ public class Socket {
     private final DataRW rw;
     private ZooKeeper zk;
 
-    private Socket(DataRW rw) {
+    protected Socket(DataRW rw) {
         this.rw = rw;
     }
 
