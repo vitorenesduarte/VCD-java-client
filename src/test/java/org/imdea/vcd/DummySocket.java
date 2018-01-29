@@ -21,10 +21,18 @@ public class DummySocket extends Socket{
 
     public void send(Proto.MessageSet messageSet) throws IOException {
         Proto.MessageSet.Builder builder = Proto.MessageSet.newBuilder();
+
         for (Proto.Message message : messageSet.getMessagesList()) {
             builder.addMessages(message);
         }
+
+        //Proto.MessageSet.Builder cloned = messageSet.toBuilder().clone();
+
         try {
+            builder.setStatus(Proto.MessageSet.Status.COMMITTED);
+            queue.put(builder.build());
+
+            builder.setStatus(Proto.MessageSet.Status.DELIVERED);
             queue.put(builder.build());
         } catch (InterruptedException e) {
             e.printStackTrace();

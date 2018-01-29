@@ -47,6 +47,8 @@ public class Socket {
                 byte[] data = zk.getData(path, null, null);
                 nodes.add(Proto.NodeSpec.parseFrom(data));
             }
+            System.out.println("Fetched the Config");
+            zk.close();
 
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();
