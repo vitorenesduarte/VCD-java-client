@@ -112,7 +112,9 @@ public class Metrics {
         for (Long time : times) {
             sb.append(time).append(",");
         }
-        sb.deleteCharAt(sb.length() - 1);
+        if (!times.isEmpty()) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
         sb.append(";");
         return sb.toString();
     }
