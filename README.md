@@ -2,7 +2,7 @@
 
 ### Getting started
 
-Assuming you have a running VCD cluster running locally:
+Assuming you have a VCD cluster running locally:
 
 ```bash
 $ make run
