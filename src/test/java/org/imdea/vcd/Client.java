@@ -17,22 +17,26 @@ import redis.clients.jedis.Jedis;
  */
 public class Client {
 
-    public static void main(String[] args) throws Exception {
-        Config config = Config.parseArgs(args);
-        Integer clients = config.getClients();
-        ClientRunner runners[] = new ClientRunner[clients];
+    public static void main(String[] args) {
+        try {
+            Config config = Config.parseArgs(args);
+            Integer clients = config.getClients();
+            ClientRunner runners[] = new ClientRunner[clients];
 
-        for (int i = 0; i < clients; i++) {
-            ClientRunner runner = new ClientRunner(config);
-            runners[i] = runner;
-        }
+            for (int i = 0; i < clients; i++) {
+                ClientRunner runner = new ClientRunner(config);
+                runners[i] = runner;
+            }
 
-        for (int i = 0; i < clients; i++) {
-            runners[i].start();
-        }
+            for (int i = 0; i < clients; i++) {
+                runners[i].start();
+            }
 
-        for (int i = 0; i < clients; i++) {
-            runners[i].join();
+            for (int i = 0; i < clients; i++) {
+                runners[i].join();
+            }
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
         }
     }
 

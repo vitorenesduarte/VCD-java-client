@@ -21,7 +21,6 @@ import java.util.List;
 public class Socket {
 
     private final DataRW rw;
-    private ZooKeeper zk;
 
     protected Socket(DataRW rw) {
         this.rw = rw;
@@ -29,47 +28,10 @@ public class Socket {
 
     public static Socket create(Config config) throws IOException {
 
-        assert config.getZk().split(":").length == 2;
+        Proto.NodeSpec closest = getClosestNode(config);
+        System.out.println("Closest node is " + closest);
 
-        List<Proto.NodeSpec> nodes = new ArrayList<>();
-        String root = "/" + config.getTimestamp();
-
-        try {
-
-            System.out.println("Connecting to: "+config.getZk());
-
-            ZooKeeper zk = new ZooKeeper(
-                    config.getZk()+ "/",
-                    5000, new ZkWatcher());
-
-            for (String child : zk.getChildren(root, null)) {
-                String path = root + "/" + child;
-                byte[] data = zk.getData(path, null, null);
-                nodes.add(Proto.NodeSpec.parseFrom(data));
-            }
-            System.out.println("Fetched the Config");
-            zk.close();
-
-        } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Fatal error, cannot connect to Zk.");
-        }
-
-        long min = Long.MAX_VALUE;
-        Proto.NodeSpec closest = null;
-        for (Proto.NodeSpec node : nodes) {
-            InetAddress inet = InetAddress.getByName(node.getIp());
-            long start = System.currentTimeMillis();
-            for (int i=0; i<10; i++)  inet.isReachable(5000);
-            long delay = System.currentTimeMillis() - start;
-            if (delay < min) {
-                min=delay;
-                closest = node;
-            }
-        }
-        System.out.println("Closest is "+closest);
-
-        java.net.Socket socket = new java.net.Socket(closest.getIp(), closest.getPort()+1000);
+        java.net.Socket socket = new java.net.Socket(closest.getIp(), closest.getPort() + 1000);
         socket.setTcpNoDelay(true);
 
         DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -91,6 +53,48 @@ public class Socket {
         this.rw.close();
     }
 
+    private static Proto.NodeSpec getClosestNode(Config config) throws IOException {
+        assert config.getZk().split(":").length == 2;
+
+        List<Proto.NodeSpec> nodes = new ArrayList<>();
+        String root = "/" + config.getTimestamp();
+
+        try {
+            ZooKeeper zk = new ZooKeeper(
+                    config.getZk() + "/",
+                    5000, new ZkWatcher());
+
+            for (String child : zk.getChildren(root, null)) {
+                String path = root + "/" + child;
+                byte[] data = zk.getData(path, null, null);
+                nodes.add(Proto.NodeSpec.parseFrom(data));
+            }
+            zk.close();
+
+        } catch (KeeperException | InterruptedException e) {
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Fatal error, cannot connect to Zk.");
+        }
+
+        long min = Long.MAX_VALUE;
+        Proto.NodeSpec closest = null;
+
+        for (Proto.NodeSpec node : nodes) {
+            InetAddress inet = InetAddress.getByName(node.getIp());
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < 10; i++) {
+                inet.isReachable(5000);
+            }
+            long delay = System.currentTimeMillis() - start;
+            if (delay < min) {
+                min = delay;
+                closest = node;
+            }
+        }
+
+        return closest;
+    }
+
     private static class ZkWatcher implements Watcher {
 
         @Override
@@ -98,6 +102,4 @@ public class Socket {
         }
 
     }
-
-
 }
