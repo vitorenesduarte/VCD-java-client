@@ -1,6 +1,7 @@
 package org.imdea.vcd;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
@@ -8,6 +9,7 @@ import com.beust.jcommander.ParameterException;
  *
  * @author Vitor Enes
  */
+@Parameters(separators = "=") // http://jcommander.org/#_parameter_separators
 public class Config {
 
     @Parameter(names = "-ops")
@@ -19,7 +21,7 @@ public class Config {
     @Parameter(names = "-clients")
     private Integer clients = 1;
 
-    @Parameter(names = "-conflicts")
+    @Parameter(names = "-conflicts", arity = 1)
     private Boolean conflicts = false;
 
     @Parameter(names = "-payload_size")
