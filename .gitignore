@@ -3,3 +3,4 @@ nbactions.xml
 .idea/
 /nbproject/
 *.swp
+*.DS_Store
