@@ -10,7 +10,8 @@ import org.imdea.vcd.pb.Proto.MessageSet;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -28,7 +29,7 @@ public class Socket {
         this.rw = rw;
     }
 
-    public static Socket create(Config config) throws IOException {
+    public static Socket create(Config config) throws IOException, InterruptedException {
 
         Proto.NodeSpec closest = getClosestNode(config);
         System.out.println("Closest node is " + closest);
@@ -55,19 +56,14 @@ public class Socket {
         this.rw.close();
     }
 
-    private static Proto.NodeSpec getClosestNode(Config config) throws IOException {
+    private static Proto.NodeSpec getClosestNode(Config config) throws IOException, InterruptedException {
         List<Proto.NodeSpec> nodes = getAllNodes(config);
 
-        long min = Long.MAX_VALUE;
+        Float min = Float.MAX_VALUE;
         Proto.NodeSpec closest = null;
 
         for (Proto.NodeSpec node : nodes) {
-            InetAddress inet = InetAddress.getByName(node.getIp());
-            long start = System.currentTimeMillis();
-            for (int i = 0; i < 10; i++) {
-                inet.isReachable(5000);
-            }
-            long delay = System.currentTimeMillis() - start;
+            Float delay = ping(node.getIp());
             if (delay < min) {
                 min = delay;
                 closest = node;
@@ -76,7 +72,7 @@ public class Socket {
 
         return closest;
     }
-    
+
     private static List<Proto.NodeSpec> getAllNodes(Config config) throws IOException {
         List<Proto.NodeSpec> nodes = new ArrayList<>();
         String root = "/" + config.getTimestamp();
@@ -95,43 +91,70 @@ public class Socket {
             e.printStackTrace(System.err);
             throw new RuntimeException("Fatal error, cannot connect to Zk.");
         }
-        
+
         return nodes;
     }
-    
+
     /**
-     * Since connecting to ZooKeeper is asynchronous,
-     * this method only returns once the watcher is notified
-     * the connection is ready.
+     * Since connecting to ZooKeeper is asynchronous, this method only returns
+     * once the watcher is notified the connection is ready.
      */
     private static ZooKeeper zkConnection(Config config) throws IOException, InterruptedException {
         assert config.getZk().split(":").length == 2;
-        
+
         Semaphore semaphore = new Semaphore(0);
         ZooKeeper zk = new ZooKeeper(
-                    config.getZk() + "/",
-                    5000, new ZkWatcher(semaphore));
+                config.getZk() + "/",
+                5000, new ZkWatcher(semaphore));
         semaphore.acquire();
-        
+
         return zk;
     }
 
     private static class ZkWatcher implements Watcher {
-        
+
         private final Semaphore semaphore;
-        
+
         public ZkWatcher(Semaphore semaphore) {
             this.semaphore = semaphore;
         }
 
         @Override
         public void process(WatchedEvent watchedEvent) {
-            switch(watchedEvent.getState()) {
+            switch (watchedEvent.getState()) {
                 case SyncConnected:
                     semaphore.release();
                     break;
             }
         }
+    }
+    
+    /**
+     * ping -c 5 $IP | tail -n 1 | cut -d/ -f5
+     */
+    private static Float ping(String ip) throws InterruptedException, IOException {
+        // ping -c 5 $IP
+        List<String> output = executeCommand("ping -c 5 " + ip);
+        // | tail -n 1
+        String stats = output.get(output.size() - 1);
+        // | cut -d/ -f5
+        String average = stats.split("/")[4];
 
+        return Float.parseFloat(average);
+    }
+
+    private static List<String> executeCommand(String command) throws IOException, InterruptedException {
+        List<String> output = new ArrayList<>();
+
+        Process p = Runtime.getRuntime().exec(command);
+        p.waitFor();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            output.add(line);
+        }
+
+        return output;
     }
 }
