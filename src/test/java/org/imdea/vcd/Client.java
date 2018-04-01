@@ -65,6 +65,9 @@ public class Client {
                             if (perData != null) {
                                 int client = perData.getClient();
                                 Long startTime = perData.getStartTime();
+                                
+                                // delete from the map
+                                MAP.remove(data);
 
                                 // record delivery time
                                 METRICS.end(status, startTime);
