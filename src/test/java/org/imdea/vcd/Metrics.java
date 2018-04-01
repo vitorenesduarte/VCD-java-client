@@ -1,7 +1,7 @@
 package org.imdea.vcd;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.imdea.vcd.pb.Proto.MessageSet;
@@ -17,9 +17,9 @@ public class Metrics {
     private final List<Long> DELIVERED_TIMES;
 
     public Metrics() {
-        this.CHAIN_LENGTHS = new ArrayList<>();
-        this.COMMITTED_TIMES = new ArrayList<>();
-        this.DELIVERED_TIMES = new ArrayList<>();
+        this.CHAIN_LENGTHS = new LinkedList<>();
+        this.COMMITTED_TIMES = new LinkedList<>();
+        this.DELIVERED_TIMES = new LinkedList<>();
     }
 
     public void chain(Integer size) {
