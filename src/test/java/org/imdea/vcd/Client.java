@@ -33,70 +33,82 @@ public class Client {
             CLIENTS_DONE = 0;
 
             System.out.println("Connect OK!");
+
             start();
 
             while (CLIENTS_DONE != CONFIG.getClients()) {
-                MessageSet messageSet = SOCKET.receive();
-                List<Message> messages = messageSet.getMessagesList();
-                MessageSet.Status status = messageSet.getStatus();
+                try {
+                    MessageSet messageSet = SOCKET.receive();
+                    List<Message> messages = messageSet.getMessagesList();
+                    MessageSet.Status status = messageSet.getStatus();
 
-                // record chain size
-                METRICS.chain(messages.size());
+                    // record chain size
+                    METRICS.chain(messages.size());
 
-                ByteString data;
-                PerData perData;
-                switch (status) {
-                    case COMMITTED:
-                        data = messages.get(0).getData();
-                        perData = MAP.get(data);
-                        // record commit time
-                        METRICS.end(status, perData.getStartTime());
-                        // keep waiting
-                        break;
-                    case DELIVERED:
-                        Iterator<Message> it = messages.iterator();
-
-                        // try to find operations from clients
-                        while (it.hasNext()) {
-                            data = it.next().getData();
+                    ByteString data;
+                    PerData perData;
+                    switch (status) {
+                        case COMMITTED:
+                            data = messages.get(0).getData();
                             perData = MAP.get(data);
+                            // record commit time
+                            METRICS.end(status, perData.getStartTime());
+                            // keep waiting
+                            break;
+                        case DELIVERED:
+                            Iterator<Message> it = messages.iterator();
 
-                            // if it belongs to a client
-                            if (perData != null) {
-                                int client = perData.getClient();
-                                Long startTime = perData.getStartTime();
-                                
-                                // delete from the map
-                                MAP.remove(data);
+                            // try to find operations from clients
+                            while (it.hasNext()) {
+                                data = it.next().getData();
+                                perData = MAP.get(data);
 
-                                // record delivery time
-                                METRICS.end(status, startTime);
-                                // increment number of ops of this client
-                                OPS_PER_CLIENT[client]++;
+                                // if it belongs to a client
+                                if (perData != null) {
+                                    int client = perData.getClient();
+                                    Long startTime = perData.getStartTime();
 
-                                // log every 100 ops
-                                if (OPS_PER_CLIENT[client] % 100 == 0) {
-                                    System.out.println(OPS_PER_CLIENT[client] + " of " + CONFIG.getOps());
-                                }
+                                    // delete from the map
+                                    MAP.remove(data);
 
-                                if (OPS_PER_CLIENT[client] == CONFIG.getOps()) {
-                                    // if it performed all the operations
-                                    // increment number of clients done
-                                    CLIENTS_DONE++;
-                                } else {
-                                    // otherwise send another operation
-                                    sendOp(client);
+                                    // record delivery time
+                                    METRICS.end(status, startTime);
+                                    // increment number of ops of this client
+                                    OPS_PER_CLIENT[client]++;
+
+                                    // log every 100 ops
+                                    if (OPS_PER_CLIENT[client] % 100 == 0) {
+                                        System.out.println(OPS_PER_CLIENT[client] + " of " + CONFIG.getOps());
+                                    }
+
+                                    if (OPS_PER_CLIENT[client] == CONFIG.getOps()) {
+                                        // if it performed all the operations
+                                        // increment number of clients done
+                                        CLIENTS_DONE++;
+                                    } else {
+                                        // otherwise send another operation
+                                        sendOp(client);
+                                    }
                                 }
                             }
-                        }
-                        break;
+                            break;
+                    }
+                } catch (IOException e) {
+                    // if at any point the socket errors inside this loop,
+                    // reconnect to the closest server
+                    SOCKET = Socket.create(CONFIG);
+                    // clear current map
+                    MAP = new HashMap<>();
+                    // and send a new op per client
+                    start();
                 }
+
             }
 
             // after all operations from all clients
             // show metrics
             System.out.println(METRICS.show());
-            
+
             // and push them to redis
             redisPush();
         } catch (Exception e) {
