@@ -127,7 +127,9 @@ public class Metrics {
         for (Long metric : metrics) {
             sb.append(metric).append(",");
         }
-        sb.deleteCharAt(sb.length() - 1);
+        if (metrics.size() > 0) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
         sb.append(";");
         return sb.toString();
     }
@@ -140,7 +142,9 @@ public class Metrics {
                     .append(metric.getSize())
                     .append(",");
         }
-        sb.deleteCharAt(sb.length() - 1);
+        if (metrics.size() > 0) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
         sb.append(";");
         return sb.toString();
     }
