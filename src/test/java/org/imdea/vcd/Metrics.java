@@ -12,7 +12,26 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  */
 public class Metrics {
 
-    private final List<Long> CHAIN_LENGTHS;
+    private class ChainMetric {
+
+        private final Long time;
+        private final Long size;
+
+        public ChainMetric(Long time, Long size) {
+            this.time = time;
+            this.size = size;
+        }
+
+        public Long getTime() {
+            return time;
+        }
+
+        public Long getSize() {
+            return size;
+        }
+    }
+
+    private final List<ChainMetric> CHAIN_LENGTHS;
     private final List<Long> COMMITTED_TIMES;
     private final List<Long> DELIVERED_TIMES;
 
@@ -23,19 +42,15 @@ public class Metrics {
     }
 
     public void chain(Integer size) {
-        chain(new Long(size));
-    }
-
-    public void chain(Long size) {
-        CHAIN_LENGTHS.add(size);
+        CHAIN_LENGTHS.add(new ChainMetric(time(), new Long(size)));
     }
 
     public Long start() {
-        return System.nanoTime();
+        return time();
     }
 
     public void end(MessageSet.Status status, Long start) {
-        Long time = System.nanoTime() - start;
+        Long time = time() - start;
 
         switch (status) {
             case COMMITTED:
@@ -51,14 +66,14 @@ public class Metrics {
         assert COMMITTED_TIMES.isEmpty() || COMMITTED_TIMES.size() == DELIVERED_TIMES.size();
         StringBuilder sb = new StringBuilder();
         sb.append("CHAINS: ")
-                .append(average(CHAIN_LENGTHS))
+                .append(averageChains(CHAIN_LENGTHS))
                 .append("\n");
         sb.append("COMMITTED: ")
                 .append(toMs(average(COMMITTED_TIMES)))
-                .append(" (us)\n");
+                .append(" (ms)\n");
         sb.append("DELIVERED: ")
                 .append(toMs(average(DELIVERED_TIMES)))
-                .append(" (us)\n");
+                .append(" (ms)\n");
         return sb.toString();
     }
 
@@ -66,15 +81,15 @@ public class Metrics {
         Map<String, String> m = new HashMap<>();
         m.put(
                 key(config, "Chains"),
-                serialize(CHAIN_LENGTHS)
+                serializeChains(CHAIN_LENGTHS)
         );
         m.put(
                 key(config, "Commit"),
-                serialize(COMMITTED_TIMES)
+                serializeTimes(COMMITTED_TIMES)
         );
         m.put(
                 key(config),
-                serialize(DELIVERED_TIMES)
+                serializeTimes(DELIVERED_TIMES)
         );
 
         return m;
@@ -107,26 +122,51 @@ public class Metrics {
         }
     }
 
-    private String serialize(List<Long> times) {
+    private String serializeTimes(List<Long> metrics) {
         StringBuilder sb = new StringBuilder();
-        for (Long time : times) {
-            sb.append(time).append(",");
+        for (Long metric : metrics) {
+            sb.append(metric).append(",");
         }
         sb.deleteCharAt(sb.length() - 1);
         sb.append(";");
         return sb.toString();
     }
 
-    private Long average(List<Long> nanos) {
-        int size = nanos.size();
+    private String serializeChains(List<ChainMetric> metrics) {
+        StringBuilder sb = new StringBuilder();
+        for (ChainMetric metric : metrics) {
+            sb.append(metric.getTime())
+                    .append("-")
+                    .append(metric.getSize())
+                    .append(",");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append(";");
+        return sb.toString();
+    }
+
+    private Long average(List<Long> list) {
+        int size = list.size();
         if (size == 0) {
             return 0L;
         }
         Long sum = 0L;
-        for (Long nano : nanos) {
-            sum += nano;
+        for (Long elem : list) {
+            sum += elem;
         }
-        return sum / nanos.size();
+        return sum / list.size();
+    }
+
+    private Long averageChains(List<ChainMetric> metrics) {
+        List<Long> sizes = new LinkedList<>();
+        for (ChainMetric metric : metrics) {
+            sizes.add(metric.getSize());
+        }
+        return average(sizes);
+    }
+
+    private Long time() {
+        return System.nanoTime();
     }
 
     private Long toMs(Long nano) {
