@@ -8,10 +8,11 @@ rel:
 	mv target/vcdjavaclient-0.1-jar-with-dependencies.jar $(JAR)
 
 run: rel $(JAR)
-	java -jar $(JAR) port=6000 \
-		clients=3 \
-		ops=10000 \
-		conflicts=true
+	java -jar $(JAR) \
+		-clients=3 \
+		-ops=10000 \
+		-conflicts=true \
+		-zk=127.0.0.1:2181
 
 clean:
 	mvn clean

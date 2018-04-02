@@ -10,9 +10,12 @@ import org.imdea.vcd.pb.Proto.MessageSet;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
 
 /**
  *
@@ -21,55 +24,17 @@ import java.util.List;
 public class Socket {
 
     private final DataRW rw;
-    private ZooKeeper zk;
 
     protected Socket(DataRW rw) {
         this.rw = rw;
     }
 
-    public static Socket create(Config config) throws IOException {
+    public static Socket create(Config config) throws IOException, InterruptedException {
 
-        assert config.getZk().split(":").length == 2;
+        Proto.NodeSpec closest = getClosestNode(config);
+        System.out.println("Closest node is " + closest);
 
-        List<Proto.NodeSpec> nodes = new ArrayList<>();
-        String root = "/" + config.getTimestamp();
-
-        try {
-
-            System.out.println("Connecting to: "+config.getZk());
-
-            ZooKeeper zk = new ZooKeeper(
-                    config.getZk()+ "/",
-                    5000, new ZkWatcher());
-
-            for (String child : zk.getChildren(root, null)) {
-                String path = root + "/" + child;
-                byte[] data = zk.getData(path, null, null);
-                nodes.add(Proto.NodeSpec.parseFrom(data));
-            }
-            System.out.println("Fetched the Config");
-            zk.close();
-
-        } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Fatal error, cannot connect to Zk.");
-        }
-
-        long min = Long.MAX_VALUE;
-        Proto.NodeSpec closest = null;
-        for (Proto.NodeSpec node : nodes) {
-            InetAddress inet = InetAddress.getByName(node.getIp());
-            long start = System.currentTimeMillis();
-            for (int i=0; i<10; i++)  inet.isReachable(5000);
-            long delay = System.currentTimeMillis() - start;
-            if (delay < min) {
-                min=delay;
-                closest = node;
-            }
-        }
-        System.out.println("Closest is "+closest);
-
-        java.net.Socket socket = new java.net.Socket(closest.getIp(), closest.getPort()+1000);
+        java.net.Socket socket = new java.net.Socket(closest.getIp(), closest.getPort() + 1000);
         socket.setTcpNoDelay(true);
 
         DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -91,13 +56,105 @@ public class Socket {
         this.rw.close();
     }
 
+    private static Proto.NodeSpec getClosestNode(Config config) throws IOException, InterruptedException {
+        List<Proto.NodeSpec> nodes = getAllNodes(config);
+
+        Float min = Float.MAX_VALUE;
+        Proto.NodeSpec closest = null;
+
+        for (Proto.NodeSpec node : nodes) {
+            Float delay = ping(node.getIp());
+            if (delay < min) {
+                min = delay;
+                closest = node;
+            }
+        }
+
+        return closest;
+    }
+
+    private static List<Proto.NodeSpec> getAllNodes(Config config) throws IOException {
+        List<Proto.NodeSpec> nodes = new ArrayList<>();
+        String root = "/" + config.getTimestamp();
+
+        try {
+            ZooKeeper zk = zkConnection(config);
+
+            for (String child : zk.getChildren(root, null)) {
+                String path = root + "/" + child;
+                byte[] data = zk.getData(path, null, null);
+                nodes.add(Proto.NodeSpec.parseFrom(data));
+            }
+            zk.close();
+
+        } catch (KeeperException | InterruptedException e) {
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Fatal error, cannot connect to Zk.");
+        }
+
+        return nodes;
+    }
+
+    /**
+     * Since connecting to ZooKeeper is asynchronous, this method only returns
+     * once the watcher is notified the connection is ready.
+     */
+    private static ZooKeeper zkConnection(Config config) throws IOException, InterruptedException {
+        assert config.getZk().split(":").length == 2;
+
+        Semaphore semaphore = new Semaphore(0);
+        ZooKeeper zk = new ZooKeeper(
+                config.getZk() + "/",
+                5000, new ZkWatcher(semaphore));
+        semaphore.acquire();
+
+        return zk;
+    }
+
     private static class ZkWatcher implements Watcher {
+
+        private final Semaphore semaphore;
+
+        public ZkWatcher(Semaphore semaphore) {
+            this.semaphore = semaphore;
+        }
 
         @Override
         public void process(WatchedEvent watchedEvent) {
+            switch (watchedEvent.getState()) {
+                case SyncConnected:
+                    semaphore.release();
+                    break;
+            }
         }
+    }
+    
+    /**
+     * ping -c 5 $IP | tail -n 1 | cut -d/ -f5
+     */
+    private static Float ping(String ip) throws InterruptedException, IOException {
+        // ping -c 5 $IP
+        List<String> output = executeCommand("ping -c 5 " + ip);
+        // | tail -n 1
+        String stats = output.get(output.size() - 1);
+        // | cut -d/ -f5
+        String average = stats.split("/")[4];
 
+        return Float.parseFloat(average);
     }
 
+    private static List<String> executeCommand(String command) throws IOException, InterruptedException {
+        List<String> output = new ArrayList<>();
 
+        Process p = Runtime.getRuntime().exec(command);
+        p.waitFor();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            output.add(line);
+        }
+
+        return output;
+    }
 }

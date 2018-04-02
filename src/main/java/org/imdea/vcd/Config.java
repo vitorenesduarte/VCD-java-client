@@ -1,58 +1,51 @@
 package org.imdea.vcd;
 
-import org.imdea.vcd.exception.InvalidArgumentException;
-import org.imdea.vcd.exception.MissingArgumentException;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+
 /**
  *
  * @author Vitor Enes
  */
+@Parameters(separators = "=") // http://jcommander.org/#_parameter_separators
 public class Config {
 
-    @Option(name = "-zk", usage = "zk server (host:port)")
-    private String zk = "127.0.0.1:2181";
-
-    @Option(name = "-clients")
-    private Integer clients = 1;
-
-    @Option(name = "-ops")
+    @Parameter(names = "-ops")
     private Integer ops = 1000;
 
-    @Option(name = "-op")
+    @Parameter(names = "-op")
     private String op = "PUT";
 
-    @Option(name = "-conflicts")
+    @Parameter(names = "-clients")
+    private Integer clients = 1;
+
+    @Parameter(names = "-conflicts", arity = 1)
     private Boolean conflicts = false;
 
-    @Option(name = "-payload_size")
+    @Parameter(names = "-payload_size")
     private Integer payloadSize = 100;
 
-    @Option(name = "-node_number")
+    @Parameter(names = "-node_number")
     private Integer nodeNumber = 1;
 
-    @Option(name = "-max_faults")
-    private Integer maxFaults ;
+    @Parameter(names = "-max_faults")
+    private Integer maxFaults;
 
-    @Option(name = "-cluster")
-    private String cluster;
+    @Parameter(names = "-cluster")
+    private String cluster = "undefined";
 
-    @Option(name = "-timestamp")
+    @Parameter(names = "-timestamp")
     private String timestamp = "undefined";
 
-    @Option(name = "-redis")
+    @Parameter(names = "-redis")
     private String redis;
 
+    @Parameter(names = "-zk", description = "zk server (host:port)")
+    private String zk = "127.0.0.1:2181";
+
     private Config() {
-    }
-
-    public Integer getClients() {
-        return clients;
-    }
-
-    public void setClients(String clients) {
-        this.clients = Integer.parseInt(clients);
     }
 
     public Integer getOps() {
@@ -69,6 +62,14 @@ public class Config {
 
     public void setOp(String op) {
         this.op = op;
+    }
+
+    public Integer getClients() {
+        return clients;
+    }
+
+    public void setClients(String clients) {
+        this.clients = Integer.parseInt(clients);
     }
 
     public Boolean getConflicts() {
@@ -135,27 +136,22 @@ public class Config {
         this.zk = zk;
     }
 
-    public static Config parseArgs(String[] args) throws InvalidArgumentException, MissingArgumentException {
+    public static Config parseArgs(String[] args) {
         Config config = new Config();
         config.doParseArgs(args);
         return config;
     }
 
     public void doParseArgs(String[] args) {
-
-        CmdLineParser parser = new CmdLineParser(this);
-
-        parser.setUsageWidth(80);
+        JCommander jcommander = JCommander.newBuilder()
+                .addObject(this)
+                .build();
 
         try {
-            parser.parseArgument(args);
-
-        } catch (CmdLineException e) {
-            System.err.println(e.getMessage());
-            parser.printUsage(System.err);
-            System.err.println();
+            jcommander.parse(args);
+        } catch (ParameterException e) {
+            jcommander.usage();
+            throw e;
         }
-
     }
-
 }

@@ -2,11 +2,10 @@ package org.imdea.vcd;
 
 import com.google.protobuf.ByteString;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import redis.clients.jedis.Jedis;
@@ -17,113 +16,155 @@ import redis.clients.jedis.Jedis;
  */
 public class Client {
 
-    public static void main(String[] args) throws Exception {
-        Config config = Config.parseArgs(args);
-        Integer clients = config.getClients();
-        ClientRunner runners[] = new ClientRunner[clients];
+    private static Metrics METRICS;
+    private static Config CONFIG;
+    private static Socket SOCKET;
+    private static Map<ByteString, PerData> MAP;
+    private static int[] OPS_PER_CLIENT;
+    private static int CLIENTS_DONE;
 
-        for (int i = 0; i < clients; i++) {
-            ClientRunner runner = new ClientRunner(config);
-            runners[i] = runner;
-        }
+    public static void main(String[] args) {
+        try {
+            METRICS = new Metrics();
+            CONFIG = Config.parseArgs(args);
+            SOCKET = Socket.create(CONFIG);
+            MAP = new HashMap<>();
+            OPS_PER_CLIENT = new int[CONFIG.getClients()];
+            CLIENTS_DONE = 0;
 
-        for (int i = 0; i < clients; i++) {
-            runners[i].start();
-        }
+            System.out.println("Connect OK!");
 
-        for (int i = 0; i < clients; i++) {
-            runners[i].join();
+            start();
+
+            while (CLIENTS_DONE != CONFIG.getClients()) {
+                try {
+                    MessageSet messageSet = SOCKET.receive();
+                    List<Message> messages = messageSet.getMessagesList();
+                    MessageSet.Status status = messageSet.getStatus();
+
+                    // record chain size
+                    METRICS.chain(messages.size());
+
+                    ByteString data;
+                    PerData perData;
+                    switch (status) {
+                        case COMMITTED:
+                            data = messages.get(0).getData();
+                            perData = MAP.get(data);
+                            // record commit time
+                            METRICS.end(status, perData.getStartTime());
+                            // keep waiting
+                            break;
+                        case DELIVERED:
+                            Iterator<Message> it = messages.iterator();
+
+                            // try to find operations from clients
+                            while (it.hasNext()) {
+                                data = it.next().getData();
+                                perData = MAP.get(data);
+
+                                // if it belongs to a client
+                                if (perData != null) {
+                                    int client = perData.getClient();
+                                    Long startTime = perData.getStartTime();
+
+                                    // delete from the map
+                                    MAP.remove(data);
+
+                                    // record delivery time
+                                    METRICS.end(status, startTime);
+                                    // increment number of ops of this client
+                                    OPS_PER_CLIENT[client]++;
+
+                                    // log every 100 ops
+                                    if (OPS_PER_CLIENT[client] % 100 == 0) {
+                                        System.out.println(OPS_PER_CLIENT[client] + " of " + CONFIG.getOps());
+                                    }
+
+                                    if (OPS_PER_CLIENT[client] == CONFIG.getOps()) {
+                                        // if it performed all the operations
+                                        // increment number of clients done
+                                        CLIENTS_DONE++;
+                                    } else {
+                                        // otherwise send another operation
+                                        sendOp(client);
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                } catch (IOException e) {
+                    // if at any point the socket errors inside this loop,
+                    // reconnect to the closest server
+                    SOCKET = Socket.create(CONFIG);
+                    // clear current map
+                    MAP = new HashMap<>();
+                    // and send a new op per client
+                    start();
+                }
+
+            }
+
+            // after all operations from all clients
+            // show metrics
+            System.out.println(METRICS.show());
+
+            // and push them to redis
+            redisPush();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
         }
     }
 
-    public static void println(String s) {
-        synchronized (System.out) {
-            System.out.println(s);
+    private static void start() throws IOException {
+        for (int i = 0; i < CONFIG.getClients(); i++) {
+            sendOp(i);
         }
     }
 
-    private static class ClientRunner extends Thread {
-
-        private final Config config;
-        private final Metrics metrics;
-
-        public ClientRunner(Config config) {
-            this.config = config;
-            this.metrics = new Metrics();
+    private static void sendOp(int client) throws IOException {
+        MessageSet messageSet = RandomMessageSet.generate(CONFIG);
+        ByteString data = messageSet.getMessagesList().get(0).getData();
+        if (MAP.containsKey(data)) {
+            // if this key already exists, try again
+            sendOp(client);
+        } else {
+            // if it doesn't, send it and update map
+            PerData perData = new PerData(client, METRICS.start());
+            MAP.put(data, perData);
+            SOCKET.send(messageSet);
         }
+    }
 
-        @Override
-        public void run() {
-            try {
-                Socket socket = Socket.create(config);
+    private static void redisPush() {
+        String redis = CONFIG.getRedis();
 
-                println("Connect OK!");
-
-                Thread.sleep(2000);
-
-                for (int i = 1; i <= config.getOps(); i++) {
-                    if (i % 100 == 0) {
-                        println(i + " of " + config.getOps());
-                    }
-                    MessageSet messageSet = RandomMessageSet.generate(config);
-                    ByteString id = messageSet.getMessagesList().get(0).getData();
-                    Long start = this.metrics.start();
-                    socket.send(messageSet);
-                    receiveMessage(start, id, socket);
-                }
-
-                println(this.metrics.show());
-
-                push();
-            } catch (IOException | InterruptedException ex) {
-                Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        private void receiveMessage(Long start, ByteString id, Socket socket) throws IOException {
-            boolean found = false;
-            while (!found) {
-                MessageSet messageSet = socket.receive();
-                List<Message> messages = messageSet.getMessagesList();
-                MessageSet.Status status = messageSet.getStatus();
-
-                // record chain size
-                this.metrics.chain(messages.size());
-
-                switch (status) {
-                    case COMMITTED:
-                        this.metrics.end(status, start);
-                        // keep waiting
-                        break;
-                    case DELIVERED:
-                        Iterator<Message> it = messages.iterator();
-
-                        // try to find the message I just sent
-                        while (it.hasNext() && !found) {
-                            found = it.next().getData().equals(id);
-                        }
-
-                        // if found, the cycle breaks
-                        // otherwise, keep waiting
-                        if (found) {
-                            this.metrics.end(status, start);
-                        }
-                        break;
+        if (redis != null) {
+            try (Jedis jedis = new Jedis(redis)) {
+                Map<String, String> push = METRICS.serialize(CONFIG);
+                for (String key : push.keySet()) {
+                    jedis.sadd(key, push.get(key));
                 }
             }
         }
+    }
 
-        private void push() {
-            String redis = this.config.getRedis();
+    private static class PerData {
 
-            if (redis != null) {
-                try (Jedis jedis = new Jedis(redis)) {
-                    Map<String, String> push = this.metrics.serialize(config);
-                    for (String key : push.keySet()) {
-                        jedis.sadd(key, push.get(key));
-                    }
-                }
-            }
+        private final int client;
+        private final Long startTime;
+
+        public PerData(int client, Long startTime) {
+            this.client = client;
+            this.startTime = startTime;
+        }
+
+        public int getClient() {
+            return client;
+        }
+
+        public long getStartTime() {
+            return startTime;
         }
     }
 }

@@ -2,7 +2,7 @@
 
 ### Getting started
 
-Assuming you have VCD running locally on port __6000__:
+Assuming you have a VCD cluster running locally:
 
 ```bash
 $ make run
@@ -11,10 +11,9 @@ $ make run
 or
 
 ```bash
-$ docker run --net=host --env HOST=127.0.0.1 \
-                        --env PORT=6000 \
-                        --env CLIENTS=3 \
+$ docker run --net=host --env CLIENTS=3 \
                         --env OPS=10000 \
                         --env CONFLICTS=true \
+                        --env ZK=127.0.0.1:2181 \
                         -ti vitorenesduarte/vcd-java-client
 ```
