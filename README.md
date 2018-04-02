@@ -1,5 +1,8 @@
 # VCD-java-client
 
+[![Build Status](https://img.shields.io/travis/vitorenesduarte/VCD-java-client/master.svg)](
+https://travis-ci.org/vitorenesduarte/VCD-java-client)
+
 ### Getting started
 
 Assuming you have a VCD cluster running locally:
