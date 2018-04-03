@@ -56,7 +56,7 @@ public class Socket {
         this.rw.close();
     }
 
-    private static Proto.NodeSpec getClosestNode(Config config) throws IOException, InterruptedException {
+    public static Proto.NodeSpec getClosestNode(Config config) throws IOException, InterruptedException {
         List<Proto.NodeSpec> nodes = getAllNodes(config);
 
         Float min = Float.MAX_VALUE;
