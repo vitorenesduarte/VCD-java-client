@@ -53,8 +53,15 @@ public class Client {
                         case COMMITTED:
                             data = messages.get(0).getData();
                             perData = MAP.get(data);
-                            // record commit time
-                            METRICS.end(status, perData.getStartTime());
+                            // record commit time, if perData exists
+                            // TODO check how to could have been delivered
+                            // before being committed
+                            // - maybe collision with another message,
+                            //   in another node
+                            // - or on recovery?
+                            if (perData != null) {
+                                METRICS.end(status, perData.getStartTime());
+                            }
                             // keep waiting
                             break;
                         case DELIVERED:
