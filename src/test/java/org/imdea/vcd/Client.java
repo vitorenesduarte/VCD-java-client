@@ -16,6 +16,8 @@ import redis.clients.jedis.Jedis;
  */
 public class Client {
 
+    private static final int CONNECT_RETRIES = 100;
+
     private static Metrics METRICS;
     private static Config CONFIG;
     private static Socket SOCKET;
@@ -27,7 +29,7 @@ public class Client {
         try {
             METRICS = new Metrics();
             CONFIG = Config.parseArgs(args);
-            SOCKET = Socket.create(CONFIG);
+            SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
             MAP = new HashMap<>();
             OPS_PER_CLIENT = new int[CONFIG.getClients()];
             CLIENTS_DONE = 0;
@@ -96,7 +98,7 @@ public class Client {
                 } catch (IOException e) {
                     // if at any point the socket errors inside this loop,
                     // reconnect to the closest server
-                    SOCKET = Socket.create(CONFIG);
+                    SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
                     // clear current map
                     MAP = new HashMap<>();
                     // and send a new op per client

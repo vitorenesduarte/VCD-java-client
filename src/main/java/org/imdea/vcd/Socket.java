@@ -30,7 +30,6 @@ public class Socket {
     }
 
     public static Socket create(Config config) throws IOException, InterruptedException {
-
         Proto.NodeSpec closest = getClosestNode(config);
         System.out.println("Closest node is " + closest);
 
@@ -42,6 +41,22 @@ public class Socket {
         DataRW rw = new DataRW(in, out);
 
         return new Socket(rw);
+    }
+
+    public static Socket create(Config config, int retries) throws IOException, InterruptedException {
+
+        for (int i = 0; i < retries; i++) {
+            try {
+                return Socket.create(config);
+            } catch (java.net.ConnectException e) {
+                System.out.println("Failed to connect to closest node. Trying again in 10ms.");
+
+                // swallow exception and sleep 10ms before trying again
+                Thread.sleep(10);
+            }
+        }
+
+        throw new java.net.ConnectException();
     }
 
     public void send(MessageSet messageSet) throws IOException {
@@ -128,7 +143,7 @@ public class Socket {
             }
         }
     }
-    
+
     /**
      * ping -c 5 $IP | tail -n 1 | cut -d/ -f5
      */
