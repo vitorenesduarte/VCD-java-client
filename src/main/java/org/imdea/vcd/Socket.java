@@ -79,7 +79,7 @@ public class Socket {
 
         for (Proto.NodeSpec node : nodes) {
             Float delay = ping(node.getIp());
-            if (delay < min) {
+            if (delay != null && delay < min) {
                 min = delay;
                 closest = node;
             }
@@ -153,9 +153,13 @@ public class Socket {
         // | tail -n 1
         String stats = output.get(output.size() - 1);
         // | cut -d/ -f5
-        String average = stats.split("/")[4];
-
-        return Float.parseFloat(average);
+        if (stats.startsWith("round-trip")) {
+            String average = stats.split("/")[4];
+            return Float.parseFloat(average);
+        } else {
+            // in the case ping command failed
+            return null;
+        }
     }
 
     private static List<String> executeCommand(String command) throws IOException, InterruptedException {
