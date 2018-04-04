@@ -157,6 +157,8 @@ public class Socket {
             String average = stats.split("/")[4];
             return Float.parseFloat(average);
         } else {
+            System.err.println("Ping command failed. Output:");
+            System.err.println(String.join("/n", output));
             // in the case ping command failed
             return null;
         }
