@@ -158,7 +158,7 @@ public class Socket {
             return Float.parseFloat(average);
         } else {
             System.err.println("Ping command failed. Output:");
-            System.err.println(String.join("/n", output));
+            System.err.println(String.join("\n", output));
             // in the case ping command failed
             return null;
         }
