@@ -153,14 +153,14 @@ public class Socket {
         // | tail -n 1
         String stats = output.get(output.size() - 1);
         // | cut -d/ -f5
-        if (stats.startsWith("round-trip")) {
-            String average = stats.split("/")[4];
-            return Float.parseFloat(average);
-        } else {
+        if (stats.contains("0 received, 100% packet loss")) {
             System.err.println("Ping command failed. Output:");
             System.err.println(String.join("\n", output));
             // in the case ping command failed
             return null;
+        } else {
+            String average = stats.split("/")[4];
+            return Float.parseFloat(average);
         }
     }
 
