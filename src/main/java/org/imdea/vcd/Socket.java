@@ -35,7 +35,8 @@ public class Socket {
 
     public static Socket create(Config config) throws IOException, InterruptedException {
         Proto.NodeSpec closest = getClosestNode(config);
-        LOGGER.log(Level.INFO, "Closest node is {0}", closest);
+        LOGGER.log(Level.INFO, "Closest node is {0}:{1}",
+                new String[]{closest.getIp(), String.valueOf(closest.getPort())});
 
         java.net.Socket socket = new java.net.Socket(closest.getIp(), closest.getPort() + 1000);
         socket.setTcpNoDelay(true);

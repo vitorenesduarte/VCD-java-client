@@ -65,6 +65,7 @@ public class Metrics {
     public String show() {
         assert COMMITTED_TIMES.isEmpty() || COMMITTED_TIMES.size() == DELIVERED_TIMES.size();
         StringBuilder sb = new StringBuilder();
+        sb.append("\n");
         sb.append("CHAINS: ")
                 .append(averageChains(CHAIN_LENGTHS))
                 .append("\n");
