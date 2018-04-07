@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import redis.clients.jedis.Jedis;
@@ -15,6 +17,8 @@ import redis.clients.jedis.Jedis;
  * @author Vitor Enes
  */
 public class Client {
+
+    private static final Logger LOGGER = VCDLogger.init(Client.class);
 
     private static final int CONNECT_RETRIES = 100;
 
@@ -34,7 +38,7 @@ public class Client {
             OPS_PER_CLIENT = new int[CONFIG.getClients()];
             CLIENTS_DONE = 0;
 
-            System.out.println("Connect OK!");
+            LOGGER.log(Level.INFO, "Connect OK!");
 
             start();
 
@@ -87,7 +91,7 @@ public class Client {
 
                                     // log every 100 ops
                                     if (OPS_PER_CLIENT[client] % 100 == 0) {
-                                        System.out.println(OPS_PER_CLIENT[client] + " of " + CONFIG.getOps());
+                                        LOGGER.log(Level.INFO, "{0} of {1}", new Object[]{OPS_PER_CLIENT[client], CONFIG.getOps()});
                                     }
 
                                     if (OPS_PER_CLIENT[client] == CONFIG.getOps()) {
@@ -116,12 +120,12 @@ public class Client {
 
             // after all operations from all clients
             // show metrics
-            System.out.println(METRICS.show());
+            LOGGER.log(Level.INFO, METRICS.show());
 
             // and push them to redis
             redisPush();
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            LOGGER.log(Level.SEVERE, e.toString(), e);
         }
     }
 

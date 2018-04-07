@@ -15,6 +15,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
 
 /**
@@ -22,6 +24,8 @@ import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
  * @author Vitor Enes
  */
 public class Socket {
+
+    private static final Logger LOGGER = VCDLogger.init(Socket.class);
 
     private final DataRW rw;
 
@@ -31,7 +35,7 @@ public class Socket {
 
     public static Socket create(Config config) throws IOException, InterruptedException {
         Proto.NodeSpec closest = getClosestNode(config);
-        System.out.println("Closest node is " + closest);
+        LOGGER.log(Level.INFO, "Closest node is {0}", closest);
 
         java.net.Socket socket = new java.net.Socket(closest.getIp(), closest.getPort() + 1000);
         socket.setTcpNoDelay(true);
@@ -49,7 +53,7 @@ public class Socket {
             try {
                 return Socket.create(config);
             } catch (java.net.ConnectException e) {
-                System.out.println("Failed to connect to closest node. Trying again in 10ms.");
+                LOGGER.log(Level.INFO, "Failed to connect to closest node. Trying again in 10ms.");
 
                 // swallow exception and sleep 10ms before trying again
                 Thread.sleep(10);
@@ -103,7 +107,7 @@ public class Socket {
             zk.close();
 
         } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace(System.err);
+            LOGGER.log(Level.SEVERE, e.toString(), e);
             throw new RuntimeException("Fatal error, cannot connect to Zk.");
         }
 
@@ -175,8 +179,8 @@ public class Socket {
         if (p.exitValue() == 0) {
             return output;
         } else {
-            System.err.println("Command " + command + " failed. Output:");
-            System.err.println(String.join("\n", output));
+            LOGGER.log(Level.SEVERE, "Command {0} failed. Output:", command);
+            LOGGER.log(Level.SEVERE, String.join("\n", output));
             return null;
         }
     }
