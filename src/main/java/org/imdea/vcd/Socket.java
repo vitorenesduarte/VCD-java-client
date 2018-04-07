@@ -150,12 +150,12 @@ public class Socket {
     }
 
     /**
-     * ping -c 5 $IP | tail -n 1 | cut -d/ -f5
+     * ping -c 2 $IP | tail -n 1 | cut -d/ -f5
      */
     private static Float ping(String ip) throws InterruptedException, IOException {
         Float ping = null;
 
-        List<String> output = executeCommand("ping -q -c 5 " + ip);
+        List<String> output = executeCommand("ping -q -c 2 " + ip);
         if (output != null) {
             String stats = output.get(output.size() - 1);
             String average = stats.split("/")[4];
