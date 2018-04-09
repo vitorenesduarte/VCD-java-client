@@ -44,9 +44,6 @@ public class Client {
                     List<Message> messages = messageSet.getMessagesList();
                     MessageSet.Status status = messageSet.getStatus();
 
-                    // record chain size
-                    METRICS.chain(messages.size());
-
                     ByteString data;
                     PerData perData;
                     switch (status) {
@@ -65,6 +62,9 @@ public class Client {
                             // keep waiting
                             break;
                         case DELIVERED:
+                            // record chain size
+                            METRICS.chain(messages.size());
+
                             Iterator<Message> it = messages.iterator();
 
                             // try to find operations from clients
