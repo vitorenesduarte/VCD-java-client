@@ -145,7 +145,6 @@ public class Metrics {
         if (metrics.size() > 0) {
             sb.deleteCharAt(sb.length() - 1);
         }
-        sb.append(";");
         return sb.toString();
     }
 
