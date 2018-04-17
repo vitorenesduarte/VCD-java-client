@@ -9,7 +9,7 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  *
  * @author Vitor Enes
  */
-public class RandomMessageSet {
+public class MessageSetGen {
 
     private static final Integer KEY_SIZE = 8;
     private static final Integer MIN_ASCII = 33;
@@ -20,25 +20,33 @@ public class RandomMessageSet {
     private static final ByteString BLACK = repeat((byte) 1, 1);
 
     public static MessageSet generate() {
-        return generate("PUT", 0, RANDOM().nextInt(100));
+        return generate("PUT", 0, randomByteString(RANDOM().nextInt(100)));
     }
 
     public static MessageSet generate(Config config) {
-        return generate(config.getOp(), config.getConflicts(), config.getPayloadSize());
+        return generate(config.getOp(), config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
-    public static MessageSet generate(String op, Integer conflicts, Integer payloadSize) {
+    public static MessageSet generate(Config config, ByteString data) {
+        return generate(config.getOp(), config.getConflicts(), data);
+    }
+
+    public static MessageSet generate(String op, Integer conflicts, ByteString data) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
                 .setHash(hash(op, conflicts))
-                .setData(randomByteString(payloadSize))
+                .setData(data)
                 .build();
         builder.addMessages(m);
 
         builder.setStatus(MessageSet.Status.START);
 
         return builder.build();
+    }
+
+    public static ByteString generateData(Config config) {
+        return randomByteString(config.getPayloadSize());
     }
 
     private static ThreadLocalRandom RANDOM() {
