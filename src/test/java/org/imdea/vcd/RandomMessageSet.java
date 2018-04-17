@@ -16,15 +16,18 @@ public class RandomMessageSet {
     private static final Integer MAX_ASCII = 126;
     private static final byte[] CHARACTERS = chars(MIN_ASCII, MAX_ASCII);
 
+    private static final ByteString WHITE = repeat((byte) 0, 1);
+    private static final ByteString BLACK = repeat((byte) 1, 1);
+
     public static MessageSet generate() {
-        return generate("PUT", false, RANDOM().nextInt(100));
+        return generate("PUT", 0, RANDOM().nextInt(100));
     }
 
     public static MessageSet generate(Config config) {
         return generate(config.getOp(), config.getConflicts(), config.getPayloadSize());
     }
 
-    public static MessageSet generate(String op, Boolean conflicts, Integer payloadSize) {
+    public static MessageSet generate(String op, Integer conflicts, Integer payloadSize) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
@@ -42,17 +45,23 @@ public class RandomMessageSet {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteString hash(String op, Boolean conflicts) {
+    private static ByteString hash(String op, Integer conflicts) {
         ByteString hash = null;
 
         switch (op) {
             case "GET":
-                hash = repeat((byte) 0, 1);
+                hash = WHITE;
                 break;
             case "PUT":
-                if (conflicts) {
-                    hash = repeat((byte) 0, KEY_SIZE);
+                if (conflicts == 0) {
+                    hash = WHITE;
+                } else if (conflicts == 100) {
+                    // included in next condiction, but more efficient
+                    hash = BLACK;
+                } else if (RANDOM().nextInt(100) < conflicts) {
+                    hash = BLACK;
                 } else {
+                    // try to avoid conflicts with random string
                     hash = randomByteString(KEY_SIZE);
                 }
                 break;

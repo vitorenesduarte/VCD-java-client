@@ -31,18 +31,18 @@ public class Metrics {
         }
     }
 
-    private final List<ChainMetric> CHAIN_LENGTHS;
-    private final List<Long> COMMITTED_TIMES;
-    private final List<Long> DELIVERED_TIMES;
+    private final List<ChainMetric> chainLengths;
+    private final List<Long> committedTimes;
+    private final List<Long> deliveredTimes;
 
     public Metrics() {
-        this.CHAIN_LENGTHS = new LinkedList<>();
-        this.COMMITTED_TIMES = new LinkedList<>();
-        this.DELIVERED_TIMES = new LinkedList<>();
+        this.chainLengths = new LinkedList<>();
+        this.committedTimes = new LinkedList<>();
+        this.deliveredTimes = new LinkedList<>();
     }
 
     public void chain(Integer size) {
-        CHAIN_LENGTHS.add(new ChainMetric(time(), new Long(size)));
+        chainLengths.add(new ChainMetric(time(), new Long(size)));
     }
 
     public Long start() {
@@ -54,26 +54,26 @@ public class Metrics {
 
         switch (status) {
             case COMMITTED:
-                COMMITTED_TIMES.add(time);
+                committedTimes.add(time);
                 break;
             case DELIVERED:
-                DELIVERED_TIMES.add(time);
+                deliveredTimes.add(time);
                 break;
         }
     }
 
     public String show() {
-        assert COMMITTED_TIMES.isEmpty() || COMMITTED_TIMES.size() == DELIVERED_TIMES.size();
+        assert committedTimes.isEmpty() || committedTimes.size() == deliveredTimes.size();
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append("CHAINS: ")
-                .append(averageChains(CHAIN_LENGTHS))
+                .append(averageChains(chainLengths))
                 .append("\n");
         sb.append("COMMITTED: ")
-                .append(toMs(average(COMMITTED_TIMES)))
+                .append(toMs(average(committedTimes)))
                 .append(" (ms)\n");
         sb.append("DELIVERED: ")
-                .append(toMs(average(DELIVERED_TIMES)))
+                .append(toMs(average(deliveredTimes)))
                 .append(" (ms)\n");
         return sb.toString();
     }
@@ -82,15 +82,15 @@ public class Metrics {
         Map<String, String> m = new HashMap<>();
         m.put(
                 key(config, "Chains"),
-                serializeChains(CHAIN_LENGTHS)
+                serializeChains(chainLengths)
         );
         m.put(
                 key(config, "Commit"),
-                serializeTimes(COMMITTED_TIMES)
+                serializeTimes(committedTimes)
         );
         m.put(
                 key(config),
-                serializeTimes(DELIVERED_TIMES)
+                serializeTimes(deliveredTimes)
         );
 
         return m;
@@ -106,21 +106,13 @@ public class Metrics {
                 + protocol(config.getMaxFaults(), protocolSuffix) + "-"
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
-                + conflictPercentage(config.getConflicts()) + "-"
+                + config.getConflicts() + "-"
                 + config.getOps() + "-"
                 + config.getOp();
     }
 
     private String protocol(Integer maxFaults, String protocolSuffix) {
         return "VCD" + "f" + maxFaults + protocolSuffix;
-    }
-
-    private String conflictPercentage(boolean conflicts) {
-        if (conflicts) {
-            return "100";
-        } else {
-            return "0";
-        }
     }
 
     private String serializeTimes(List<Long> metrics) {
