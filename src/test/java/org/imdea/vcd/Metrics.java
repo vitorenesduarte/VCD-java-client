@@ -107,7 +107,7 @@ public class Metrics {
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
                 + config.getConflicts() + "-"
-                + config.getOps() + "-"
+                + config.getSleep() + "-"
                 + config.getOp();
     }
 
