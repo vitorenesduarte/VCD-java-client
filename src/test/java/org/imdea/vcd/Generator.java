@@ -74,7 +74,7 @@ public class Generator {
         int[] unscaled = new int[n];
         int sum = 0;
         for (int i = 0; i < n; i++) {
-            unscaled[i] = RANDOM().nextInt(n / 4, n);
+            unscaled[i] = RANDOM().nextInt(m / 4, m);
             sum += unscaled[i];
         }
 
