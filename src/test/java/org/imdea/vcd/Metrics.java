@@ -107,7 +107,7 @@ public class Metrics {
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
                 + config.getConflicts() + "-"
-                + config.getSleep() + "-"
+                + "100" + "-" // percentage of writes
                 + config.getOp();
     }
 
