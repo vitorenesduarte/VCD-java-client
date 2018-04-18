@@ -16,26 +16,25 @@ public class Generator {
     private static final Integer MAX_ASCII = 126;
     private static final byte[] CHARACTERS = chars(MIN_ASCII, MAX_ASCII);
 
-    private static final ByteString WHITE = repeat((byte) 0, 1);
     private static final ByteString BLACK = repeat((byte) 1, 1);
 
     public static MessageSet messageSet() {
-        return messageSet("PUT", 0, randomByteString(RANDOM().nextInt(100)));
+        return messageSet(0, randomByteString(RANDOM().nextInt(100)));
     }
 
     public static MessageSet messageSet(Config config) {
-        return messageSet(config.getOp(), config.getConflicts(), randomByteString(config.getPayloadSize()));
+        return messageSet(config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
     public static MessageSet messageSet(Config config, ByteString data) {
-        return messageSet(config.getOp(), config.getConflicts(), data);
+        return messageSet(config.getConflicts(), data);
     }
 
-    public static MessageSet messageSet(String op, Integer conflicts, ByteString data) {
+    public static MessageSet messageSet(Integer conflicts, ByteString data) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
-                .setHash(hash(op, conflicts))
+                .setHash(hash(conflicts))
                 .setData(data)
                 .build();
         builder.addMessages(m);
@@ -91,26 +90,13 @@ public class Generator {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteString hash(String op, Integer conflicts) {
-        ByteString hash = null;
-
-        switch (op) {
-            case "GET":
-                hash = WHITE;
-                break;
-            case "PUT":
-                if (conflicts == 0) {
-                    hash = WHITE;
-                } else if (conflicts == 100) {
-                    // included in next condiction, but more efficient
-                    hash = BLACK;
-                } else if (RANDOM().nextInt(100) < conflicts) {
-                    hash = BLACK;
-                } else {
-                    // try to avoid conflicts with random string
-                    hash = randomByteString(KEY_SIZE);
-                }
-                break;
+    private static ByteString hash(Integer conflicts) {
+        ByteString hash;
+        if (RANDOM().nextInt(100) < conflicts) {
+            hash = BLACK;
+        } else {
+            // try to avoid conflicts with random string
+            hash = randomByteString(KEY_SIZE);
         }
         return hash;
     }
