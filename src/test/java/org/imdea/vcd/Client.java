@@ -143,7 +143,7 @@ public class Client {
                 this.clientsDone++;
             } else {
                 do {
-                    data = MessageSetGen.generateData(this.config);
+                    data = Generator.messageSetData(this.config);
                 } while (this.ops.containsKey(data));
             }
 
@@ -152,7 +152,7 @@ public class Client {
         }
 
         private void sendOp(int client, ByteString data) throws IOException {
-            MessageSet messageSet = MessageSetGen.generate(this.config, data);
+            MessageSet messageSet = Generator.messageSet(this.config, data);
             PerData perData = new PerData(client, this.metrics.start());
             this.ops.put(data, perData);
             this.socket.send(messageSet);

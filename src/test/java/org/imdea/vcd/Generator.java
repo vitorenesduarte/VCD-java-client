@@ -9,7 +9,7 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  *
  * @author Vitor Enes
  */
-public class MessageSetGen {
+public class Generator {
 
     private static final Integer KEY_SIZE = 8;
     private static final Integer MIN_ASCII = 33;
@@ -19,19 +19,19 @@ public class MessageSetGen {
     private static final ByteString WHITE = repeat((byte) 0, 1);
     private static final ByteString BLACK = repeat((byte) 1, 1);
 
-    public static MessageSet generate() {
-        return generate("PUT", 0, randomByteString(RANDOM().nextInt(100)));
+    public static MessageSet messageSet() {
+        return messageSet("PUT", 0, randomByteString(RANDOM().nextInt(100)));
     }
 
-    public static MessageSet generate(Config config) {
-        return generate(config.getOp(), config.getConflicts(), randomByteString(config.getPayloadSize()));
+    public static MessageSet messageSet(Config config) {
+        return messageSet(config.getOp(), config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
-    public static MessageSet generate(Config config, ByteString data) {
-        return generate(config.getOp(), config.getConflicts(), data);
+    public static MessageSet messageSet(Config config, ByteString data) {
+        return messageSet(config.getOp(), config.getConflicts(), data);
     }
 
-    public static MessageSet generate(String op, Integer conflicts, ByteString data) {
+    public static MessageSet messageSet(String op, Integer conflicts, ByteString data) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
@@ -45,7 +45,7 @@ public class MessageSetGen {
         return builder.build();
     }
 
-    public static ByteString generateData(Config config) {
+    public static ByteString messageSetData(Config config) {
         return randomByteString(config.getPayloadSize());
     }
 
