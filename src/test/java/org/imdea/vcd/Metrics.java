@@ -81,28 +81,28 @@ public class Metrics {
     public Map<String, String> serialize(Config config) {
         Map<String, String> m = new HashMap<>();
         m.put(
-                key(config, "Chains"),
+                key(config, "chains"),
                 serializeChains(chainLengths)
         );
         m.put(
-                key(config, "Commit"),
+                key(config, "log", "Commit"),
                 serializeTimes(committedTimes)
         );
         m.put(
-                key(config),
+                key(config, "log"),
                 serializeTimes(deliveredTimes)
         );
 
         return m;
     }
 
-    private String key(Config config) {
-        return key(config, "");
+    private String key(Config config, String prefix) {
+        return key(config, prefix, "");
     }
 
-    private String key(Config config, String protocolSuffix) {
+    private String key(Config config, String prefix, String protocolSuffix) {
         return "" + config.getNodeNumber() + "/"
-                + "log-"
+                + prefix + "-"
                 + protocol(config.getMaxFaults(), protocolSuffix) + "-"
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
