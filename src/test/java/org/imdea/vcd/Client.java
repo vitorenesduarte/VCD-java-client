@@ -92,20 +92,19 @@ public class Client {
             // start all clients
             this.nextOps();
 
-            while (clientsDone != config.getClients()) {
+            while (this.clientsDone != this.config.getClients()) {
                 try {
                     if (this.config.getClosedLoop()) {
-                        int client = queue.take();
+                        int client = this.queue.take();
 
                         if (client == -1) {
                             this.init();
                         } else {
-                            // TODO make this class variable
                             this.nextOp(client);
                         }
                     } else {
-                        Thread.sleep(this.config.getSleep());
-                        this.nextOps();
+                        int[] sleeps = Generator.ranges(this.config.getSleep(), this.config.getClients());
+                        this.nextOps(sleeps);
                     }
                 } catch (IOException e) {
                     e.printStackTrace(System.err);
@@ -119,9 +118,17 @@ public class Client {
             }
         }
 
-        private void nextOps() throws IOException {
+        private void nextOps() throws IOException, InterruptedException {
+            int[] sleeps = new int[this.config.getClients()];
+            nextOps(sleeps);
+        }
+
+        private void nextOps(int[] sleeps) throws IOException, InterruptedException {
             for (int client = 0; client < this.config.getClients(); client++) {
-                // check these are not the last ops
+                int sleep = sleeps[client];
+                if (sleep > 0) {
+                    Thread.sleep(sleep);
+                }
                 this.nextOp(client);
             }
         }

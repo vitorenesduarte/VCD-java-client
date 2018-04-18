@@ -49,6 +49,44 @@ public class Generator {
         return randomByteString(config.getPayloadSize());
     }
 
+    /**
+     * Divide a range (0, m) into n unequal ranges
+     */
+    public static int[] ranges(int m, int n) {
+        int[] ranges = new int[n];
+
+        // if range is empty, return n empty ranges
+        if (m == 0) {
+            return ranges;
+        }
+
+        // if range max value is smaller or equal to n
+        // return n (0, 1) ranges
+        if (m <= n) {
+            for (int i = 0; i < n; i++) {
+                ranges[i] = 1;
+            }
+
+            return ranges;
+        }
+
+        // create unscaled ranges
+        int[] unscaled = new int[n];
+        int sum = 0;
+        for (int i = 0; i < n; i++) {
+            unscaled[i] = RANDOM().nextInt(n / 4, n);
+            sum += unscaled[i];
+        }
+
+        // scale ranges
+        for (int i = 0; i < n; i++) {
+            ranges[i] = (unscaled[i] * m) / sum;
+        }
+
+        // and return them
+        return ranges;
+    }
+
     private static ThreadLocalRandom RANDOM() {
         return ThreadLocalRandom.current();
     }
