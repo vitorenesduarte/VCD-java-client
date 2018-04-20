@@ -70,10 +70,10 @@ public class Metrics {
                 .append(averageChains(chainLengths))
                 .append("\n");
         sb.append("COMMITTED: ")
-                .append(toMs(average(committedTimes)))
+                .append(average(committedTimes))
                 .append(" (ms)\n");
         sb.append("DELIVERED: ")
-                .append(toMs(average(deliveredTimes)))
+                .append(average(deliveredTimes))
                 .append(" (ms)\n");
         return sb.toString();
     }
@@ -161,11 +161,6 @@ public class Metrics {
     }
 
     private Long time() {
-        return System.nanoTime();
+        return System.currentTimeMillis();
     }
-
-    private Long toMs(Long nano) {
-        return nano / 1000000;
-    }
-
 }
