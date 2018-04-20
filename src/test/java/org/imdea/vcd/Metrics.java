@@ -118,7 +118,7 @@ public class Metrics {
     private String serializeTimes(List<Long> metrics) {
         StringBuilder sb = new StringBuilder();
         for (Long metric : metrics) {
-            sb.append(metric).append(",");
+            sb.append(metric).append("\n");
         }
         if (metrics.size() > 0) {
             sb.deleteCharAt(sb.length() - 1);
@@ -132,7 +132,7 @@ public class Metrics {
             sb.append(metric.getTime())
                     .append("-")
                     .append(metric.getSize())
-                    .append(",");
+                    .append("\n");
         }
         if (metrics.size() > 0) {
             sb.deleteCharAt(sb.length() - 1);
