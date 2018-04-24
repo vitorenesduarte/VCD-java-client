@@ -16,6 +16,7 @@ CMD java -jar $JAR -ops=${OPS} \
                    -clients=${CLIENTS} \
                    -conflicts=${CONFLICTS} \
                    -payload_size=${PAYLOAD_SIZE} \
+                   -sleep=${SLEEP} \
                    -node_number=${NODE_NUMBER} \
                    -max_faults=${MAX_FAULTS} \
                    -cluster=${CLUSTER} \
