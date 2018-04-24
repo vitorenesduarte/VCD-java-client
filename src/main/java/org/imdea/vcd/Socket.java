@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static org.apache.zookeeper.Watcher.Event.KeeperState.SyncConnected;
 
 /**
@@ -31,6 +34,35 @@ public class Socket {
 
     protected Socket(DataRW rw) {
         this.rw = rw;
+    }
+
+    public static Socket createStatic(Config config, int retries) throws IOException, InterruptedException {
+        Pattern p = Pattern.compile("^\\s*(.*?):(\\d+)\\s*$");
+        Matcher m = p.matcher(config.getZk());
+        String host = m.group(1);
+        Integer port = Integer.parseInt(m.group(2));
+
+        LOGGER.log(Level.INFO, "Connecting to static node {0}:{1}",
+                new String[]{host, String.valueOf(port)});
+
+        for (int i = 0; i < retries; i++) {
+            try {
+                java.net.Socket socket = new java.net.Socket(host, Integer.valueOf(port) + 1000);
+                socket.setTcpNoDelay(true);
+
+                DataInputStream in = new DataInputStream(socket.getInputStream());
+                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                DataRW rw = new DataRW(in, out);
+
+                return new Socket(rw);
+            } catch (java.net.ConnectException e) {
+                LOGGER.log(Level.INFO, "Failed to connect to static node. Trying again in 10ms.");
+                // swallow exception and sleep 10ms before trying again
+                Thread.sleep(10);
+            }
+
+        }
+        throw new java.net.ConnectException();
     }
 
     public static Socket create(Config config) throws IOException, InterruptedException {
