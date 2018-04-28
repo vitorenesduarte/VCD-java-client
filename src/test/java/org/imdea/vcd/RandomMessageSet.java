@@ -9,7 +9,7 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  *
  * @author Vitor Enes
  */
-public class Generator {
+public class RandomMessageSet {
 
     private static final Integer KEY_SIZE = 8;
     private static final Integer MIN_ASCII = 33;

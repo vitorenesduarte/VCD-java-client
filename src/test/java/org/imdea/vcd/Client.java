@@ -137,7 +137,7 @@ public class Client {
     }
 
     private static void sendOp(int client) throws IOException {
-        MessageSet messageSet = Generator.messageSet(CONFIG);
+        MessageSet messageSet = RandomMessageSet.messageSet(CONFIG);
         ByteString data = messageSet.getMessagesList().get(0).getData();
         if (MAP.containsKey(data)) {
             // if this key already exists, try again

@@ -42,7 +42,7 @@ public class CoderTest {
     @Test
     public void testMessageSetEncodeDecode() throws FileNotFoundException, IOException {
         for (int i = 0; i < REPETITIONS; i++) {
-            MessageSet messageSet = Generator.messageSet();
+            MessageSet messageSet = RandomMessageSet.messageSet();
 
             this.rw.write(messageSet);
             MessageSet result = this.rw.read();
