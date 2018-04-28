@@ -21,7 +21,7 @@ import org.junit.Test;
 public class CoderTest {
 
     private final Integer REPETITIONS = 1000; // there's probably a better way
-    private final String FILE = "/tmp/avro";
+    private final String FILE = "/tmp/coder-test";
     private DataRW rw;
 
     @Before
@@ -42,7 +42,7 @@ public class CoderTest {
     @Test
     public void testMessageSetEncodeDecode() throws FileNotFoundException, IOException {
         for (int i = 0; i < REPETITIONS; i++) {
-            MessageSet messageSet = RandomMessageSet.generate();
+            MessageSet messageSet = Generator.messageSet();
 
             this.rw.write(messageSet);
             MessageSet result = this.rw.read();

@@ -11,7 +11,7 @@ run: rel $(JAR)
 	java -jar $(JAR) \
 		-clients=3 \
 		-ops=10000 \
-		-conflicts=true \
+		-conflicts=100 \
 		-zk=127.0.0.1:2181
 
 clean:
