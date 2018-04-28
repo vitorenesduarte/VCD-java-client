@@ -26,10 +26,6 @@ public class Generator {
         return messageSet(config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
-    public static MessageSet messageSet(Config config, ByteString data) {
-        return messageSet(config.getConflicts(), data);
-    }
-
     public static MessageSet messageSet(Integer conflicts, ByteString data) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 

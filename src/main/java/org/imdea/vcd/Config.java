@@ -12,9 +12,6 @@ import com.beust.jcommander.ParameterException;
 @Parameters(separators = "=") // http://jcommander.org/#_parameter_separators
 public class Config {
 
-    // a sleep value of 42 means closed loop
-    private static int CLOSED_LOOP = 42;
-
     @Parameter(names = "-ops")
     private Integer ops = 1000;
 
@@ -29,9 +26,6 @@ public class Config {
 
     @Parameter(names = "-payload_size")
     private Integer payloadSize = 100;
-
-    @Parameter(names = "-sleep")
-    private Integer sleep = CLOSED_LOOP;
 
     @Parameter(names = "-node_number")
     private Integer nodeNumber = 1;
@@ -92,18 +86,6 @@ public class Config {
 
     public void setPayloadSize(String payloadSize) {
         this.payloadSize = Integer.parseInt(payloadSize);
-    }
-
-    public Integer getSleep() {
-        return this.sleep;
-    }
-
-    public void setSleep(Integer sleep) {
-        this.sleep = sleep;
-    }
-
-    public Boolean getClosedLoop() {
-        return this.sleep == CLOSED_LOOP;
     }
 
     public Integer getNodeNumber() {

@@ -21,7 +21,7 @@ import org.junit.Test;
 public class CoderTest {
 
     private final Integer REPETITIONS = 1000; // there's probably a better way
-    private final String FILE = "/tmp/avro";
+    private final String FILE = "/tmp/coder-test";
     private DataRW rw;
 
     @Before
