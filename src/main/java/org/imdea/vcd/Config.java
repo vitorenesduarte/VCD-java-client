@@ -21,8 +21,8 @@ public class Config {
     @Parameter(names = "-clients")
     private Integer clients = 1;
 
-    @Parameter(names = "-conflicts", arity = 1)
-    private Boolean conflicts = false;
+    @Parameter(names = "-conflicts")
+    private Integer conflicts = 100;
 
     @Parameter(names = "-payload_size")
     private Integer payloadSize = 100;
@@ -49,7 +49,7 @@ public class Config {
     }
 
     public Integer getOps() {
-        return ops;
+        return this.ops;
     }
 
     public void setOps(String ops) {
@@ -57,7 +57,7 @@ public class Config {
     }
 
     public String getOp() {
-        return op;
+        return this.op;
     }
 
     public void setOp(String op) {
@@ -65,23 +65,23 @@ public class Config {
     }
 
     public Integer getClients() {
-        return clients;
+        return this.clients;
     }
 
     public void setClients(String clients) {
         this.clients = Integer.parseInt(clients);
     }
 
-    public Boolean getConflicts() {
-        return conflicts;
+    public Integer getConflicts() {
+        return this.conflicts;
     }
 
     public void setConflicts(String conflicts) {
-        this.conflicts = Boolean.parseBoolean(conflicts);
+        this.conflicts = Integer.parseInt(conflicts);
     }
 
     public Integer getPayloadSize() {
-        return payloadSize;
+        return this.payloadSize;
     }
 
     public void setPayloadSize(String payloadSize) {
@@ -89,7 +89,7 @@ public class Config {
     }
 
     public Integer getNodeNumber() {
-        return nodeNumber;
+        return this.nodeNumber;
     }
 
     public void setNodeNumber(String nodeNumber) {
@@ -97,7 +97,7 @@ public class Config {
     }
 
     public Integer getMaxFaults() {
-        return maxFaults;
+        return this.maxFaults;
     }
 
     public void setMaxFaults(String maxFaults) {
@@ -105,7 +105,7 @@ public class Config {
     }
 
     public String getCluster() {
-        return cluster;
+        return this.cluster;
     }
 
     public void setCluster(String cluster) {
@@ -113,7 +113,7 @@ public class Config {
     }
 
     public String getTimestamp() {
-        return timestamp;
+        return this.timestamp;
     }
 
     public void setTimestamp(String timestamp) {
@@ -121,7 +121,7 @@ public class Config {
     }
 
     public String getRedis() {
-        return redis;
+        return this.redis;
     }
 
     public void setRedis(String redis) {
@@ -129,7 +129,7 @@ public class Config {
     }
 
     public String getZk() {
-        return zk;
+        return this.zk;
     }
 
     public void setZk(String zk) {

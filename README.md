@@ -16,7 +16,7 @@ or
 ```bash
 $ docker run --net=host --env CLIENTS=3 \
                         --env OPS=10000 \
-                        --env CONFLICTS=true \
+                        --env CONFLICTS=100 \
                         --env ZK=127.0.0.1:2181 \
                         -ti vitorenesduarte/vcd-java-client
 ```

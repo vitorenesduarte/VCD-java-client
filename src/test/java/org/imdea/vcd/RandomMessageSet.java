@@ -16,20 +16,22 @@ public class RandomMessageSet {
     private static final Integer MAX_ASCII = 126;
     private static final byte[] CHARACTERS = chars(MIN_ASCII, MAX_ASCII);
 
-    public static MessageSet generate() {
-        return generate("PUT", false, RANDOM().nextInt(100));
+    private static final ByteString BLACK = repeat((byte) 1, 1);
+
+    public static MessageSet messageSet() {
+        return messageSet(0, randomByteString(RANDOM().nextInt(100)));
     }
 
-    public static MessageSet generate(Config config) {
-        return generate(config.getOp(), config.getConflicts(), config.getPayloadSize());
+    public static MessageSet messageSet(Config config) {
+        return messageSet(config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
-    public static MessageSet generate(String op, Boolean conflicts, Integer payloadSize) {
+    public static MessageSet messageSet(Integer conflicts, ByteString data) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
-                .setHash(hash(op, conflicts))
-                .setData(randomByteString(payloadSize))
+                .setHash(hash(conflicts))
+                .setData(data)
                 .build();
         builder.addMessages(m);
 
@@ -38,24 +40,59 @@ public class RandomMessageSet {
         return builder.build();
     }
 
+    public static ByteString messageSetData(Config config) {
+        return randomByteString(config.getPayloadSize());
+    }
+
+    /**
+     * Divide a range (0, m) into n unequal ranges
+     */
+    public static int[] ranges(int m, int n) {
+        int[] ranges = new int[n];
+
+        // if range is empty, return n empty ranges
+        if (m == 0) {
+            return ranges;
+        }
+
+        // if range max value is smaller or equal to n
+        // return n (0, 1) ranges
+        if (m <= n) {
+            for (int i = 0; i < n; i++) {
+                ranges[i] = 1;
+            }
+
+            return ranges;
+        }
+
+        // create unscaled ranges
+        int[] unscaled = new int[n];
+        int sum = 0;
+        for (int i = 0; i < n; i++) {
+            unscaled[i] = RANDOM().nextInt(m / 4, m);
+            sum += unscaled[i];
+        }
+
+        // scale ranges
+        for (int i = 0; i < n; i++) {
+            ranges[i] = (unscaled[i] * m) / sum;
+        }
+
+        // and return them
+        return ranges;
+    }
+
     private static ThreadLocalRandom RANDOM() {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteString hash(String op, Boolean conflicts) {
-        ByteString hash = null;
-
-        switch (op) {
-            case "GET":
-                hash = repeat((byte) 0, 1);
-                break;
-            case "PUT":
-                if (conflicts) {
-                    hash = repeat((byte) 0, KEY_SIZE);
-                } else {
-                    hash = randomByteString(KEY_SIZE);
-                }
-                break;
+    private static ByteString hash(Integer conflicts) {
+        ByteString hash;
+        if (RANDOM().nextInt(100) < conflicts) {
+            hash = BLACK;
+        } else {
+            // try to avoid conflicts with random string
+            hash = randomByteString(KEY_SIZE);
         }
         return hash;
     }
