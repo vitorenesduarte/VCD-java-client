@@ -1,7 +1,6 @@
 package org.imdea.vcd.queue.clock;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.imdea.vcd.pb.Proto;
@@ -42,18 +41,18 @@ public class Clock<T extends IntSet> {
         }
         return false;
     }
-    
+
     public static Clock<MaxInt> vclock(Map<Integer, Long> o) {
         HashMap<Integer, MaxInt> map = new HashMap<>();
-        for(Map.Entry<Integer, Long> entry : o.entrySet()) {
+        for (Map.Entry<Integer, Long> entry : o.entrySet()) {
             map.put(entry.getKey(), new MaxInt(entry.getValue()));
         }
         return new Clock<>(map);
     }
-    
+
     public static Clock<ExceptionSet> eclock(Map<Integer, Proto.ExceptionSet> o) {
         HashMap<Integer, ExceptionSet> map = new HashMap<>();
-        for(Map.Entry<Integer, Proto.ExceptionSet> entry : o.entrySet()) {
+        for (Map.Entry<Integer, Proto.ExceptionSet> entry : o.entrySet()) {
             map.put(entry.getKey(), new ExceptionSet(entry.getValue()));
         }
         return new Clock<>(map);

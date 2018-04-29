@@ -10,13 +10,13 @@ import org.imdea.vcd.pb.Proto.Dot;
  * @author Vitor Enes
  */
 public class Dots implements Iterable<Dot> {
-    
+
     private final HashSet<Dot> set;
 
     public Dots(Dot dot) {
         this.set = new HashSet<>(Arrays.asList(dot));
     }
-    
+
     public void merge(Dots dots) {
         this.set.addAll(dots.set);
     }

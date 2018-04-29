@@ -39,7 +39,7 @@ public class Socket {
     public static Socket createStatic(Config config, int retries) throws IOException, InterruptedException {
         Pattern p = Pattern.compile("^\\s*(.*?):(\\d+)\\s*$");
         Matcher m = p.matcher(config.getZk());
-        if(m.matches()){
+        if (m.matches()) {
             LOGGER.log(Level.INFO, "Correct Address");
         }
         String host = m.group(1);
