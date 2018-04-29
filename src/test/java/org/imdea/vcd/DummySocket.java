@@ -9,7 +9,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class DummySocket extends Socket{
+public class DummySocket extends Socket {
 
     BlockingQueue<Proto.MessageSet> queue;
     Executor executor;
@@ -35,9 +35,9 @@ public class DummySocket extends Socket{
                     e.printStackTrace();
                 }
                 MessageSet.Builder builder = MessageSet.newBuilder();
-                for (Proto.Message msg : messageSet.getMessagesList()){
+                for (Proto.Message msg : messageSet.getMessagesList()) {
                     builder.addMessages(msg);
-                    builder.setStatus(MessageSet.Status.COMMITTED);
+                    builder.setStatus(MessageSet.Status.DURABLE);
                 }
                 try {
                     queue.put(builder.build());
