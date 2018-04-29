@@ -30,15 +30,15 @@ message Dot {
 }
 
 message ExceptionSet {
-  int32 max = 1;
-  repeated int32 ex = 2;
+  int64 seq = 1;
+  repeated int64 ex = 2;
 }
 
 message Commit {
   Dot dot = 1;
   Message message = 2;
   map<int32, ExceptionSet> dep = 3;
-  map<int32, int32> conf = 4;
+  map<int32, int64> conf = 4;
 }
 
 message Reply {

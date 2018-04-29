@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
 import org.imdea.vcd.queue.CommitDepBox;
-import org.imdea.vcd.queue.DepBox;
 
 /**
  *
@@ -46,7 +45,7 @@ public class DataRW {
             case SET:
                 return reply.getSet();
             case COMMIT:
-                CommitDepBox box = new CommitDepBox(reply.getCommit());
+                CommitDepBox box = CommitDepBox.fromCommit(reply.getCommit());
                 queue.add(box);
                 MessageSet messageSet = box.toMessageSet();
                 if (messageSet != null) {

@@ -41,7 +41,7 @@ public class DependencyQueue<E extends DepBox> {
         Node<E> it = first;
 
         while (it != null) {
-            if (it.item.after(e)) {
+            if (e.before(it.item)) {
                 return it;
             }
             it = it.next;

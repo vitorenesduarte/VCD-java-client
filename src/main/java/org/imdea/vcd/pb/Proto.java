@@ -2652,22 +2652,22 @@ public final class Proto {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>int32 max = 1;</code>
+     * <code>int64 seq = 1;</code>
      */
-    int getMax();
+    long getSeq();
 
     /**
-     * <code>repeated int32 ex = 2;</code>
+     * <code>repeated int64 ex = 2;</code>
      */
-    java.util.List<java.lang.Integer> getExList();
+    java.util.List<java.lang.Long> getExList();
     /**
-     * <code>repeated int32 ex = 2;</code>
+     * <code>repeated int64 ex = 2;</code>
      */
     int getExCount();
     /**
-     * <code>repeated int32 ex = 2;</code>
+     * <code>repeated int64 ex = 2;</code>
      */
-    int getEx(int index);
+    long getEx(int index);
   }
   /**
    * Protobuf type {@code ExceptionSet}
@@ -2682,7 +2682,7 @@ public final class Proto {
       super(builder);
     }
     private ExceptionSet() {
-      max_ = 0;
+      seq_ = 0L;
       ex_ = java.util.Collections.emptyList();
     }
 
@@ -2716,26 +2716,26 @@ public final class Proto {
             }
             case 8: {
 
-              max_ = input.readInt32();
+              seq_ = input.readInt64();
               break;
             }
             case 16: {
               if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-                ex_ = new java.util.ArrayList<java.lang.Integer>();
+                ex_ = new java.util.ArrayList<java.lang.Long>();
                 mutable_bitField0_ |= 0x00000002;
               }
-              ex_.add(input.readInt32());
+              ex_.add(input.readInt64());
               break;
             }
             case 18: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
               if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
-                ex_ = new java.util.ArrayList<java.lang.Integer>();
+                ex_ = new java.util.ArrayList<java.lang.Long>();
                 mutable_bitField0_ |= 0x00000002;
               }
               while (input.getBytesUntilLimit() > 0) {
-                ex_.add(input.readInt32());
+                ex_.add(input.readInt64());
               }
               input.popLimit(limit);
               break;
@@ -2768,34 +2768,34 @@ public final class Proto {
     }
 
     private int bitField0_;
-    public static final int MAX_FIELD_NUMBER = 1;
-    private int max_;
+    public static final int SEQ_FIELD_NUMBER = 1;
+    private long seq_;
     /**
-     * <code>int32 max = 1;</code>
+     * <code>int64 seq = 1;</code>
      */
-    public int getMax() {
-      return max_;
+    public long getSeq() {
+      return seq_;
     }
 
     public static final int EX_FIELD_NUMBER = 2;
-    private java.util.List<java.lang.Integer> ex_;
+    private java.util.List<java.lang.Long> ex_;
     /**
-     * <code>repeated int32 ex = 2;</code>
+     * <code>repeated int64 ex = 2;</code>
      */
-    public java.util.List<java.lang.Integer>
+    public java.util.List<java.lang.Long>
         getExList() {
       return ex_;
     }
     /**
-     * <code>repeated int32 ex = 2;</code>
+     * <code>repeated int64 ex = 2;</code>
      */
     public int getExCount() {
       return ex_.size();
     }
     /**
-     * <code>repeated int32 ex = 2;</code>
+     * <code>repeated int64 ex = 2;</code>
      */
-    public int getEx(int index) {
+    public long getEx(int index) {
       return ex_.get(index);
     }
     private int exMemoizedSerializedSize = -1;
@@ -2813,15 +2813,15 @@ public final class Proto {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
-      if (max_ != 0) {
-        output.writeInt32(1, max_);
+      if (seq_ != 0L) {
+        output.writeInt64(1, seq_);
       }
       if (getExList().size() > 0) {
         output.writeUInt32NoTag(18);
         output.writeUInt32NoTag(exMemoizedSerializedSize);
       }
       for (int i = 0; i < ex_.size(); i++) {
-        output.writeInt32NoTag(ex_.get(i));
+        output.writeInt64NoTag(ex_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -2831,15 +2831,15 @@ public final class Proto {
       if (size != -1) return size;
 
       size = 0;
-      if (max_ != 0) {
+      if (seq_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(1, max_);
+          .computeInt64Size(1, seq_);
       }
       {
         int dataSize = 0;
         for (int i = 0; i < ex_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(ex_.get(i));
+            .computeInt64SizeNoTag(ex_.get(i));
         }
         size += dataSize;
         if (!getExList().isEmpty()) {
@@ -2865,8 +2865,8 @@ public final class Proto {
       org.imdea.vcd.pb.Proto.ExceptionSet other = (org.imdea.vcd.pb.Proto.ExceptionSet) obj;
 
       boolean result = true;
-      result = result && (getMax()
-          == other.getMax());
+      result = result && (getSeq()
+          == other.getSeq());
       result = result && getExList()
           .equals(other.getExList());
       result = result && unknownFields.equals(other.unknownFields);
@@ -2880,8 +2880,9 @@ public final class Proto {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + MAX_FIELD_NUMBER;
-      hash = (53 * hash) + getMax();
+      hash = (37 * hash) + SEQ_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getSeq());
       if (getExCount() > 0) {
         hash = (37 * hash) + EX_FIELD_NUMBER;
         hash = (53 * hash) + getExList().hashCode();
@@ -3015,7 +3016,7 @@ public final class Proto {
       }
       public Builder clear() {
         super.clear();
-        max_ = 0;
+        seq_ = 0L;
 
         ex_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -3043,7 +3044,7 @@ public final class Proto {
         org.imdea.vcd.pb.Proto.ExceptionSet result = new org.imdea.vcd.pb.Proto.ExceptionSet(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        result.max_ = max_;
+        result.seq_ = seq_;
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
           ex_ = java.util.Collections.unmodifiableList(ex_);
           bitField0_ = (bitField0_ & ~0x00000002);
@@ -3091,8 +3092,8 @@ public final class Proto {
 
       public Builder mergeFrom(org.imdea.vcd.pb.Proto.ExceptionSet other) {
         if (other == org.imdea.vcd.pb.Proto.ExceptionSet.getDefaultInstance()) return this;
-        if (other.getMax() != 0) {
-          setMax(other.getMax());
+        if (other.getSeq() != 0L) {
+          setSeq(other.getSeq());
         }
         if (!other.ex_.isEmpty()) {
           if (ex_.isEmpty()) {
@@ -3132,82 +3133,82 @@ public final class Proto {
       }
       private int bitField0_;
 
-      private int max_ ;
+      private long seq_ ;
       /**
-       * <code>int32 max = 1;</code>
+       * <code>int64 seq = 1;</code>
        */
-      public int getMax() {
-        return max_;
+      public long getSeq() {
+        return seq_;
       }
       /**
-       * <code>int32 max = 1;</code>
+       * <code>int64 seq = 1;</code>
        */
-      public Builder setMax(int value) {
+      public Builder setSeq(long value) {
         
-        max_ = value;
+        seq_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>int32 max = 1;</code>
+       * <code>int64 seq = 1;</code>
        */
-      public Builder clearMax() {
+      public Builder clearSeq() {
         
-        max_ = 0;
+        seq_ = 0L;
         onChanged();
         return this;
       }
 
-      private java.util.List<java.lang.Integer> ex_ = java.util.Collections.emptyList();
+      private java.util.List<java.lang.Long> ex_ = java.util.Collections.emptyList();
       private void ensureExIsMutable() {
         if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-          ex_ = new java.util.ArrayList<java.lang.Integer>(ex_);
+          ex_ = new java.util.ArrayList<java.lang.Long>(ex_);
           bitField0_ |= 0x00000002;
          }
       }
       /**
-       * <code>repeated int32 ex = 2;</code>
+       * <code>repeated int64 ex = 2;</code>
        */
-      public java.util.List<java.lang.Integer>
+      public java.util.List<java.lang.Long>
           getExList() {
         return java.util.Collections.unmodifiableList(ex_);
       }
       /**
-       * <code>repeated int32 ex = 2;</code>
+       * <code>repeated int64 ex = 2;</code>
        */
       public int getExCount() {
         return ex_.size();
       }
       /**
-       * <code>repeated int32 ex = 2;</code>
+       * <code>repeated int64 ex = 2;</code>
        */
-      public int getEx(int index) {
+      public long getEx(int index) {
         return ex_.get(index);
       }
       /**
-       * <code>repeated int32 ex = 2;</code>
+       * <code>repeated int64 ex = 2;</code>
        */
       public Builder setEx(
-          int index, int value) {
+          int index, long value) {
         ensureExIsMutable();
         ex_.set(index, value);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated int32 ex = 2;</code>
+       * <code>repeated int64 ex = 2;</code>
        */
-      public Builder addEx(int value) {
+      public Builder addEx(long value) {
         ensureExIsMutable();
         ex_.add(value);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated int32 ex = 2;</code>
+       * <code>repeated int64 ex = 2;</code>
        */
       public Builder addAllEx(
-          java.lang.Iterable<? extends java.lang.Integer> values) {
+          java.lang.Iterable<? extends java.lang.Long> values) {
         ensureExIsMutable();
         com.google.protobuf.AbstractMessageLite.Builder.addAll(
             values, ex_);
@@ -3215,7 +3216,7 @@ public final class Proto {
         return this;
       }
       /**
-       * <code>repeated int32 ex = 2;</code>
+       * <code>repeated int64 ex = 2;</code>
        */
       public Builder clearEx() {
         ex_ = java.util.Collections.emptyList();
@@ -3337,11 +3338,11 @@ public final class Proto {
         int key);
 
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
     int getConfCount();
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
     boolean containsConf(
         int key);
@@ -3349,25 +3350,25 @@ public final class Proto {
      * Use {@link #getConfMap()} instead.
      */
     @java.lang.Deprecated
-    java.util.Map<java.lang.Integer, java.lang.Integer>
+    java.util.Map<java.lang.Integer, java.lang.Long>
     getConf();
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
-    java.util.Map<java.lang.Integer, java.lang.Integer>
+    java.util.Map<java.lang.Integer, java.lang.Long>
     getConfMap();
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
 
-    int getConfOrDefault(
+    long getConfOrDefault(
         int key,
-        int defaultValue);
+        long defaultValue);
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
 
-    int getConfOrThrow(
+    long getConfOrThrow(
         int key);
   }
   /**
@@ -3458,7 +3459,7 @@ public final class Proto {
                     ConfDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000008;
               }
-              com.google.protobuf.MapEntry<java.lang.Integer, java.lang.Integer>
+              com.google.protobuf.MapEntry<java.lang.Integer, java.lang.Long>
               conf__ = input.readMessage(
                   ConfDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               conf_.getMutableMap().put(
@@ -3624,18 +3625,18 @@ public final class Proto {
     public static final int CONF_FIELD_NUMBER = 4;
     private static final class ConfDefaultEntryHolder {
       static final com.google.protobuf.MapEntry<
-          java.lang.Integer, java.lang.Integer> defaultEntry =
+          java.lang.Integer, java.lang.Long> defaultEntry =
               com.google.protobuf.MapEntry
-              .<java.lang.Integer, java.lang.Integer>newDefaultInstance(
+              .<java.lang.Integer, java.lang.Long>newDefaultInstance(
                   org.imdea.vcd.pb.Proto.internal_static_Commit_ConfEntry_descriptor, 
                   com.google.protobuf.WireFormat.FieldType.INT32,
                   0,
-                  com.google.protobuf.WireFormat.FieldType.INT32,
-                  0);
+                  com.google.protobuf.WireFormat.FieldType.INT64,
+                  0L);
     }
     private com.google.protobuf.MapField<
-        java.lang.Integer, java.lang.Integer> conf_;
-    private com.google.protobuf.MapField<java.lang.Integer, java.lang.Integer>
+        java.lang.Integer, java.lang.Long> conf_;
+    private com.google.protobuf.MapField<java.lang.Integer, java.lang.Long>
     internalGetConf() {
       if (conf_ == null) {
         return com.google.protobuf.MapField.emptyMapField(
@@ -3648,7 +3649,7 @@ public final class Proto {
       return internalGetConf().getMap().size();
     }
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
 
     public boolean containsConf(
@@ -3660,36 +3661,36 @@ public final class Proto {
      * Use {@link #getConfMap()} instead.
      */
     @java.lang.Deprecated
-    public java.util.Map<java.lang.Integer, java.lang.Integer> getConf() {
+    public java.util.Map<java.lang.Integer, java.lang.Long> getConf() {
       return getConfMap();
     }
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
 
-    public java.util.Map<java.lang.Integer, java.lang.Integer> getConfMap() {
+    public java.util.Map<java.lang.Integer, java.lang.Long> getConfMap() {
       return internalGetConf().getMap();
     }
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
 
-    public int getConfOrDefault(
+    public long getConfOrDefault(
         int key,
-        int defaultValue) {
+        long defaultValue) {
       
-      java.util.Map<java.lang.Integer, java.lang.Integer> map =
+      java.util.Map<java.lang.Integer, java.lang.Long> map =
           internalGetConf().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;int32, int32&gt; conf = 4;</code>
+     * <code>map&lt;int32, int64&gt; conf = 4;</code>
      */
 
-    public int getConfOrThrow(
+    public long getConfOrThrow(
         int key) {
       
-      java.util.Map<java.lang.Integer, java.lang.Integer> map =
+      java.util.Map<java.lang.Integer, java.lang.Long> map =
           internalGetConf().getMap();
       if (!map.containsKey(key)) {
         throw new java.lang.IllegalArgumentException();
@@ -3753,9 +3754,9 @@ public final class Proto {
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(3, dep__);
       }
-      for (java.util.Map.Entry<java.lang.Integer, java.lang.Integer> entry
+      for (java.util.Map.Entry<java.lang.Integer, java.lang.Long> entry
            : internalGetConf().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.Integer, java.lang.Integer>
+        com.google.protobuf.MapEntry<java.lang.Integer, java.lang.Long>
         conf__ = ConfDefaultEntryHolder.defaultEntry.newBuilderForType()
             .setKey(entry.getKey())
             .setValue(entry.getValue())
@@ -4465,8 +4466,8 @@ public final class Proto {
       }
 
       private com.google.protobuf.MapField<
-          java.lang.Integer, java.lang.Integer> conf_;
-      private com.google.protobuf.MapField<java.lang.Integer, java.lang.Integer>
+          java.lang.Integer, java.lang.Long> conf_;
+      private com.google.protobuf.MapField<java.lang.Integer, java.lang.Long>
       internalGetConf() {
         if (conf_ == null) {
           return com.google.protobuf.MapField.emptyMapField(
@@ -4474,7 +4475,7 @@ public final class Proto {
         }
         return conf_;
       }
-      private com.google.protobuf.MapField<java.lang.Integer, java.lang.Integer>
+      private com.google.protobuf.MapField<java.lang.Integer, java.lang.Long>
       internalGetMutableConf() {
         onChanged();;
         if (conf_ == null) {
@@ -4491,7 +4492,7 @@ public final class Proto {
         return internalGetConf().getMap().size();
       }
       /**
-       * <code>map&lt;int32, int32&gt; conf = 4;</code>
+       * <code>map&lt;int32, int64&gt; conf = 4;</code>
        */
 
       public boolean containsConf(
@@ -4503,36 +4504,36 @@ public final class Proto {
        * Use {@link #getConfMap()} instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.Integer, java.lang.Integer> getConf() {
+      public java.util.Map<java.lang.Integer, java.lang.Long> getConf() {
         return getConfMap();
       }
       /**
-       * <code>map&lt;int32, int32&gt; conf = 4;</code>
+       * <code>map&lt;int32, int64&gt; conf = 4;</code>
        */
 
-      public java.util.Map<java.lang.Integer, java.lang.Integer> getConfMap() {
+      public java.util.Map<java.lang.Integer, java.lang.Long> getConfMap() {
         return internalGetConf().getMap();
       }
       /**
-       * <code>map&lt;int32, int32&gt; conf = 4;</code>
+       * <code>map&lt;int32, int64&gt; conf = 4;</code>
        */
 
-      public int getConfOrDefault(
+      public long getConfOrDefault(
           int key,
-          int defaultValue) {
+          long defaultValue) {
         
-        java.util.Map<java.lang.Integer, java.lang.Integer> map =
+        java.util.Map<java.lang.Integer, java.lang.Long> map =
             internalGetConf().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
-       * <code>map&lt;int32, int32&gt; conf = 4;</code>
+       * <code>map&lt;int32, int64&gt; conf = 4;</code>
        */
 
-      public int getConfOrThrow(
+      public long getConfOrThrow(
           int key) {
         
-        java.util.Map<java.lang.Integer, java.lang.Integer> map =
+        java.util.Map<java.lang.Integer, java.lang.Long> map =
             internalGetConf().getMap();
         if (!map.containsKey(key)) {
           throw new java.lang.IllegalArgumentException();
@@ -4546,7 +4547,7 @@ public final class Proto {
         return this;
       }
       /**
-       * <code>map&lt;int32, int32&gt; conf = 4;</code>
+       * <code>map&lt;int32, int64&gt; conf = 4;</code>
        */
 
       public Builder removeConf(
@@ -4560,16 +4561,16 @@ public final class Proto {
        * Use alternate mutation accessors instead.
        */
       @java.lang.Deprecated
-      public java.util.Map<java.lang.Integer, java.lang.Integer>
+      public java.util.Map<java.lang.Integer, java.lang.Long>
       getMutableConf() {
         return internalGetMutableConf().getMutableMap();
       }
       /**
-       * <code>map&lt;int32, int32&gt; conf = 4;</code>
+       * <code>map&lt;int32, int64&gt; conf = 4;</code>
        */
       public Builder putConf(
           int key,
-          int value) {
+          long value) {
         
         
         internalGetMutableConf().getMutableMap()
@@ -4577,11 +4578,11 @@ public final class Proto {
         return this;
       }
       /**
-       * <code>map&lt;int32, int32&gt; conf = 4;</code>
+       * <code>map&lt;int32, int64&gt; conf = 4;</code>
        */
 
       public Builder putAllConf(
-          java.util.Map<java.lang.Integer, java.lang.Integer> values) {
+          java.util.Map<java.lang.Integer, java.lang.Long> values) {
         internalGetMutableConf().getMutableMap()
             .putAll(values);
         return this;
@@ -5585,13 +5586,13 @@ public final class Proto {
       "BLE\020\001\022\r\n\tDELIVERED\020\002\"0\n\010NodeSpec\022\n\n\002id\030\001" +
       " \001(\005\022\n\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n" +
       "\002id\030\001 \001(\005\022\013\n\003seq\030\002 \001(\003\"\'\n\014ExceptionSet\022\013" +
-      "\n\003max\030\001 \001(\005\022\n\n\002ex\030\002 \003(\005\"\336\001\n\006Commit\022\021\n\003do" +
+      "\n\003seq\030\001 \001(\003\022\n\n\002ex\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003do" +
       "t\030\001 \001(\0132\004.Dot\022\031\n\007message\030\002 \001(\0132\010.Message" +
       "\022\035\n\003dep\030\003 \003(\0132\020.Commit.DepEntry\022\037\n\004conf\030",
       "\004 \003(\0132\021.Commit.ConfEntry\0329\n\010DepEntry\022\013\n\003" +
       "key\030\001 \001(\005\022\034\n\005value\030\002 \001(\0132\r.ExceptionSet:" +
       "\0028\001\032+\n\tConfEntry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002" +
-      " \001(\005:\0028\001\"G\n\005Reply\022\032\n\003set\030\001 \001(\0132\013.Message" +
+      " \001(\003:\0028\001\"G\n\005Reply\022\032\n\003set\030\001 \001(\0132\013.Message" +
       "SetH\000\022\031\n\006commit\030\002 \001(\0132\007.CommitH\000B\007\n\005repl" +
       "yB\031\n\020org.imdea.vcd.pbB\005Protob\006proto3"
     };
@@ -5636,7 +5637,7 @@ public final class Proto {
     internal_static_ExceptionSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ExceptionSet_descriptor,
-        new java.lang.String[] { "Max", "Ex", });
+        new java.lang.String[] { "Seq", "Ex", });
     internal_static_Commit_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_Commit_fieldAccessorTable = new
