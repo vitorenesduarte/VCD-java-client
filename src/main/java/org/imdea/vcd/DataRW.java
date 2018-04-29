@@ -1,10 +1,13 @@
 package org.imdea.vcd;
 
+import org.imdea.vcd.queue.DependencyQueue;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
+import org.imdea.vcd.queue.CommitDepBox;
+import org.imdea.vcd.queue.DepBox;
 
 /**
  *
@@ -14,12 +17,12 @@ public class DataRW {
 
     private final DataInputStream in;
     private final DataOutputStream out;
-    private final DependencyQueue queue;
+    private final DependencyQueue<CommitDepBox> queue;
 
     public DataRW(DataInputStream in, DataOutputStream out) {
         this.in = in;
         this.out = out;
-        this.queue = new DependencyQueue();
+        this.queue = new DependencyQueue<>();
     }
 
     public void write(MessageSet messageSet) throws IOException {
@@ -43,7 +46,9 @@ public class DataRW {
             case SET:
                 return reply.getSet();
             case COMMIT:
-                MessageSet messageSet = queue.add(reply.getCommit());
+                CommitDepBox box = new CommitDepBox(reply.getCommit());
+                queue.add(box);
+                MessageSet messageSet = box.toMessageSet();
                 if (messageSet != null) {
                     return messageSet;
                 } else {
