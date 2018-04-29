@@ -32,12 +32,12 @@ public class Metrics {
     }
 
     private final List<ChainMetric> chainLengths;
-    private final List<Long> committedTimes;
+    private final List<Long> durableTimes;
     private final List<Long> deliveredTimes;
 
     public Metrics() {
         this.chainLengths = new LinkedList<>();
-        this.committedTimes = new LinkedList<>();
+        this.durableTimes = new LinkedList<>();
         this.deliveredTimes = new LinkedList<>();
     }
 
@@ -53,8 +53,8 @@ public class Metrics {
         Long time = time() - start;
 
         switch (status) {
-            case COMMITTED:
-                committedTimes.add(time);
+            case DURABLE:
+                durableTimes.add(time);
                 break;
             case DELIVERED:
                 deliveredTimes.add(time);
@@ -63,14 +63,14 @@ public class Metrics {
     }
 
     public String show() {
-        assert committedTimes.isEmpty() || committedTimes.size() == deliveredTimes.size();
+        assert durableTimes.isEmpty() || durableTimes.size() == deliveredTimes.size();
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append("CHAINS: ")
                 .append(averageChains(chainLengths))
                 .append("\n");
-        sb.append("COMMITTED: ")
-                .append(average(committedTimes))
+        sb.append("DURABLE: ")
+                .append(average(durableTimes))
                 .append(" (ms)\n");
         sb.append("DELIVERED: ")
                 .append(average(deliveredTimes))
@@ -85,8 +85,8 @@ public class Metrics {
                 serializeChains(chainLengths)
         );
         m.put(
-                key(config, "log", "Commit"),
-                serializeTimes(committedTimes)
+                key(config, "log", "Durable"),
+                serializeTimes(durableTimes)
         );
         m.put(
                 key(config, "log"),

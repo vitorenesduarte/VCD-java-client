@@ -50,7 +50,7 @@ public class Socket {
 
         for (int i = 0; i < retries; i++) {
             try {
-                java.net.Socket socket = new java.net.Socket(host, Integer.valueOf(port) + 1000);
+                java.net.Socket socket = new java.net.Socket(host, port + 1000);
                 socket.setTcpNoDelay(true);
 
                 DataInputStream in = new DataInputStream(socket.getInputStream());

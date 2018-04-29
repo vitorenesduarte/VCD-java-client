@@ -37,7 +37,7 @@ public class DummySocket extends Socket{
                 MessageSet.Builder builder = MessageSet.newBuilder();
                 for (Proto.Message msg : messageSet.getMessagesList()){
                     builder.addMessages(msg);
-                    builder.setStatus(MessageSet.Status.COMMITTED);
+                    builder.setStatus(MessageSet.Status.DURABLE);
                 }
                 try {
                     queue.put(builder.build());

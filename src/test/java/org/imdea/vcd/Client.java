@@ -51,7 +51,7 @@ public class Client {
                     ByteString data;
                     PerData perData;
                     switch (status) {
-                        case COMMITTED:
+                        case DURABLE:
                             data = messages.get(0).getData();
                             perData = MAP.get(data);
                             // record commit time, if perData exists
