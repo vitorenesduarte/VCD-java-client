@@ -45,7 +45,7 @@ public class DataRW {
             case SET:
                 return reply.getSet();
             case COMMIT:
-                CommitDepBox box = CommitDepBox.fromCommit(reply.getCommit());
+                CommitDepBox box = new CommitDepBox(reply.getCommit());
                 queue.add(box);
                 MessageSet messageSet = box.toMessageSet();
                 if (messageSet != null) {
