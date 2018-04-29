@@ -8,7 +8,7 @@ import org.imdea.vcd.pb.Proto.Dot;
 
 /**
  *
- * @author Vitor
+ * @author Vitor Enes
  * @param <T>
  */
 public class Clock<T extends IntSet> {
