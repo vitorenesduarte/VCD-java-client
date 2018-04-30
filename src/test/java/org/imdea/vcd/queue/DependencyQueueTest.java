@@ -263,7 +263,8 @@ public class DependencyQueueTest {
         DependencyQueue<CommitDepBox> queue = new DependencyQueue<>(nodeNumber);
         List<CommitDepBox> results = new ArrayList<>();
         for (CommitDepBox box : boxes) {
-            List<CommitDepBox> result = queue.add((CommitDepBox) box.clone());
+            queue.add((CommitDepBox) box.clone());
+            List<CommitDepBox> result = queue.tryDeliver();
             results.addAll(result);
         }
         return queue.isEmpty() && allDotsDelivered(boxes, results);
@@ -272,13 +273,13 @@ public class DependencyQueueTest {
     private boolean allDotsDelivered(List<CommitDepBox> boxes, List<CommitDepBox> results) {
         List<Dot> boxesDots = boxListToDots(boxes);
         List<Dot> resultsDots = boxListToDots(results);
-        
+
         // all dots (and no more) were delivered
         boolean result = boxesDots.size() == resultsDots.size();
-        for(Dot dot : boxesDots) {
+        for (Dot dot : boxesDots) {
             result = result && resultsDots.contains(dot);
         }
-        
+
         return result;
     }
 

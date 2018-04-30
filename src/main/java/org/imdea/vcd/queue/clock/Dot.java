@@ -44,7 +44,7 @@ public class Dot {
         Dot dot = new Dot(this);
         return dot;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         // self check

@@ -22,6 +22,10 @@ public class MaxInt implements IntSet<MaxInt> {
         this.seq = maxInt.seq;
     }
 
+    public ExceptionSet toExceptionSet() {
+        return new ExceptionSet(this.seq);
+    }
+
     @Override
     public boolean contains(Long seq) {
         return seq <= this.seq;

@@ -51,14 +51,15 @@ public class DataRW {
                 return reply.getSet();
             case COMMIT:
                 CommitDepBox box = new CommitDepBox(reply.getCommit());
-                List<CommitDepBox> toDeliver = queue.add(box);
+                queue.add(box);
+                List<CommitDepBox> toDeliver = queue.tryDeliver();
 
                 if (toDeliver.isEmpty()) {
                     return this.read();
                 } else {
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
-                        for (Message message : boxToDeliver.allMessages()) {
+                        for (Message message : boxToDeliver.sortMessages()) {
                             builder.addMessages(message);
                         }
                     }
