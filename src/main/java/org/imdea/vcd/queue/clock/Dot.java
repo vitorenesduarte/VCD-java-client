@@ -1,5 +1,6 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.Objects;
 import org.imdea.vcd.pb.Proto;
 
 /**
@@ -42,5 +43,23 @@ public class Dot {
     public Object clone() {
         Dot dot = new Dot(this);
         return dot;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o) {
+            return true;
+        }
+        // null check
+        if (o == null) {
+            return false;
+        }
+        // type check and cast
+        if (getClass() != o.getClass()) {
+            return false;
+        }
+        Dot t = (Dot) o;
+        return Objects.equals(this.id, t.id) && Objects.equals(this.seq, t.seq);
     }
 }

@@ -9,6 +9,7 @@ import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
+import org.imdea.vcd.queue.clock.Dots;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
 import org.junit.Test;
@@ -272,7 +273,30 @@ public class DependencyQueueTest {
             List<CommitDepBox> result = queue.add((CommitDepBox) box.clone());
             results.addAll(result);
         }
-        return queue.isEmpty();
+        return queue.isEmpty() && allDotsDelivered(boxes, results);
+    }
+
+    private boolean allDotsDelivered(List<CommitDepBox> boxes, List<CommitDepBox> results) {
+        List<Dot> boxesDots = boxListToDots(boxes);
+        List<Dot> resultsDots = boxListToDots(results);
+        
+        // all dots (and no more) were delivered
+        boolean result = boxesDots.size() == resultsDots.size();
+        for(Dot dot : boxesDots) {
+            result = result && resultsDots.contains(dot);
+        }
+        
+        return result;
+    }
+
+    private List<Dot> boxListToDots(List<CommitDepBox> list) {
+        List<Dot> dots = new ArrayList<>();
+        for (CommitDepBox e : list) {
+            for (Dot dot : e.getDots()) {
+                dots.add(dot);
+            }
+        }
+        return dots;
     }
 
     private CommitDepBox box(Dot dot, HashMap<Integer, ExceptionSet> dep) {

@@ -58,7 +58,7 @@ public class DataRW {
                 } else {
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
-                        for (Message message : boxToDeliver.messages()) {
+                        for (Message message : boxToDeliver.allMessages()) {
                             builder.addMessages(message);
                         }
                     }

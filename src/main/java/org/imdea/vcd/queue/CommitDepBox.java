@@ -63,7 +63,11 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         return delivered.equals(this.dep);
     }
 
-    public List<Message> messages() {
+    public Dots getDots() {
+        return this.dots;
+    }
+    
+    public List<Message> allMessages() {
         List<Message> result = new ArrayList<>();
         for (ArrayList<PerMessage> messages : this.messageMap.messages.values()) {
             for (PerMessage message : messages) {
@@ -72,7 +76,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         }
         return result;
     }
-
+    
     @Override
     public String toString() {
         return dots + " " + dep;
