@@ -7,7 +7,7 @@ import org.imdea.vcd.pb.Proto;
  *
  * @author Vitor Enes
  */
-public class Dot {
+public class Dot implements Comparable<Dot> {
 
     private final Integer id;
     private final Long seq;
@@ -61,5 +61,13 @@ public class Dot {
         }
         Dot t = (Dot) o;
         return Objects.equals(this.id, t.id) && Objects.equals(this.seq, t.seq);
+    }
+
+    @Override
+    public int compareTo(Dot o) {
+        if(Objects.equals(this.id, o.id)) {
+            return this.seq.compareTo(o.seq);
+        }
+        return this.id.compareTo(o.id);
     }
 }
