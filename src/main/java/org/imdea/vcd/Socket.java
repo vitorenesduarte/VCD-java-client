@@ -55,7 +55,7 @@ public class Socket {
 
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                DataRW rw = new DataRW(in, out);
+                DataRW rw = new DataRW(in, out, config.getNodeNumber());
 
                 return new Socket(rw);
             } catch (java.net.ConnectException e) {
@@ -78,7 +78,7 @@ public class Socket {
 
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-        DataRW rw = new DataRW(in, out);
+        DataRW rw = new DataRW(in, out, config.getNodeNumber());
 
         return new Socket(rw);
     }

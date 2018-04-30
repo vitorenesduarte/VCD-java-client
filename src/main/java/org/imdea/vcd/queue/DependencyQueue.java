@@ -1,5 +1,10 @@
 package org.imdea.vcd.queue;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.imdea.vcd.queue.clock.ExceptionSet;
+import org.imdea.vcd.queue.clock.Clock;
+
 /**
  *
  * Some methods are copied from java.util.LinkedList.
@@ -12,10 +17,17 @@ public class DependencyQueue<E extends DepBox> {
     Node<E> first;
     Node<E> last;
 
-    public DependencyQueue() {
+    private Clock<ExceptionSet> delivered;
+
+    public DependencyQueue(Integer nodeNumber) {
+        this.delivered = Clock.eclock(nodeNumber);
     }
 
-    public DepBox add(E e) {
+    public DependencyQueue(Clock<ExceptionSet> delivered) {
+        this.delivered = delivered;
+    }
+
+    public List<E> add(E e) {
         Node<E> pred = findPredecessor(e);
         Node<E> succ = findSuccessor(e);
         if (pred == null && succ == null) {
@@ -31,7 +43,37 @@ public class DependencyQueue<E extends DepBox> {
             // found cycle: merge all
             merge(e, pred, succ);
         }
-        return null;
+
+        List<E> result = new ArrayList<>();
+        boolean flag = true;
+
+        while (first != null && flag) {
+            Node<E> candidate = first;
+
+            // copy 'delivered' clock
+            Clock<ExceptionSet> nextDelivered = new Clock<>(delivered);
+
+            // NOTE function 'canDeliver' mutates 'nextDelivered' clock
+            flag = candidate.item.canDeliver(nextDelivered);
+
+            if (flag) {
+                // update delivered clock
+                this.delivered = nextDelivered;
+
+                // add to results
+                result.add(candidate.item);
+
+                // update first
+                first = first.next;
+                if (first == null) {
+                    last = null;
+                } else {
+                    first.prev = null;
+                }
+            }
+        }
+
+        return result;
     }
 
     /**

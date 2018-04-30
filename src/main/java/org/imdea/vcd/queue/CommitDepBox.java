@@ -1,9 +1,9 @@
 package org.imdea.vcd.queue;
 
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.imdea.vcd.queue.clock.ExceptionSet;
@@ -31,6 +31,12 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         this.messageMap = new MessageMap(commit);
     }
 
+    public CommitDepBox(Dot dot, Clock<ExceptionSet> dep, Message message, Clock<MaxInt> conf) {
+        this.dots = new Dots(dot);
+        this.dep = dep;
+        this.messageMap = new MessageMap(dot, message, conf);
+    }
+
     @Override
     public boolean before(CommitDepBox o) {
         return o.dep.intersects(this.dots);
@@ -44,27 +50,39 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
     }
 
     @Override
+    public boolean canDeliver(Clock<ExceptionSet> delivered) {
+        // delivered will be mutated, adding the dots from this box
+        // - in case it can deliver, delivered will be the next queue clock
+        delivered.addDots(this.dots);
+        return delivered.equals(this.dep);
+    }
+
+    @Override
     public Proto.MessageSet toMessageSet() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     private class MessageMap {
 
-        private final HashMap<ByteString, List<PerMessage>> messages;
+        private final HashMap<ByteString, ArrayList<PerMessage>> messages;
 
         public MessageMap(Commit commit) {
+            this(commit.getDot(), commit.getMessage(), Clock.vclock(commit.getConfMap()));
+        }
+
+        public MessageMap(Dot dot, Message message, Clock<MaxInt> conf) {
             this.messages = new HashMap<>();
-            ByteString color = commit.getMessage().getHash();
-            PerMessage p = new PerMessage(commit);
-            this.messages.put(color, Arrays.asList(p));
+            ByteString color = message.getHash();
+            PerMessage p = new PerMessage(dot, message, conf);
+            this.messages.put(color, new ArrayList<>(Arrays.asList(p)));
         }
 
         public void merge(MessageMap o) {
-            BiFunction<List<PerMessage>, List<PerMessage>, List<PerMessage>> f = (a, b) -> {
+            BiFunction<ArrayList<PerMessage>, ArrayList<PerMessage>, ArrayList<PerMessage>> f = (a, b) -> {
                 a.addAll(b);
                 return a;
             };
-            for (Map.Entry<ByteString, List<PerMessage>> entry : o.messages.entrySet()) {
+            for (Map.Entry<ByteString, ArrayList<PerMessage>> entry : o.messages.entrySet()) {
                 this.messages.merge(entry.getKey(), entry.getValue(), f);
             }
         }
@@ -76,10 +94,10 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         private final Message message;
         private final Clock<MaxInt> conf;
 
-        public PerMessage(Commit commit) {
-            this.dot = commit.getDot();
-            this.message = commit.getMessage();
-            this.conf = Clock.vclock(commit.getConfMap());
+        public PerMessage(Dot dot, Message message, Clock<MaxInt> conf) {
+            this.dot = dot;
+            this.message = message;
+            this.conf = conf;
         }
 
         public Dot getDot() {

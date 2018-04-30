@@ -1,7 +1,6 @@
 package org.imdea.vcd.queue.clock;
 
 import java.util.HashMap;
-import org.imdea.vcd.pb.Proto.Dot;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -11,10 +10,6 @@ import static org.junit.Assert.*;
  */
 public class ClockTest {
 
-    private Dot dot(Integer id, Long seq) {
-        return Dot.newBuilder().setId(id).setSeq(seq).build();
-    }
-
     @Test
     public void testContains() {
         HashMap<Integer, Long> a = new HashMap<>();
@@ -22,10 +17,10 @@ public class ClockTest {
         a.put(1, 17L);
         Clock<MaxInt> clockA = Clock.vclock(a);
 
-        assertTrue(clockA.contains(dot(0, 9L)));
-        assertTrue(clockA.contains(dot(0, 10L)));
-        assertFalse(clockA.contains(dot(0, 11L)));
-        assertTrue(clockA.contains(dot(1, 11L)));
+        assertTrue(clockA.contains(Dots.dot(0, 9L)));
+        assertTrue(clockA.contains(Dots.dot(0, 10L)));
+        assertFalse(clockA.contains(Dots.dot(0, 11L)));
+        assertTrue(clockA.contains(Dots.dot(1, 11L)));
     }
 
     @Test
@@ -39,17 +34,17 @@ public class ClockTest {
         b.put(0, 12L);
         b.put(1, 12L);
         Clock<MaxInt> clockB = Clock.vclock(b);
-        
+
         clockA.merge(clockB);
-        
-        assertTrue(clockA.contains(dot(0, 9L)));
-        assertTrue(clockA.contains(dot(0, 10L)));
-        assertTrue(clockA.contains(dot(0, 11L)));
-        assertTrue(clockA.contains(dot(0, 12L)));
-        assertFalse(clockA.contains(dot(0, 13L)));
-        assertTrue(clockA.contains(dot(1, 11L)));
-        assertTrue(clockA.contains(dot(1, 17L)));
-        assertFalse(clockA.contains(dot(1, 18L)));
+
+        assertTrue(clockA.contains(Dots.dot(0, 9L)));
+        assertTrue(clockA.contains(Dots.dot(0, 10L)));
+        assertTrue(clockA.contains(Dots.dot(0, 11L)));
+        assertTrue(clockA.contains(Dots.dot(0, 12L)));
+        assertFalse(clockA.contains(Dots.dot(0, 13L)));
+        assertTrue(clockA.contains(Dots.dot(1, 11L)));
+        assertTrue(clockA.contains(Dots.dot(1, 17L)));
+        assertFalse(clockA.contains(Dots.dot(1, 18L)));
     }
 
     @Test
@@ -59,7 +54,7 @@ public class ClockTest {
         a.put(1, 17L);
         Clock<MaxInt> clockA = Clock.vclock(a);
 
-        assertTrue(clockA.intersects(new Dots(dot(0, 10L))));
-        assertFalse(clockA.intersects(new Dots(dot(0, 11L))));
+        assertTrue(clockA.intersects(new Dots(Dots.dot(0, 10L))));
+        assertFalse(clockA.intersects(new Dots(Dots.dot(0, 11L))));
     }
 }

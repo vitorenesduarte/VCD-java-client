@@ -19,6 +19,10 @@ public class Clock<T extends IntSet> {
         this.map = map;
     }
 
+    public Clock(Clock<T> clock) {
+        this.map = (HashMap<Integer, T>) clock.map.clone();
+    }
+
     public boolean contains(Dot dot) {
         return this.map.get(dot.getId()).contains(dot.getSeq());
     }
@@ -42,11 +46,53 @@ public class Clock<T extends IntSet> {
         return false;
     }
 
+    public void addDots(Dots dots) {
+        for (Dot dot : dots) {
+            this.map.get(dot.getId()).add(dot.getSeq());
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o) {
+            return true;
+        }
+        // null check
+        if (o == null) {
+            return false;
+        }
+        // type check and cast
+        if (getClass() != o.getClass()) {
+            return false;
+        }
+        Clock<T> t = (Clock<T>) o;
+        return this.map.equals(t.map);
+    }
+
+    public static Clock<MaxInt> vclock(Integer nodeNumber) {
+        HashMap<Integer, MaxInt> map = new HashMap<>();
+        for (int id = 0; id < nodeNumber; id++) {
+            map.put(id, new MaxInt());
+        }
+
+        return new Clock<>(map);
+    }
+
     public static Clock<MaxInt> vclock(Map<Integer, Long> o) {
         HashMap<Integer, MaxInt> map = new HashMap<>();
         for (Map.Entry<Integer, Long> entry : o.entrySet()) {
             map.put(entry.getKey(), new MaxInt(entry.getValue()));
         }
+        return new Clock<>(map);
+    }
+
+    public static Clock<ExceptionSet> eclock(Integer nodeNumber) {
+        HashMap<Integer, ExceptionSet> map = new HashMap<>();
+        for (int id = 0; id < nodeNumber; id++) {
+            map.put(id, new ExceptionSet());
+        }
+
         return new Clock<>(map);
     }
 

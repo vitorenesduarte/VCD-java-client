@@ -18,10 +18,10 @@ public class DataRW {
     private final DataOutputStream out;
     private final DependencyQueue<CommitDepBox> queue;
 
-    public DataRW(DataInputStream in, DataOutputStream out) {
+    public DataRW(DataInputStream in, DataOutputStream out, Integer nodeNumber) {
         this.in = in;
         this.out = out;
-        this.queue = new DependencyQueue<>();
+        this.queue = new DependencyQueue<>(nodeNumber);
     }
 
     public void write(MessageSet messageSet) throws IOException {

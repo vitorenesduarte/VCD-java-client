@@ -25,4 +25,8 @@ public class Dots implements Iterable<Dot> {
     public Iterator<Dot> iterator() {
         return this.set.iterator();
     }
+
+    public static Dot dot(Integer id, Long seq) {
+        return Dot.newBuilder().setId(id).setSeq(seq).build();
+    }
 }
