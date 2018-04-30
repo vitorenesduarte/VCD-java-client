@@ -93,7 +93,7 @@ public class DependencyQueue<E extends DepBox> {
     }
 
     /**
-     * Find predecessor of e in the queue.
+     * Find element that depends on e.
      */
     private Node<E> findDependsOnE(E e) {
         Node<E> it = first;
@@ -109,7 +109,7 @@ public class DependencyQueue<E extends DepBox> {
     }
 
     /**
-     * Find successor of e in the queue.
+     * Find elements that e depends on.
      */
     private Node<E> findEDependsOn(E e) {
         Node<E> it = last;
