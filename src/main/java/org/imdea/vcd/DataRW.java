@@ -4,6 +4,8 @@ import org.imdea.vcd.queue.DependencyQueue;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.List;
+import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
 import org.imdea.vcd.queue.CommitDepBox;
@@ -46,12 +48,20 @@ public class DataRW {
                 return reply.getSet();
             case COMMIT:
                 CommitDepBox box = new CommitDepBox(reply.getCommit());
-                queue.add(box);
-                MessageSet messageSet = box.toMessageSet();
-                if (messageSet != null) {
-                    return messageSet;
-                } else {
+                List<CommitDepBox> toDeliver = queue.add(box);
+
+                if (toDeliver.isEmpty()) {
                     return this.read();
+                } else {
+                    MessageSet.Builder builder = MessageSet.newBuilder();
+                    for (CommitDepBox boxToDeliver : toDeliver) {
+                        for (Message message : boxToDeliver.messages()) {
+                            builder.addMessages(message);
+                        }
+                    }
+                    builder.setStatus(MessageSet.Status.DELIVERED);
+                    MessageSet messageSet = builder.build();
+                    return messageSet;
                 }
             default:
                 throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());

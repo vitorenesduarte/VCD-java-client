@@ -4,12 +4,12 @@ import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.MaxInt;
-import org.imdea.vcd.pb.Proto;
 import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Dot;
@@ -63,9 +63,14 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         return delivered.equals(this.dep);
     }
 
-    @Override
-    public Proto.MessageSet toMessageSet() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Message> messages() {
+        List<Message> result = new ArrayList<>();
+        for (ArrayList<PerMessage> messages : this.messageMap.messages.values()) {
+            for (PerMessage message : messages) {
+                result.add(message.message);
+            }
+        }
+        return result;
     }
 
     @Override
