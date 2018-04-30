@@ -16,6 +16,10 @@ public class Dots implements Iterable<Dot> {
         this.set = new HashSet<>(Arrays.asList(dot));
     }
 
+    public Dots(HashSet<Dot> set) {
+        this.set = set;
+    }
+
     public void merge(Dots dots) {
         this.set.addAll(dots.set);
     }
@@ -28,5 +32,11 @@ public class Dots implements Iterable<Dot> {
     @Override
     public String toString() {
         return this.set.toString();
+    }
+
+    @Override
+    public Object clone() {
+        Dots dots = new Dots((HashSet<Dot>) this.set.clone());
+        return dots;
     }
 }

@@ -115,4 +115,10 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
         }
         return sb.toString();
     }
+
+    @Override
+    public Object clone() {
+        ExceptionSet exceptionSet = new ExceptionSet(this.seq, (HashSet<Long>) this.exceptions.clone());
+        return exceptionSet;
+    }
 }

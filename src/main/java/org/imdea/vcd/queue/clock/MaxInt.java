@@ -55,4 +55,10 @@ public class MaxInt implements IntSet<MaxInt> {
     public String toString() {
         return this.seq.toString();
     }
+
+    @Override
+    public Object clone() {
+        MaxInt maxInt = new MaxInt(this.seq);
+        return maxInt;
+    }
 }

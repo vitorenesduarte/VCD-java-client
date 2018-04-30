@@ -28,8 +28,7 @@ public class DependencyQueue<E extends DepBox> {
     }
 
     public List<E> add(E e) {
-        System.out.println("Adding " + e.toString() + " to: ");
-        System.out.println(this.toString());
+        System.out.println("Adding " + e);
         Node<E> pred = findPredecessor(e);
         Node<E> succ = findSuccessor(e);
         if (pred == null && succ == null) {
@@ -53,7 +52,7 @@ public class DependencyQueue<E extends DepBox> {
             Node<E> candidate = first;
 
             // copy 'delivered' clock
-            Clock<ExceptionSet> nextDelivered = new Clock<>(delivered);
+            Clock<ExceptionSet> nextDelivered = (Clock<ExceptionSet>) delivered.clone();
 
             // NOTE function 'canDeliver' mutates 'nextDelivered' clock
             flag = candidate.item.canDeliver(nextDelivered);
@@ -76,7 +75,7 @@ public class DependencyQueue<E extends DepBox> {
         }
 
         System.out.println("final queue:");
-        System.out.println(this.toString());
+        System.out.println(this);
 
         return result;
     }

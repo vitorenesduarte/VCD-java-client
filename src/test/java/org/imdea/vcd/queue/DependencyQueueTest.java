@@ -140,7 +140,7 @@ public class DependencyQueueTest {
         DependencyQueue<CommitDepBox> queue = new DependencyQueue<>(nodeNumber);
         List<CommitDepBox> results = new ArrayList<>();
         for (CommitDepBox box : boxes) {
-            List<CommitDepBox> result = queue.add(box);
+            List<CommitDepBox> result = queue.add((CommitDepBox) box.clone());
             results.addAll(result);
         }
         return true;

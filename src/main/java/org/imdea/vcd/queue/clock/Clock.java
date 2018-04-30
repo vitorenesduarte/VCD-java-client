@@ -18,10 +18,6 @@ public class Clock<T extends IntSet> {
         this.map = map;
     }
 
-    public Clock(Clock<T> clock) {
-        this.map = (HashMap<Integer, T>) clock.map.clone();
-    }
-
     public boolean contains(Dot dot) {
         return this.map.get(dot.getId()).contains(dot.getSeq());
     }
@@ -79,6 +75,12 @@ public class Clock<T extends IntSet> {
         sb.deleteCharAt(sb.length() - 1);
         sb.append("}");
         return sb.toString();
+    }
+
+    @Override
+    public Object clone() {
+        Clock clock = new Clock((HashMap<Integer, T>) this.map.clone());
+        return clock;
     }
 
     public static Clock<MaxInt> vclock(Integer nodeNumber) {

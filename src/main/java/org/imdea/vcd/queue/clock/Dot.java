@@ -32,4 +32,10 @@ public class Dot {
     public static Dot dot(Proto.Dot dot) {
         return new Dot(dot.getId(), dot.getSeq());
     }
+
+    @Override
+    public Object clone() {
+        Dot dot = new Dot(this.id, this.seq);
+        return dot;
+    }
 }

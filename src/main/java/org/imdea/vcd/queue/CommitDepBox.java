@@ -37,6 +37,12 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         this.messageMap = new MessageMap(dot, message, conf);
     }
 
+    public CommitDepBox(Dots dots, Clock<ExceptionSet> dep, MessageMap messageMap) {
+        this.dots = dots;
+        this.dep = dep;
+        this.messageMap = messageMap;
+    }
+
     @Override
     public boolean before(CommitDepBox o) {
         return o.dep.intersects(this.dots);
@@ -64,7 +70,17 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
     @Override
     public String toString() {
-        return dots.toString() + " " + dep.toString();
+        return dots + " " + dep;
+    }
+
+    @Override
+    public Object clone() {
+        CommitDepBox box = new CommitDepBox(
+                (Dots) this.dots.clone(),
+                (Clock<ExceptionSet>) this.dep.clone(),
+                (MessageMap) this.messageMap.clone()
+        );
+        return box;
     }
 
     private class MessageMap {
@@ -82,6 +98,10 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
             this.messages.put(color, new ArrayList<>(Arrays.asList(p)));
         }
 
+        public MessageMap(HashMap<ByteString, ArrayList<PerMessage>> messages) {
+            this.messages = messages;
+        }
+
         public void merge(MessageMap o) {
             BiFunction<ArrayList<PerMessage>, ArrayList<PerMessage>, ArrayList<PerMessage>> f = (a, b) -> {
                 a.addAll(b);
@@ -90,6 +110,12 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
             for (Map.Entry<ByteString, ArrayList<PerMessage>> entry : o.messages.entrySet()) {
                 this.messages.merge(entry.getKey(), entry.getValue(), f);
             }
+        }
+
+        @Override
+        public Object clone() {
+            MessageMap messageMap = new MessageMap((HashMap<ByteString, ArrayList<PerMessage>>) this.messages.clone());
+            return messageMap;
         }
     }
 
@@ -115,6 +141,16 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
         public Clock<MaxInt> getConf() {
             return conf;
+        }
+
+        @Override
+        public Object clone() {
+            PerMessage perMessage = new PerMessage(
+                    (Dot) this.dot.clone(),
+                    this.message, // TODO ?
+                    (Clock<MaxInt>) this.conf.clone()
+            );
+            return perMessage;
         }
     }
 }
