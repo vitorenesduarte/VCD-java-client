@@ -3,6 +3,10 @@ syntax = "proto3";
 option java_package = "org.imdea.vcd.pb";
 option java_outer_classname = "Proto";
 
+message Init {
+  map<int32, ExceptionSet> committed = 1;
+}
+
 message Message {
   bytes hash = 1;
   bytes data = 2;
@@ -43,8 +47,9 @@ message Commit {
 
 message Reply {
   oneof reply {
-    MessageSet set = 1;
-    Commit commit = 2;
+    Init init = 1;
+    MessageSet set = 2;
+    Commit commit = 3;
   }
 }
 

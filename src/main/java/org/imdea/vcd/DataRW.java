@@ -9,6 +9,7 @@ import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
 import org.imdea.vcd.queue.CommitDepBox;
+import org.imdea.vcd.queue.clock.Clock;
 
 /**
  *
@@ -18,12 +19,11 @@ public class DataRW {
 
     private final DataInputStream in;
     private final DataOutputStream out;
-    private final DependencyQueue<CommitDepBox> queue;
+    private DependencyQueue<CommitDepBox> queue;
 
     public DataRW(DataInputStream in, DataOutputStream out, Integer nodeNumber) {
         this.in = in;
         this.out = out;
-        this.queue = new DependencyQueue<>(nodeNumber);
     }
 
     public void write(MessageSet messageSet) throws IOException {
@@ -44,6 +44,9 @@ public class DataRW {
         // with the commit notification
         Reply reply = Reply.parseFrom(data);
         switch (reply.getReplyCase()) {
+            case INIT:
+                this.queue = new DependencyQueue(Clock.eclock(reply.getInit().getCommittedMap()));
+                return this.read();
             case SET:
                 return reply.getSet();
             case COMMIT:

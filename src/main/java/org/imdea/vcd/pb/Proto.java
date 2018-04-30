@@ -14,6 +14,699 @@ public final class Proto {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
+  public interface InitOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:Init)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+    int getCommittedCount();
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+    boolean containsCommitted(
+        int key);
+    /**
+     * Use {@link #getCommittedMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+    getCommitted();
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+    java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+    getCommittedMap();
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+
+    org.imdea.vcd.pb.Proto.ExceptionSet getCommittedOrDefault(
+        int key,
+        org.imdea.vcd.pb.Proto.ExceptionSet defaultValue);
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+
+    org.imdea.vcd.pb.Proto.ExceptionSet getCommittedOrThrow(
+        int key);
+  }
+  /**
+   * Protobuf type {@code Init}
+   */
+  public  static final class Init extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:Init)
+      InitOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use Init.newBuilder() to construct.
+    private Init(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private Init() {
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Init(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownFieldProto3(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                committed_ = com.google.protobuf.MapField.newMapField(
+                    CommittedDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00000001;
+              }
+              com.google.protobuf.MapEntry<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+              committed__ = input.readMessage(
+                  CommittedDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              committed_.getMutableMap().put(
+                  committed__.getKey(), committed__.getValue());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.imdea.vcd.pb.Proto.internal_static_Init_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 1:
+          return internalGetCommitted();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.imdea.vcd.pb.Proto.internal_static_Init_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.imdea.vcd.pb.Proto.Init.class, org.imdea.vcd.pb.Proto.Init.Builder.class);
+    }
+
+    public static final int COMMITTED_FIELD_NUMBER = 1;
+    private static final class CommittedDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>newDefaultInstance(
+                  org.imdea.vcd.pb.Proto.internal_static_Init_CommittedEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.INT32,
+                  0,
+                  com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                  org.imdea.vcd.pb.Proto.ExceptionSet.getDefaultInstance());
+    }
+    private com.google.protobuf.MapField<
+        java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> committed_;
+    private com.google.protobuf.MapField<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+    internalGetCommitted() {
+      if (committed_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            CommittedDefaultEntryHolder.defaultEntry);
+      }
+      return committed_;
+    }
+
+    public int getCommittedCount() {
+      return internalGetCommitted().getMap().size();
+    }
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+
+    public boolean containsCommitted(
+        int key) {
+      
+      return internalGetCommitted().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getCommittedMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> getCommitted() {
+      return getCommittedMap();
+    }
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+
+    public java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> getCommittedMap() {
+      return internalGetCommitted().getMap();
+    }
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+
+    public org.imdea.vcd.pb.Proto.ExceptionSet getCommittedOrDefault(
+        int key,
+        org.imdea.vcd.pb.Proto.ExceptionSet defaultValue) {
+      
+      java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> map =
+          internalGetCommitted().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+     */
+
+    public org.imdea.vcd.pb.Proto.ExceptionSet getCommittedOrThrow(
+        int key) {
+      
+      java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> map =
+          internalGetCommitted().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      com.google.protobuf.GeneratedMessageV3
+        .serializeIntegerMapTo(
+          output,
+          internalGetCommitted(),
+          CommittedDefaultEntryHolder.defaultEntry,
+          1);
+      unknownFields.writeTo(output);
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (java.util.Map.Entry<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> entry
+           : internalGetCommitted().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+        committed__ = CommittedDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, committed__);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.imdea.vcd.pb.Proto.Init)) {
+        return super.equals(obj);
+      }
+      org.imdea.vcd.pb.Proto.Init other = (org.imdea.vcd.pb.Proto.Init) obj;
+
+      boolean result = true;
+      result = result && internalGetCommitted().equals(
+          other.internalGetCommitted());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (!internalGetCommitted().getMap().isEmpty()) {
+        hash = (37 * hash) + COMMITTED_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetCommitted().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static org.imdea.vcd.pb.Proto.Init parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(org.imdea.vcd.pb.Proto.Init prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code Init}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:Init)
+        org.imdea.vcd.pb.Proto.InitOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.imdea.vcd.pb.Proto.internal_static_Init_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 1:
+            return internalGetCommitted();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 1:
+            return internalGetMutableCommitted();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.imdea.vcd.pb.Proto.internal_static_Init_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.imdea.vcd.pb.Proto.Init.class, org.imdea.vcd.pb.Proto.Init.Builder.class);
+      }
+
+      // Construct using org.imdea.vcd.pb.Proto.Init.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        internalGetMutableCommitted().clear();
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.imdea.vcd.pb.Proto.internal_static_Init_descriptor;
+      }
+
+      public org.imdea.vcd.pb.Proto.Init getDefaultInstanceForType() {
+        return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
+      }
+
+      public org.imdea.vcd.pb.Proto.Init build() {
+        org.imdea.vcd.pb.Proto.Init result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.imdea.vcd.pb.Proto.Init buildPartial() {
+        org.imdea.vcd.pb.Proto.Init result = new org.imdea.vcd.pb.Proto.Init(this);
+        int from_bitField0_ = bitField0_;
+        result.committed_ = internalGetCommitted();
+        result.committed_.makeImmutable();
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.imdea.vcd.pb.Proto.Init) {
+          return mergeFrom((org.imdea.vcd.pb.Proto.Init)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.imdea.vcd.pb.Proto.Init other) {
+        if (other == org.imdea.vcd.pb.Proto.Init.getDefaultInstance()) return this;
+        internalGetMutableCommitted().mergeFrom(
+            other.internalGetCommitted());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.imdea.vcd.pb.Proto.Init parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.imdea.vcd.pb.Proto.Init) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private com.google.protobuf.MapField<
+          java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> committed_;
+      private com.google.protobuf.MapField<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+      internalGetCommitted() {
+        if (committed_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              CommittedDefaultEntryHolder.defaultEntry);
+        }
+        return committed_;
+      }
+      private com.google.protobuf.MapField<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+      internalGetMutableCommitted() {
+        onChanged();;
+        if (committed_ == null) {
+          committed_ = com.google.protobuf.MapField.newMapField(
+              CommittedDefaultEntryHolder.defaultEntry);
+        }
+        if (!committed_.isMutable()) {
+          committed_ = committed_.copy();
+        }
+        return committed_;
+      }
+
+      public int getCommittedCount() {
+        return internalGetCommitted().getMap().size();
+      }
+      /**
+       * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+       */
+
+      public boolean containsCommitted(
+          int key) {
+        
+        return internalGetCommitted().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getCommittedMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> getCommitted() {
+        return getCommittedMap();
+      }
+      /**
+       * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+       */
+
+      public java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> getCommittedMap() {
+        return internalGetCommitted().getMap();
+      }
+      /**
+       * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+       */
+
+      public org.imdea.vcd.pb.Proto.ExceptionSet getCommittedOrDefault(
+          int key,
+          org.imdea.vcd.pb.Proto.ExceptionSet defaultValue) {
+        
+        java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> map =
+            internalGetCommitted().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+       */
+
+      public org.imdea.vcd.pb.Proto.ExceptionSet getCommittedOrThrow(
+          int key) {
+        
+        java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> map =
+            internalGetCommitted().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearCommitted() {
+        internalGetMutableCommitted().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+       */
+
+      public Builder removeCommitted(
+          int key) {
+        
+        internalGetMutableCommitted().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet>
+      getMutableCommitted() {
+        return internalGetMutableCommitted().getMutableMap();
+      }
+      /**
+       * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+       */
+      public Builder putCommitted(
+          int key,
+          org.imdea.vcd.pb.Proto.ExceptionSet value) {
+        
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableCommitted().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <code>map&lt;int32, .ExceptionSet&gt; committed = 1;</code>
+       */
+
+      public Builder putAllCommitted(
+          java.util.Map<java.lang.Integer, org.imdea.vcd.pb.Proto.ExceptionSet> values) {
+        internalGetMutableCommitted().getMutableMap()
+            .putAll(values);
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFieldsProto3(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:Init)
+    }
+
+    // @@protoc_insertion_point(class_scope:Init)
+    private static final org.imdea.vcd.pb.Proto.Init DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new org.imdea.vcd.pb.Proto.Init();
+    }
+
+    public static org.imdea.vcd.pb.Proto.Init getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Init>
+        PARSER = new com.google.protobuf.AbstractParser<Init>() {
+      public Init parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new Init(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<Init> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Init> getParserForType() {
+      return PARSER;
+    }
+
+    public org.imdea.vcd.pb.Proto.Init getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface MessageOrBuilder extends
       // @@protoc_insertion_point(interface_extends:Message)
       com.google.protobuf.MessageOrBuilder {
@@ -4641,28 +5334,41 @@ public final class Proto {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.MessageSet set = 1;</code>
+     * <code>.Init init = 1;</code>
+     */
+    boolean hasInit();
+    /**
+     * <code>.Init init = 1;</code>
+     */
+    org.imdea.vcd.pb.Proto.Init getInit();
+    /**
+     * <code>.Init init = 1;</code>
+     */
+    org.imdea.vcd.pb.Proto.InitOrBuilder getInitOrBuilder();
+
+    /**
+     * <code>.MessageSet set = 2;</code>
      */
     boolean hasSet();
     /**
-     * <code>.MessageSet set = 1;</code>
+     * <code>.MessageSet set = 2;</code>
      */
     org.imdea.vcd.pb.Proto.MessageSet getSet();
     /**
-     * <code>.MessageSet set = 1;</code>
+     * <code>.MessageSet set = 2;</code>
      */
     org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder();
 
     /**
-     * <code>.Commit commit = 2;</code>
+     * <code>.Commit commit = 3;</code>
      */
     boolean hasCommit();
     /**
-     * <code>.Commit commit = 2;</code>
+     * <code>.Commit commit = 3;</code>
      */
     org.imdea.vcd.pb.Proto.Commit getCommit();
     /**
-     * <code>.Commit commit = 2;</code>
+     * <code>.Commit commit = 3;</code>
      */
     org.imdea.vcd.pb.Proto.CommitOrBuilder getCommitOrBuilder();
 
@@ -4712,8 +5418,22 @@ public final class Proto {
               break;
             }
             case 10: {
-              org.imdea.vcd.pb.Proto.MessageSet.Builder subBuilder = null;
+              org.imdea.vcd.pb.Proto.Init.Builder subBuilder = null;
               if (replyCase_ == 1) {
+                subBuilder = ((org.imdea.vcd.pb.Proto.Init) reply_).toBuilder();
+              }
+              reply_ =
+                  input.readMessage(org.imdea.vcd.pb.Proto.Init.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((org.imdea.vcd.pb.Proto.Init) reply_);
+                reply_ = subBuilder.buildPartial();
+              }
+              replyCase_ = 1;
+              break;
+            }
+            case 18: {
+              org.imdea.vcd.pb.Proto.MessageSet.Builder subBuilder = null;
+              if (replyCase_ == 2) {
                 subBuilder = ((org.imdea.vcd.pb.Proto.MessageSet) reply_).toBuilder();
               }
               reply_ =
@@ -4722,12 +5442,12 @@ public final class Proto {
                 subBuilder.mergeFrom((org.imdea.vcd.pb.Proto.MessageSet) reply_);
                 reply_ = subBuilder.buildPartial();
               }
-              replyCase_ = 1;
+              replyCase_ = 2;
               break;
             }
-            case 18: {
+            case 26: {
               org.imdea.vcd.pb.Proto.Commit.Builder subBuilder = null;
-              if (replyCase_ == 2) {
+              if (replyCase_ == 3) {
                 subBuilder = ((org.imdea.vcd.pb.Proto.Commit) reply_).toBuilder();
               }
               reply_ =
@@ -4736,7 +5456,7 @@ public final class Proto {
                 subBuilder.mergeFrom((org.imdea.vcd.pb.Proto.Commit) reply_);
                 reply_ = subBuilder.buildPartial();
               }
-              replyCase_ = 2;
+              replyCase_ = 3;
               break;
             }
           }
@@ -4767,8 +5487,9 @@ public final class Proto {
     private java.lang.Object reply_;
     public enum ReplyCase
         implements com.google.protobuf.Internal.EnumLite {
-      SET(1),
-      COMMIT(2),
+      INIT(1),
+      SET(2),
+      COMMIT(3),
       REPLY_NOT_SET(0);
       private final int value;
       private ReplyCase(int value) {
@@ -4784,8 +5505,9 @@ public final class Proto {
 
       public static ReplyCase forNumber(int value) {
         switch (value) {
-          case 1: return SET;
-          case 2: return COMMIT;
+          case 1: return INIT;
+          case 2: return SET;
+          case 3: return COMMIT;
           case 0: return REPLY_NOT_SET;
           default: return null;
         }
@@ -4801,53 +5523,79 @@ public final class Proto {
           replyCase_);
     }
 
-    public static final int SET_FIELD_NUMBER = 1;
+    public static final int INIT_FIELD_NUMBER = 1;
     /**
-     * <code>.MessageSet set = 1;</code>
+     * <code>.Init init = 1;</code>
      */
-    public boolean hasSet() {
+    public boolean hasInit() {
       return replyCase_ == 1;
     }
     /**
-     * <code>.MessageSet set = 1;</code>
+     * <code>.Init init = 1;</code>
+     */
+    public org.imdea.vcd.pb.Proto.Init getInit() {
+      if (replyCase_ == 1) {
+         return (org.imdea.vcd.pb.Proto.Init) reply_;
+      }
+      return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
+    }
+    /**
+     * <code>.Init init = 1;</code>
+     */
+    public org.imdea.vcd.pb.Proto.InitOrBuilder getInitOrBuilder() {
+      if (replyCase_ == 1) {
+         return (org.imdea.vcd.pb.Proto.Init) reply_;
+      }
+      return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
+    }
+
+    public static final int SET_FIELD_NUMBER = 2;
+    /**
+     * <code>.MessageSet set = 2;</code>
+     */
+    public boolean hasSet() {
+      return replyCase_ == 2;
+    }
+    /**
+     * <code>.MessageSet set = 2;</code>
      */
     public org.imdea.vcd.pb.Proto.MessageSet getSet() {
-      if (replyCase_ == 1) {
+      if (replyCase_ == 2) {
          return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
       }
       return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
     }
     /**
-     * <code>.MessageSet set = 1;</code>
+     * <code>.MessageSet set = 2;</code>
      */
     public org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder() {
-      if (replyCase_ == 1) {
+      if (replyCase_ == 2) {
          return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
       }
       return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
     }
 
-    public static final int COMMIT_FIELD_NUMBER = 2;
+    public static final int COMMIT_FIELD_NUMBER = 3;
     /**
-     * <code>.Commit commit = 2;</code>
+     * <code>.Commit commit = 3;</code>
      */
     public boolean hasCommit() {
-      return replyCase_ == 2;
+      return replyCase_ == 3;
     }
     /**
-     * <code>.Commit commit = 2;</code>
+     * <code>.Commit commit = 3;</code>
      */
     public org.imdea.vcd.pb.Proto.Commit getCommit() {
-      if (replyCase_ == 2) {
+      if (replyCase_ == 3) {
          return (org.imdea.vcd.pb.Proto.Commit) reply_;
       }
       return org.imdea.vcd.pb.Proto.Commit.getDefaultInstance();
     }
     /**
-     * <code>.Commit commit = 2;</code>
+     * <code>.Commit commit = 3;</code>
      */
     public org.imdea.vcd.pb.Proto.CommitOrBuilder getCommitOrBuilder() {
-      if (replyCase_ == 2) {
+      if (replyCase_ == 3) {
          return (org.imdea.vcd.pb.Proto.Commit) reply_;
       }
       return org.imdea.vcd.pb.Proto.Commit.getDefaultInstance();
@@ -4866,10 +5614,13 @@ public final class Proto {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (replyCase_ == 1) {
-        output.writeMessage(1, (org.imdea.vcd.pb.Proto.MessageSet) reply_);
+        output.writeMessage(1, (org.imdea.vcd.pb.Proto.Init) reply_);
       }
       if (replyCase_ == 2) {
-        output.writeMessage(2, (org.imdea.vcd.pb.Proto.Commit) reply_);
+        output.writeMessage(2, (org.imdea.vcd.pb.Proto.MessageSet) reply_);
+      }
+      if (replyCase_ == 3) {
+        output.writeMessage(3, (org.imdea.vcd.pb.Proto.Commit) reply_);
       }
       unknownFields.writeTo(output);
     }
@@ -4881,11 +5632,15 @@ public final class Proto {
       size = 0;
       if (replyCase_ == 1) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, (org.imdea.vcd.pb.Proto.MessageSet) reply_);
+          .computeMessageSize(1, (org.imdea.vcd.pb.Proto.Init) reply_);
       }
       if (replyCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, (org.imdea.vcd.pb.Proto.Commit) reply_);
+          .computeMessageSize(2, (org.imdea.vcd.pb.Proto.MessageSet) reply_);
+      }
+      if (replyCase_ == 3) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, (org.imdea.vcd.pb.Proto.Commit) reply_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -4908,10 +5663,14 @@ public final class Proto {
       if (!result) return false;
       switch (replyCase_) {
         case 1:
+          result = result && getInit()
+              .equals(other.getInit());
+          break;
+        case 2:
           result = result && getSet()
               .equals(other.getSet());
           break;
-        case 2:
+        case 3:
           result = result && getCommit()
               .equals(other.getCommit());
           break;
@@ -4931,10 +5690,14 @@ public final class Proto {
       hash = (19 * hash) + getDescriptor().hashCode();
       switch (replyCase_) {
         case 1:
+          hash = (37 * hash) + INIT_FIELD_NUMBER;
+          hash = (53 * hash) + getInit().hashCode();
+          break;
+        case 2:
           hash = (37 * hash) + SET_FIELD_NUMBER;
           hash = (53 * hash) + getSet().hashCode();
           break;
-        case 2:
+        case 3:
           hash = (37 * hash) + COMMIT_FIELD_NUMBER;
           hash = (53 * hash) + getCommit().hashCode();
           break;
@@ -5095,13 +5858,20 @@ public final class Proto {
       public org.imdea.vcd.pb.Proto.Reply buildPartial() {
         org.imdea.vcd.pb.Proto.Reply result = new org.imdea.vcd.pb.Proto.Reply(this);
         if (replyCase_ == 1) {
+          if (initBuilder_ == null) {
+            result.reply_ = reply_;
+          } else {
+            result.reply_ = initBuilder_.build();
+          }
+        }
+        if (replyCase_ == 2) {
           if (setBuilder_ == null) {
             result.reply_ = reply_;
           } else {
             result.reply_ = setBuilder_.build();
           }
         }
-        if (replyCase_ == 2) {
+        if (replyCase_ == 3) {
           if (commitBuilder_ == null) {
             result.reply_ = reply_;
           } else {
@@ -5151,6 +5921,10 @@ public final class Proto {
       public Builder mergeFrom(org.imdea.vcd.pb.Proto.Reply other) {
         if (other == org.imdea.vcd.pb.Proto.Reply.getDefaultInstance()) return this;
         switch (other.getReplyCase()) {
+          case INIT: {
+            mergeInit(other.getInit());
+            break;
+          }
           case SET: {
             mergeSet(other.getSet());
             break;
@@ -5206,31 +5980,167 @@ public final class Proto {
 
 
       private com.google.protobuf.SingleFieldBuilderV3<
-          org.imdea.vcd.pb.Proto.MessageSet, org.imdea.vcd.pb.Proto.MessageSet.Builder, org.imdea.vcd.pb.Proto.MessageSetOrBuilder> setBuilder_;
+          org.imdea.vcd.pb.Proto.Init, org.imdea.vcd.pb.Proto.Init.Builder, org.imdea.vcd.pb.Proto.InitOrBuilder> initBuilder_;
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.Init init = 1;</code>
        */
-      public boolean hasSet() {
+      public boolean hasInit() {
         return replyCase_ == 1;
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.Init init = 1;</code>
+       */
+      public org.imdea.vcd.pb.Proto.Init getInit() {
+        if (initBuilder_ == null) {
+          if (replyCase_ == 1) {
+            return (org.imdea.vcd.pb.Proto.Init) reply_;
+          }
+          return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
+        } else {
+          if (replyCase_ == 1) {
+            return initBuilder_.getMessage();
+          }
+          return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.Init init = 1;</code>
+       */
+      public Builder setInit(org.imdea.vcd.pb.Proto.Init value) {
+        if (initBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          reply_ = value;
+          onChanged();
+        } else {
+          initBuilder_.setMessage(value);
+        }
+        replyCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.Init init = 1;</code>
+       */
+      public Builder setInit(
+          org.imdea.vcd.pb.Proto.Init.Builder builderForValue) {
+        if (initBuilder_ == null) {
+          reply_ = builderForValue.build();
+          onChanged();
+        } else {
+          initBuilder_.setMessage(builderForValue.build());
+        }
+        replyCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.Init init = 1;</code>
+       */
+      public Builder mergeInit(org.imdea.vcd.pb.Proto.Init value) {
+        if (initBuilder_ == null) {
+          if (replyCase_ == 1 &&
+              reply_ != org.imdea.vcd.pb.Proto.Init.getDefaultInstance()) {
+            reply_ = org.imdea.vcd.pb.Proto.Init.newBuilder((org.imdea.vcd.pb.Proto.Init) reply_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            reply_ = value;
+          }
+          onChanged();
+        } else {
+          if (replyCase_ == 1) {
+            initBuilder_.mergeFrom(value);
+          }
+          initBuilder_.setMessage(value);
+        }
+        replyCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.Init init = 1;</code>
+       */
+      public Builder clearInit() {
+        if (initBuilder_ == null) {
+          if (replyCase_ == 1) {
+            replyCase_ = 0;
+            reply_ = null;
+            onChanged();
+          }
+        } else {
+          if (replyCase_ == 1) {
+            replyCase_ = 0;
+            reply_ = null;
+          }
+          initBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.Init init = 1;</code>
+       */
+      public org.imdea.vcd.pb.Proto.Init.Builder getInitBuilder() {
+        return getInitFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.Init init = 1;</code>
+       */
+      public org.imdea.vcd.pb.Proto.InitOrBuilder getInitOrBuilder() {
+        if ((replyCase_ == 1) && (initBuilder_ != null)) {
+          return initBuilder_.getMessageOrBuilder();
+        } else {
+          if (replyCase_ == 1) {
+            return (org.imdea.vcd.pb.Proto.Init) reply_;
+          }
+          return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.Init init = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          org.imdea.vcd.pb.Proto.Init, org.imdea.vcd.pb.Proto.Init.Builder, org.imdea.vcd.pb.Proto.InitOrBuilder> 
+          getInitFieldBuilder() {
+        if (initBuilder_ == null) {
+          if (!(replyCase_ == 1)) {
+            reply_ = org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
+          }
+          initBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              org.imdea.vcd.pb.Proto.Init, org.imdea.vcd.pb.Proto.Init.Builder, org.imdea.vcd.pb.Proto.InitOrBuilder>(
+                  (org.imdea.vcd.pb.Proto.Init) reply_,
+                  getParentForChildren(),
+                  isClean());
+          reply_ = null;
+        }
+        replyCase_ = 1;
+        onChanged();;
+        return initBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilderV3<
+          org.imdea.vcd.pb.Proto.MessageSet, org.imdea.vcd.pb.Proto.MessageSet.Builder, org.imdea.vcd.pb.Proto.MessageSetOrBuilder> setBuilder_;
+      /**
+       * <code>.MessageSet set = 2;</code>
+       */
+      public boolean hasSet() {
+        return replyCase_ == 2;
+      }
+      /**
+       * <code>.MessageSet set = 2;</code>
        */
       public org.imdea.vcd.pb.Proto.MessageSet getSet() {
         if (setBuilder_ == null) {
-          if (replyCase_ == 1) {
+          if (replyCase_ == 2) {
             return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
           }
           return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
         } else {
-          if (replyCase_ == 1) {
+          if (replyCase_ == 2) {
             return setBuilder_.getMessage();
           }
           return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
         }
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.MessageSet set = 2;</code>
        */
       public Builder setSet(org.imdea.vcd.pb.Proto.MessageSet value) {
         if (setBuilder_ == null) {
@@ -5242,11 +6152,11 @@ public final class Proto {
         } else {
           setBuilder_.setMessage(value);
         }
-        replyCase_ = 1;
+        replyCase_ = 2;
         return this;
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.MessageSet set = 2;</code>
        */
       public Builder setSet(
           org.imdea.vcd.pb.Proto.MessageSet.Builder builderForValue) {
@@ -5256,15 +6166,15 @@ public final class Proto {
         } else {
           setBuilder_.setMessage(builderForValue.build());
         }
-        replyCase_ = 1;
+        replyCase_ = 2;
         return this;
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.MessageSet set = 2;</code>
        */
       public Builder mergeSet(org.imdea.vcd.pb.Proto.MessageSet value) {
         if (setBuilder_ == null) {
-          if (replyCase_ == 1 &&
+          if (replyCase_ == 2 &&
               reply_ != org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance()) {
             reply_ = org.imdea.vcd.pb.Proto.MessageSet.newBuilder((org.imdea.vcd.pb.Proto.MessageSet) reply_)
                 .mergeFrom(value).buildPartial();
@@ -5273,26 +6183,26 @@ public final class Proto {
           }
           onChanged();
         } else {
-          if (replyCase_ == 1) {
+          if (replyCase_ == 2) {
             setBuilder_.mergeFrom(value);
           }
           setBuilder_.setMessage(value);
         }
-        replyCase_ = 1;
+        replyCase_ = 2;
         return this;
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.MessageSet set = 2;</code>
        */
       public Builder clearSet() {
         if (setBuilder_ == null) {
-          if (replyCase_ == 1) {
+          if (replyCase_ == 2) {
             replyCase_ = 0;
             reply_ = null;
             onChanged();
           }
         } else {
-          if (replyCase_ == 1) {
+          if (replyCase_ == 2) {
             replyCase_ = 0;
             reply_ = null;
           }
@@ -5301,32 +6211,32 @@ public final class Proto {
         return this;
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.MessageSet set = 2;</code>
        */
       public org.imdea.vcd.pb.Proto.MessageSet.Builder getSetBuilder() {
         return getSetFieldBuilder().getBuilder();
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.MessageSet set = 2;</code>
        */
       public org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder() {
-        if ((replyCase_ == 1) && (setBuilder_ != null)) {
+        if ((replyCase_ == 2) && (setBuilder_ != null)) {
           return setBuilder_.getMessageOrBuilder();
         } else {
-          if (replyCase_ == 1) {
+          if (replyCase_ == 2) {
             return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
           }
           return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
         }
       }
       /**
-       * <code>.MessageSet set = 1;</code>
+       * <code>.MessageSet set = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           org.imdea.vcd.pb.Proto.MessageSet, org.imdea.vcd.pb.Proto.MessageSet.Builder, org.imdea.vcd.pb.Proto.MessageSetOrBuilder> 
           getSetFieldBuilder() {
         if (setBuilder_ == null) {
-          if (!(replyCase_ == 1)) {
+          if (!(replyCase_ == 2)) {
             reply_ = org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
           }
           setBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -5336,7 +6246,7 @@ public final class Proto {
                   isClean());
           reply_ = null;
         }
-        replyCase_ = 1;
+        replyCase_ = 2;
         onChanged();;
         return setBuilder_;
       }
@@ -5344,29 +6254,29 @@ public final class Proto {
       private com.google.protobuf.SingleFieldBuilderV3<
           org.imdea.vcd.pb.Proto.Commit, org.imdea.vcd.pb.Proto.Commit.Builder, org.imdea.vcd.pb.Proto.CommitOrBuilder> commitBuilder_;
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public boolean hasCommit() {
-        return replyCase_ == 2;
+        return replyCase_ == 3;
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public org.imdea.vcd.pb.Proto.Commit getCommit() {
         if (commitBuilder_ == null) {
-          if (replyCase_ == 2) {
+          if (replyCase_ == 3) {
             return (org.imdea.vcd.pb.Proto.Commit) reply_;
           }
           return org.imdea.vcd.pb.Proto.Commit.getDefaultInstance();
         } else {
-          if (replyCase_ == 2) {
+          if (replyCase_ == 3) {
             return commitBuilder_.getMessage();
           }
           return org.imdea.vcd.pb.Proto.Commit.getDefaultInstance();
         }
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public Builder setCommit(org.imdea.vcd.pb.Proto.Commit value) {
         if (commitBuilder_ == null) {
@@ -5378,11 +6288,11 @@ public final class Proto {
         } else {
           commitBuilder_.setMessage(value);
         }
-        replyCase_ = 2;
+        replyCase_ = 3;
         return this;
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public Builder setCommit(
           org.imdea.vcd.pb.Proto.Commit.Builder builderForValue) {
@@ -5392,15 +6302,15 @@ public final class Proto {
         } else {
           commitBuilder_.setMessage(builderForValue.build());
         }
-        replyCase_ = 2;
+        replyCase_ = 3;
         return this;
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public Builder mergeCommit(org.imdea.vcd.pb.Proto.Commit value) {
         if (commitBuilder_ == null) {
-          if (replyCase_ == 2 &&
+          if (replyCase_ == 3 &&
               reply_ != org.imdea.vcd.pb.Proto.Commit.getDefaultInstance()) {
             reply_ = org.imdea.vcd.pb.Proto.Commit.newBuilder((org.imdea.vcd.pb.Proto.Commit) reply_)
                 .mergeFrom(value).buildPartial();
@@ -5409,26 +6319,26 @@ public final class Proto {
           }
           onChanged();
         } else {
-          if (replyCase_ == 2) {
+          if (replyCase_ == 3) {
             commitBuilder_.mergeFrom(value);
           }
           commitBuilder_.setMessage(value);
         }
-        replyCase_ = 2;
+        replyCase_ = 3;
         return this;
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public Builder clearCommit() {
         if (commitBuilder_ == null) {
-          if (replyCase_ == 2) {
+          if (replyCase_ == 3) {
             replyCase_ = 0;
             reply_ = null;
             onChanged();
           }
         } else {
-          if (replyCase_ == 2) {
+          if (replyCase_ == 3) {
             replyCase_ = 0;
             reply_ = null;
           }
@@ -5437,32 +6347,32 @@ public final class Proto {
         return this;
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public org.imdea.vcd.pb.Proto.Commit.Builder getCommitBuilder() {
         return getCommitFieldBuilder().getBuilder();
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       public org.imdea.vcd.pb.Proto.CommitOrBuilder getCommitOrBuilder() {
-        if ((replyCase_ == 2) && (commitBuilder_ != null)) {
+        if ((replyCase_ == 3) && (commitBuilder_ != null)) {
           return commitBuilder_.getMessageOrBuilder();
         } else {
-          if (replyCase_ == 2) {
+          if (replyCase_ == 3) {
             return (org.imdea.vcd.pb.Proto.Commit) reply_;
           }
           return org.imdea.vcd.pb.Proto.Commit.getDefaultInstance();
         }
       }
       /**
-       * <code>.Commit commit = 2;</code>
+       * <code>.Commit commit = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           org.imdea.vcd.pb.Proto.Commit, org.imdea.vcd.pb.Proto.Commit.Builder, org.imdea.vcd.pb.Proto.CommitOrBuilder> 
           getCommitFieldBuilder() {
         if (commitBuilder_ == null) {
-          if (!(replyCase_ == 2)) {
+          if (!(replyCase_ == 3)) {
             reply_ = org.imdea.vcd.pb.Proto.Commit.getDefaultInstance();
           }
           commitBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -5472,7 +6382,7 @@ public final class Proto {
                   isClean());
           reply_ = null;
         }
-        replyCase_ = 2;
+        replyCase_ = 3;
         onChanged();;
         return commitBuilder_;
       }
@@ -5525,6 +6435,16 @@ public final class Proto {
 
   }
 
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_Init_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_Init_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_Init_CommittedEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_Init_CommittedEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_Message_descriptor;
   private static final 
@@ -5579,22 +6499,26 @@ public final class Proto {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\014client.proto\"%\n\007Message\022\014\n\004hash\030\001 \001(\014\022" +
-      "\014\n\004data\030\002 \001(\014\"}\n\nMessageSet\022\032\n\010messages\030" +
-      "\001 \003(\0132\010.Message\022\"\n\006status\030\002 \001(\0162\022.Messag" +
-      "eSet.Status\"/\n\006Status\022\t\n\005START\020\000\022\013\n\007DURA" +
-      "BLE\020\001\022\r\n\tDELIVERED\020\002\"0\n\010NodeSpec\022\n\n\002id\030\001" +
-      " \001(\005\022\n\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n" +
-      "\002id\030\001 \001(\005\022\013\n\003seq\030\002 \001(\003\"\'\n\014ExceptionSet\022\013" +
-      "\n\003seq\030\001 \001(\003\022\n\n\002ex\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003do" +
-      "t\030\001 \001(\0132\004.Dot\022\031\n\007message\030\002 \001(\0132\010.Message" +
-      "\022\035\n\003dep\030\003 \003(\0132\020.Commit.DepEntry\022\037\n\004conf\030",
-      "\004 \003(\0132\021.Commit.ConfEntry\0329\n\010DepEntry\022\013\n\003" +
-      "key\030\001 \001(\005\022\034\n\005value\030\002 \001(\0132\r.ExceptionSet:" +
-      "\0028\001\032+\n\tConfEntry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002" +
-      " \001(\003:\0028\001\"G\n\005Reply\022\032\n\003set\030\001 \001(\0132\013.Message" +
-      "SetH\000\022\031\n\006commit\030\002 \001(\0132\007.CommitH\000B\007\n\005repl" +
-      "yB\031\n\020org.imdea.vcd.pbB\005Protob\006proto3"
+      "\n\014client.proto\"p\n\004Init\022\'\n\tcommitted\030\001 \003(" +
+      "\0132\024.Init.CommittedEntry\032?\n\016CommittedEntr" +
+      "y\022\013\n\003key\030\001 \001(\005\022\034\n\005value\030\002 \001(\0132\r.Exceptio" +
+      "nSet:\0028\001\"%\n\007Message\022\014\n\004hash\030\001 \001(\014\022\014\n\004dat" +
+      "a\030\002 \001(\014\"}\n\nMessageSet\022\032\n\010messages\030\001 \003(\0132" +
+      "\010.Message\022\"\n\006status\030\002 \001(\0162\022.MessageSet.S" +
+      "tatus\"/\n\006Status\022\t\n\005START\020\000\022\013\n\007DURABLE\020\001\022" +
+      "\r\n\tDELIVERED\020\002\"0\n\010NodeSpec\022\n\n\002id\030\001 \001(\005\022\n" +
+      "\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n\002id\030\001 " +
+      "\001(\005\022\013\n\003seq\030\002 \001(\003\"\'\n\014ExceptionSet\022\013\n\003seq\030",
+      "\001 \001(\003\022\n\n\002ex\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003dot\030\001 \001(" +
+      "\0132\004.Dot\022\031\n\007message\030\002 \001(\0132\010.Message\022\035\n\003de" +
+      "p\030\003 \003(\0132\020.Commit.DepEntry\022\037\n\004conf\030\004 \003(\0132" +
+      "\021.Commit.ConfEntry\0329\n\010DepEntry\022\013\n\003key\030\001 " +
+      "\001(\005\022\034\n\005value\030\002 \001(\0132\r.ExceptionSet:\0028\001\032+\n" +
+      "\tConfEntry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001(\003:\002" +
+      "8\001\"^\n\005Reply\022\025\n\004init\030\001 \001(\0132\005.InitH\000\022\032\n\003se" +
+      "t\030\002 \001(\0132\013.MessageSetH\000\022\031\n\006commit\030\003 \001(\0132\007" +
+      ".CommitH\000B\007\n\005replyB\031\n\020org.imdea.vcd.pbB\005" +
+      "Protob\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5608,38 +6532,50 @@ public final class Proto {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_Message_descriptor =
+    internal_static_Init_descriptor =
       getDescriptor().getMessageTypes().get(0);
+    internal_static_Init_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_Init_descriptor,
+        new java.lang.String[] { "Committed", });
+    internal_static_Init_CommittedEntry_descriptor =
+      internal_static_Init_descriptor.getNestedTypes().get(0);
+    internal_static_Init_CommittedEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_Init_CommittedEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_Message_descriptor =
+      getDescriptor().getMessageTypes().get(1);
     internal_static_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Message_descriptor,
         new java.lang.String[] { "Hash", "Data", });
     internal_static_MessageSet_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_MessageSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_MessageSet_descriptor,
         new java.lang.String[] { "Messages", "Status", });
     internal_static_NodeSpec_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_NodeSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_NodeSpec_descriptor,
         new java.lang.String[] { "Id", "Ip", "Port", });
     internal_static_Dot_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_Dot_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Dot_descriptor,
         new java.lang.String[] { "Id", "Seq", });
     internal_static_ExceptionSet_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_ExceptionSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ExceptionSet_descriptor,
         new java.lang.String[] { "Seq", "Ex", });
     internal_static_Commit_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_Commit_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Commit_descriptor,
@@ -5657,11 +6593,11 @@ public final class Proto {
         internal_static_Commit_ConfEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_Reply_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_Reply_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Reply_descriptor,
-        new java.lang.String[] { "Set", "Commit", "Reply", });
+        new java.lang.String[] { "Init", "Set", "Commit", "Reply", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
