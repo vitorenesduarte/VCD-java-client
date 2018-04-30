@@ -20,79 +20,7 @@ import static org.junit.Assert.*;
  */
 public class DependencyQueueTest {
 
-    private static final int ITERATIONS = 1;
-
-    // @Test
-    public void testAdd1() {
-        Integer nodeNumber = 2;
-
-        // {{0, 2}, [{0, 2}, {1, 2}]}
-        Dot dotA = new Dot(0, 2L);
-        HashMap<Integer, ExceptionSet> mapA = new HashMap<>();
-        mapA.put(0, new ExceptionSet(2L, 1L));
-        mapA.put(1, new ExceptionSet(2L, 1L));
-
-        // {{0, 1}, [{0, 1}, {0, 2}, {0, 3}, {1, 2}]}
-        Dot dotB = new Dot(0, 1L);
-        HashMap<Integer, ExceptionSet> mapB = new HashMap<>();
-        mapB.put(0, new ExceptionSet(3L));
-        mapB.put(1, new ExceptionSet(2L, 1L));
-
-        // {{0, 5}, [{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {1, 1}, {1, 2}]}
-        Dot dotC = new Dot(0, 5L);
-        HashMap<Integer, ExceptionSet> mapC = new HashMap<>();
-        mapC.put(0, new ExceptionSet(6L));
-        mapC.put(1, new ExceptionSet(2L));
-
-        // {{0, 6}, [{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {1, 1}, {1, 2}, {1, 3}]}
-        Dot dotD = new Dot(0, 6L);
-        HashMap<Integer, ExceptionSet> mapD = new HashMap<>();
-        mapD.put(0, new ExceptionSet(6L));
-        mapD.put(1, new ExceptionSet(3L));
-
-        // {{0, 3}, [{0, 1}, {0, 2}, {0, 3}, {1, 1}, {1, 2}, {1, 3}]}
-        Dot dotE = new Dot(0, 3L);
-        HashMap<Integer, ExceptionSet> mapE = new HashMap<>();
-        mapE.put(0, new ExceptionSet(3L));
-        mapE.put(1, new ExceptionSet(3L));
-
-        // {{1, 2}, [{1, 2}]}
-        Dot dotF = new Dot(1, 2L);
-        HashMap<Integer, ExceptionSet> mapF = new HashMap<>();
-        mapF.put(0, new ExceptionSet(0L));
-        mapF.put(1, new ExceptionSet(2L, 1L));
-
-        // {{1, 1}, [{0, 1}, {0, 2}, {0, 3}, {0, 4}, {1, 1}, {1, 2}, {1, 3}]}
-        Dot dotG = new Dot(1, 1L);
-        HashMap<Integer, ExceptionSet> mapG = new HashMap<>();
-        mapG.put(0, new ExceptionSet(4L));
-        mapG.put(1, new ExceptionSet(3L));
-
-        // {{0, 4}, [{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 6}, {1, 1}, {1, 2}]}
-        Dot dotH = new Dot(0, 4L);
-        HashMap<Integer, ExceptionSet> mapH = new HashMap<>();
-        mapH.put(0, new ExceptionSet(6L, 5L));
-        mapH.put(1, new ExceptionSet(2L));
-
-        // {{1, 3}, [{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {1, 1}, {1, 2}, {1, 3}]}
-        Dot dotI = new Dot(1, 3L);
-        HashMap<Integer, ExceptionSet> mapI = new HashMap<>();
-        mapI.put(0, new ExceptionSet(6L));
-        mapI.put(1, new ExceptionSet(3L));
-
-        List<CommitDepBox> boxes = new ArrayList<>();
-        boxes.add(box(dotA, mapA));
-        boxes.add(box(dotB, mapB));
-        boxes.add(box(dotC, mapC));
-        boxes.add(box(dotD, mapD));
-        boxes.add(box(dotE, mapE));
-        boxes.add(box(dotF, mapF));
-        boxes.add(box(dotG, mapG));
-        boxes.add(box(dotH, mapH));
-        boxes.add(box(dotI, mapI));
-
-        checkTerminationRandomShuffles(nodeNumber, boxes);
-    }
+    private static final int ITERATIONS = 100;
 
     @Test
     public void testAdd() {
@@ -153,14 +81,14 @@ public class DependencyQueueTest {
         mapI.put(1, new ExceptionSet(3L));
 
         List<CommitDepBox> boxes = new ArrayList<>();
+        boxes.add(box(dotA, mapA));
         boxes.add(box(dotB, mapB));
         boxes.add(box(dotC, mapC));
-        boxes.add(box(dotH, mapH));
-        boxes.add(box(dotG, mapG));
-        boxes.add(box(dotA, mapA));
+        boxes.add(box(dotD, mapD));
         boxes.add(box(dotE, mapE));
         boxes.add(box(dotF, mapF));
-        boxes.add(box(dotD, mapD));
+        boxes.add(box(dotG, mapG));
+        boxes.add(box(dotH, mapH));
         boxes.add(box(dotI, mapI));
 
         checkTerminationRandomShuffles(nodeNumber, boxes);

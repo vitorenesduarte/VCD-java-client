@@ -29,20 +29,32 @@ public class DependencyQueue<E extends DepBox> {
 
     public List<E> add(E e) {
         System.out.println("Adding " + e);
-        Node<E> pred = findPredecessor(e);
-        Node<E> succ = findSuccessor(e);
-        if (pred == null && succ == null) {
+        Node<E> x = findDependsOnE(e);
+        Node<E> y = findEDependsOn(e);
+        if (x != null) {
+            System.out.println("X: " + x.item);
+        }
+        if (y != null) {
+            System.out.println("Y: " + y.item);
+        }
+
+        if (x == null && y == null) {
+            System.out.println("a)");
             linkFirst(e);
-        } else if (pred == null) {
-            linkAfter(e, succ);
-        } else if (succ == null) {
-            linkBefore(e, pred);
-        } else if (succ.next == pred) {
+        } else if (x == null) {
+            System.out.println("b)");
+            linkAfter(e, y);
+        } else if (y == null) {
+            System.out.println("c)");
+            linkBefore(e, x);
+        } else if (y.next == x) {
+            System.out.println("e)");
             // insert in between both
-            linkBetween(e, pred, succ);
+            linkBetween(e, y, x);
         } else {
+            System.out.println("d)");
             // found cycle: merge all
-            merge(e, pred, succ);
+            merge(e, x, y);
         }
 
         List<E> result = new ArrayList<>();
@@ -83,7 +95,7 @@ public class DependencyQueue<E extends DepBox> {
     /**
      * Find predecessor of e in the queue.
      */
-    private Node<E> findPredecessor(E e) {
+    private Node<E> findDependsOnE(E e) {
         Node<E> it = first;
 
         while (it != null) {
@@ -99,7 +111,7 @@ public class DependencyQueue<E extends DepBox> {
     /**
      * Find successor of e in the queue.
      */
-    private Node<E> findSuccessor(E e) {
+    private Node<E> findEDependsOn(E e) {
         Node<E> it = last;
         while (it != null) {
             if (it.item.before(e)) {
