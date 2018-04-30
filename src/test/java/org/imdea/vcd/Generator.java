@@ -9,7 +9,7 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  *
  * @author Vitor Enes
  */
-public class RandomMessageSet {
+public class Generator {
 
     private static final Integer KEY_SIZE = 8;
     private static final Integer MIN_ASCII = 33;
@@ -18,8 +18,17 @@ public class RandomMessageSet {
 
     private static final ByteString BLACK = repeat((byte) 1, 1);
 
+    public static Message message() {
+        Integer conflicts = RANDOM().nextInt(100);
+        ByteString data = randomByteString(RANDOM().nextInt(100));
+        return Message.newBuilder()
+                .setHash(hash(conflicts))
+                .setData(data)
+                .build();
+    }
+
     public static MessageSet messageSet() {
-        return messageSet(0, randomByteString(RANDOM().nextInt(100)));
+        return messageSet(RANDOM().nextInt(100), randomByteString(RANDOM().nextInt(100)));
     }
 
     public static MessageSet messageSet(Config config) {

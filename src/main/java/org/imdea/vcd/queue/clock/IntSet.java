@@ -9,5 +9,9 @@ public interface IntSet<T> {
 
     boolean contains(Long seq);
 
+    void add(Long seq);
+
     void merge(T o);
+
+    Object clone();
 }

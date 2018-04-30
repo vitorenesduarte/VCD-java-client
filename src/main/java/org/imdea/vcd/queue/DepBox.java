@@ -1,6 +1,7 @@
 package org.imdea.vcd.queue;
 
-import org.imdea.vcd.pb.Proto.MessageSet;
+import org.imdea.vcd.queue.clock.Clock;
+import org.imdea.vcd.queue.clock.ExceptionSet;
 
 /**
  *
@@ -13,5 +14,5 @@ public interface DepBox<T> {
 
     void merge(T box);
 
-    MessageSet toMessageSet();
+    boolean canDeliver(Clock<ExceptionSet> delivered);
 }

@@ -1,5 +1,7 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.Objects;
+
 /**
  *
  * @author Vitor Enes
@@ -8,8 +10,16 @@ public class MaxInt implements IntSet<MaxInt> {
 
     private Long seq;
 
+    public MaxInt() {
+        this.seq = 0L;
+    }
+
     public MaxInt(Long seq) {
         this.seq = seq;
+    }
+
+    public MaxInt(MaxInt maxInt) {
+        this.seq = maxInt.seq;
     }
 
     @Override
@@ -18,14 +28,41 @@ public class MaxInt implements IntSet<MaxInt> {
     }
 
     @Override
-    public void merge(MaxInt o) {
-        MaxInt merged = merge(this, o);
-        this.seq = merged.seq;
+    public void add(Long seq) {
+        this.seq = Long.max(this.seq, seq);
     }
 
-    private MaxInt merge(MaxInt a, MaxInt b) {
-        Long newSeq = Long.max(a.seq, b.seq);
-        MaxInt c = new MaxInt(newSeq);
-        return c;
+    @Override
+    public void merge(MaxInt o) {
+        this.seq = Long.max(this.seq, o.seq);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o) {
+            return true;
+        }
+        // null check
+        if (o == null) {
+            return false;
+        }
+        // type check and cast
+        if (getClass() != o.getClass()) {
+            return false;
+        }
+        MaxInt t = (MaxInt) o;
+        return Objects.equals(this.seq, t.seq);
+    }
+
+    @Override
+    public String toString() {
+        return this.seq.toString();
+    }
+
+    @Override
+    public Object clone() {
+        MaxInt maxInt = new MaxInt(this);
+        return maxInt;
     }
 }

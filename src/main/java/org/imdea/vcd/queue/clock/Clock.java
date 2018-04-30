@@ -4,11 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.imdea.vcd.pb.Proto;
-import org.imdea.vcd.pb.Proto.Dot;
 
 /**
  *
- * @author Vitor
+ * @author Vitor Enes
  * @param <T>
  */
 public class Clock<T extends IntSet> {
@@ -17,6 +16,13 @@ public class Clock<T extends IntSet> {
 
     public Clock(HashMap<Integer, T> map) {
         this.map = map;
+    }
+
+    public Clock(Clock<T> clock) {
+        this.map = new HashMap<>();
+        for (Map.Entry<Integer, T> entry : clock.map.entrySet()) {
+            this.map.put(entry.getKey(), (T) entry.getValue().clone());
+        }
     }
 
     public boolean contains(Dot dot) {
@@ -42,11 +48,71 @@ public class Clock<T extends IntSet> {
         return false;
     }
 
+    public void addDots(Dots dots) {
+        for (Dot dot : dots) {
+            this.map.get(dot.getId()).add(dot.getSeq());
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o) {
+            return true;
+        }
+        // null check
+        if (o == null) {
+            return false;
+        }
+        // type check and cast
+        if (getClass() != o.getClass()) {
+            return false;
+        }
+        Clock<T> t = (Clock<T>) o;
+        return this.map.equals(t.map);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        for (T t : this.map.values()) {
+            sb.append(t).append(",");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append("}");
+        return sb.toString();
+    }
+
+    @Override
+    public Object clone() {
+        Clock<T> clock = new Clock(this);
+        return clock;
+    }
+
+    public static Clock<MaxInt> vclock(Integer nodeNumber) {
+        HashMap<Integer, MaxInt> map = new HashMap<>();
+        for (int id = 0; id < nodeNumber; id++) {
+            map.put(id, new MaxInt());
+        }
+
+        return new Clock<>(map);
+    }
+
     public static Clock<MaxInt> vclock(Map<Integer, Long> o) {
         HashMap<Integer, MaxInt> map = new HashMap<>();
         for (Map.Entry<Integer, Long> entry : o.entrySet()) {
             map.put(entry.getKey(), new MaxInt(entry.getValue()));
         }
+        return new Clock<>(map);
+    }
+
+    public static Clock<ExceptionSet> eclock(Integer nodeNumber) {
+        HashMap<Integer, ExceptionSet> map = new HashMap<>();
+        for (int id = 0; id < nodeNumber; id++) {
+            map.put(id, new ExceptionSet());
+        }
+
         return new Clock<>(map);
     }
 
