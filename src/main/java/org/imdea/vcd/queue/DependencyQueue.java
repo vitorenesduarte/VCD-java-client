@@ -28,31 +28,31 @@ public class DependencyQueue<E extends DepBox> {
     }
 
     public List<E> add(E e) {
-        System.out.println("Adding " + e);
+//        System.out.println("Adding " + e);
         Node<E> x = findDependsOnE(e);
         Node<E> y = findEDependsOn(e);
-        if (x != null) {
-            System.out.println("X: " + x.item);
-        }
-        if (y != null) {
-            System.out.println("Y: " + y.item);
-        }
+//        if (x != null) {
+//            System.out.println("X: " + x.item);
+//        }
+//        if (y != null) {
+//            System.out.println("Y: " + y.item);
+//        }
 
         if (x == null && y == null) {
-            System.out.println("a)");
+//            System.out.println("a)");
             linkFirst(e);
         } else if (x == null) {
-            System.out.println("b)");
+//            System.out.println("b)");
             linkAfter(e, y);
         } else if (y == null) {
-            System.out.println("c)");
+//            System.out.println("c)");
             linkBefore(e, x);
         } else if (y.next == x) {
-            System.out.println("e)");
+//            System.out.println("e)");
             // insert in between both
             linkBetween(e, y, x);
         } else {
-            System.out.println("d)");
+//            System.out.println("d)");
             // found cycle: merge all
             merge(e, x, y);
         }
@@ -86,8 +86,8 @@ public class DependencyQueue<E extends DepBox> {
             }
         }
 
-        System.out.println("final queue:");
-        System.out.println(this);
+//        System.out.println("final queue:");
+//        System.out.println(this);
 
         return result;
     }
