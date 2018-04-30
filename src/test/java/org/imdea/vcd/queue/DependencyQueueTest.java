@@ -9,7 +9,6 @@ import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
-import org.imdea.vcd.queue.clock.Dots;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
 import org.junit.Test;
@@ -202,12 +201,6 @@ public class DependencyQueueTest {
         checkTerminationRandomShuffles(nodeNumber, boxes);
     }
 
-//    L4 = [,
-//          ,
-//          ,
-//          ,
-//          ,
-//          ],
     @Test
     public void testAdd4() {
         Integer nodeNumber = 1;
