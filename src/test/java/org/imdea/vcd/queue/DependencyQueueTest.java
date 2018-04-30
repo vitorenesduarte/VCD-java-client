@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.util.Pair;
 import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -248,18 +249,21 @@ public class DependencyQueueTest {
 
     private void checkTerminationRandomShuffles(Integer nodeNumber, List<CommitDepBox> boxes) {
 
-        int it = 0;
-        do {
-            // check it terminates
-            assertTrue(checkTermination(nodeNumber, boxes));
+        Pair<Boolean, List<Message>> result = checkTermination(nodeNumber, boxes);
+        assertTrue(result.getKey());
+        List<Message> totalOrder = result.getValue();
 
+        for (int it = 0; it < ITERATIONS; it++) {
             // shuffle list
             Collections.shuffle(boxes);
 
-        } while (++it < ITERATIONS);
+            result = checkTermination(nodeNumber, boxes);
+            assertTrue(result.getKey());
+            assertEquals(totalOrder, result.getValue());
+        }
     }
 
-    private boolean checkTermination(Integer nodeNumber, List<CommitDepBox> boxes) {
+    private Pair<Boolean, List<Message>> checkTermination(Integer nodeNumber, List<CommitDepBox> boxes) {
         DependencyQueue<CommitDepBox> queue = new DependencyQueue<>(nodeNumber);
         List<CommitDepBox> results = new ArrayList<>();
         for (CommitDepBox box : boxes) {
@@ -267,7 +271,13 @@ public class DependencyQueueTest {
             List<CommitDepBox> result = queue.tryDeliver();
             results.addAll(result);
         }
-        return queue.isEmpty() && allDotsDelivered(boxes, results);
+
+        Boolean termination = queue.isEmpty() && allDotsDelivered(boxes, results);
+        List<Message> sorted = new ArrayList<>();
+        for (CommitDepBox box : results) {
+            sorted.addAll(box.sortMessages());
+        }
+        return new Pair<>(termination, sorted);
     }
 
     private boolean allDotsDelivered(List<CommitDepBox> boxes, List<CommitDepBox> results) {

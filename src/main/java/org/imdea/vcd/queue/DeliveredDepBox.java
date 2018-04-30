@@ -52,16 +52,17 @@ public class DeliveredDepBox implements DepBox<DeliveredDepBox> {
         return delivered.equals(this.dep);
     }
 
-    public Dots getDots() {
-        return this.dots;
-    }
-
+    @Override
     public List<Message> sortMessages() {
         List<Message> result = new ArrayList<>();
         for (Message message : messageMap.values()) {
             result.add(message);
         }
         return result;
+    }
+
+    public Dots getDots() {
+        return this.dots;
     }
 
     @Override

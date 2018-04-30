@@ -62,10 +62,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         return delivered.equals(this.dep);
     }
 
-    public Dots getDots() {
-        return this.dots;
-    }
-
+    @Override
     public List<Message> sortMessages() {
         List<Message> result = new ArrayList<>();
         for (ArrayList<PerMessage> messages : this.messageMap.messages.values()) {
@@ -73,6 +70,10 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
             result.addAll(sortPerColor(messages));
         }
         return result;
+    }
+
+    public Dots getDots() {
+        return this.dots;
     }
 
     private List<Message> sortPerColor(List<PerMessage> messages) {
