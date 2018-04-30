@@ -105,4 +105,14 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
         ExceptionSet t = (ExceptionSet) o;
         return Objects.equals(this.seq, t.seq) && this.exceptions.equals(t.exceptions);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.seq);
+        if (!this.exceptions.isEmpty()) {
+            sb.append(" ").append(this.exceptions);
+        }
+        return sb.toString();
+    }
 }

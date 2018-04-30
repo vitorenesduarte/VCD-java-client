@@ -50,4 +50,9 @@ public class MaxInt implements IntSet<MaxInt> {
         MaxInt t = (MaxInt) o;
         return Objects.equals(this.seq, t.seq);
     }
+
+    @Override
+    public String toString() {
+        return this.seq.toString();
+    }
 }

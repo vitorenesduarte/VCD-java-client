@@ -17,10 +17,10 @@ public class ClockTest {
         a.put(1, 17L);
         Clock<MaxInt> clockA = Clock.vclock(a);
 
-        assertTrue(clockA.contains(Dots.dot(0, 9L)));
-        assertTrue(clockA.contains(Dots.dot(0, 10L)));
-        assertFalse(clockA.contains(Dots.dot(0, 11L)));
-        assertTrue(clockA.contains(Dots.dot(1, 11L)));
+        assertTrue(clockA.contains(new Dot(0, 9L)));
+        assertTrue(clockA.contains(new Dot(0, 10L)));
+        assertFalse(clockA.contains(new Dot(0, 11L)));
+        assertTrue(clockA.contains(new Dot(1, 11L)));
     }
 
     @Test
@@ -37,14 +37,14 @@ public class ClockTest {
 
         clockA.merge(clockB);
 
-        assertTrue(clockA.contains(Dots.dot(0, 9L)));
-        assertTrue(clockA.contains(Dots.dot(0, 10L)));
-        assertTrue(clockA.contains(Dots.dot(0, 11L)));
-        assertTrue(clockA.contains(Dots.dot(0, 12L)));
-        assertFalse(clockA.contains(Dots.dot(0, 13L)));
-        assertTrue(clockA.contains(Dots.dot(1, 11L)));
-        assertTrue(clockA.contains(Dots.dot(1, 17L)));
-        assertFalse(clockA.contains(Dots.dot(1, 18L)));
+        assertTrue(clockA.contains(new Dot(0, 9L)));
+        assertTrue(clockA.contains(new Dot(0, 10L)));
+        assertTrue(clockA.contains(new Dot(0, 11L)));
+        assertTrue(clockA.contains(new Dot(0, 12L)));
+        assertFalse(clockA.contains(new Dot(0, 13L)));
+        assertTrue(clockA.contains(new Dot(1, 11L)));
+        assertTrue(clockA.contains(new Dot(1, 17L)));
+        assertFalse(clockA.contains(new Dot(1, 18L)));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class ClockTest {
         a.put(1, 17L);
         Clock<MaxInt> clockA = Clock.vclock(a);
 
-        assertTrue(clockA.intersects(new Dots(Dots.dot(0, 10L))));
-        assertFalse(clockA.intersects(new Dots(Dots.dot(0, 11L))));
+        assertTrue(clockA.intersects(new Dots(new Dot(0, 10L))));
+        assertFalse(clockA.intersects(new Dots(new Dot(0, 11L))));
     }
 }

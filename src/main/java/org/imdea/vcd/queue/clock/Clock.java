@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.imdea.vcd.pb.Proto;
-import org.imdea.vcd.pb.Proto.Dot;
 
 /**
  *
@@ -68,6 +67,18 @@ public class Clock<T extends IntSet> {
         }
         Clock<T> t = (Clock<T>) o;
         return this.map.equals(t.map);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        for (T t : this.map.values()) {
+            sb.append(t).append(",");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append("}");
+        return sb.toString();
     }
 
     public static Clock<MaxInt> vclock(Integer nodeNumber) {

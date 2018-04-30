@@ -3,7 +3,6 @@ package org.imdea.vcd.queue.clock;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import org.imdea.vcd.pb.Proto.Dot;
 
 /**
  *
@@ -26,7 +25,8 @@ public class Dots implements Iterable<Dot> {
         return this.set.iterator();
     }
 
-    public static Dot dot(Integer id, Long seq) {
-        return Dot.newBuilder().setId(id).setSeq(seq).build();
+    @Override
+    public String toString() {
+        return this.set.toString();
     }
 }

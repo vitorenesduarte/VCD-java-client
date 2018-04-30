@@ -28,6 +28,8 @@ public class DependencyQueue<E extends DepBox> {
     }
 
     public List<E> add(E e) {
+        System.out.println("Adding " + e.toString() + " to: ");
+        System.out.println(this.toString());
         Node<E> pred = findPredecessor(e);
         Node<E> succ = findSuccessor(e);
         if (pred == null && succ == null) {
@@ -72,6 +74,9 @@ public class DependencyQueue<E extends DepBox> {
                 }
             }
         }
+
+        System.out.println("final queue:");
+        System.out.println(this.toString());
 
         return result;
     }
@@ -185,6 +190,27 @@ public class DependencyQueue<E extends DepBox> {
         }
 
         linkBetween(e, pred, succ);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Node<E> it = first;
+        int i = 0;
+        while (it != null) {
+            if (i > 0) {
+                sb.append("\n");
+            }
+            sb.append(i)
+                    .append("> ")
+                    .append(it.item.toString());
+            it = it.next;
+            i++;
+        }
+        if (i == 0) {
+            sb.append("[empty]");
+        }
+        return sb.toString();
     }
 
     private static class Node<E> {

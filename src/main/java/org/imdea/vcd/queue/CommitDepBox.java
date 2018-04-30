@@ -11,8 +11,8 @@ import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.MaxInt;
 import org.imdea.vcd.pb.Proto;
 import org.imdea.vcd.pb.Proto.Commit;
-import org.imdea.vcd.pb.Proto.Dot;
 import org.imdea.vcd.pb.Proto.Message;
+import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
 
 /**
@@ -26,7 +26,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
     private final MessageMap messageMap;
 
     public CommitDepBox(Commit commit) {
-        this.dots = new Dots(commit.getDot());
+        this.dots = new Dots(Dot.dot(commit.getDot()));
         this.dep = Clock.eclock(commit.getDepMap());
         this.messageMap = new MessageMap(commit);
     }
@@ -62,12 +62,17 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public String toString() {
+        return dots.toString() + " " + dep.toString();
+    }
+
     private class MessageMap {
 
         private final HashMap<ByteString, ArrayList<PerMessage>> messages;
 
         public MessageMap(Commit commit) {
-            this(commit.getDot(), commit.getMessage(), Clock.vclock(commit.getConfMap()));
+            this(Dot.dot(commit.getDot()), commit.getMessage(), Clock.vclock(commit.getConfMap()));
         }
 
         public MessageMap(Dot dot, Message message, Clock<MaxInt> conf) {
