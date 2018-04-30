@@ -33,6 +33,12 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
         this(ex.getSeq(), new HashSet<>(ex.getExList()));
     }
 
+    public ExceptionSet(ExceptionSet exceptionSet) {
+        this.seq = exceptionSet.seq;
+        this.exceptions = new HashSet<>();
+        this.exceptions.addAll(exceptionSet.exceptions);
+    }
+
     public MaxInt toMaxInt() {
         return new MaxInt(this.seq);
     }
@@ -118,7 +124,7 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
 
     @Override
     public Object clone() {
-        ExceptionSet exceptionSet = new ExceptionSet(this.seq, (HashSet<Long>) this.exceptions.clone());
+        ExceptionSet exceptionSet = new ExceptionSet(this);
         return exceptionSet;
     }
 }

@@ -12,4 +12,6 @@ public interface IntSet<T> {
     void add(Long seq);
 
     void merge(T o);
+
+    Object clone();
 }

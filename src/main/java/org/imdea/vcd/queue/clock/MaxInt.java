@@ -18,6 +18,10 @@ public class MaxInt implements IntSet<MaxInt> {
         this.seq = seq;
     }
 
+    public MaxInt(MaxInt maxInt) {
+        this.seq = maxInt.seq;
+    }
+
     @Override
     public boolean contains(Long seq) {
         return seq <= this.seq;
@@ -58,7 +62,7 @@ public class MaxInt implements IntSet<MaxInt> {
 
     @Override
     public Object clone() {
-        MaxInt maxInt = new MaxInt(this.seq);
+        MaxInt maxInt = new MaxInt(this);
         return maxInt;
     }
 }

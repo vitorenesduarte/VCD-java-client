@@ -37,10 +37,10 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         this.messageMap = new MessageMap(dot, message, conf);
     }
 
-    public CommitDepBox(Dots dots, Clock<ExceptionSet> dep, MessageMap messageMap) {
-        this.dots = dots;
-        this.dep = dep;
-        this.messageMap = messageMap;
+    public CommitDepBox(CommitDepBox commitDepBox) {
+        this.dots = new Dots(commitDepBox.dots);
+        this.dep = new Clock<>(commitDepBox.dep);
+        this.messageMap = new MessageMap(commitDepBox.messageMap);
     }
 
     @Override
@@ -75,12 +75,8 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
     @Override
     public Object clone() {
-        CommitDepBox box = new CommitDepBox(
-                (Dots) this.dots.clone(),
-                (Clock<ExceptionSet>) this.dep.clone(),
-                (MessageMap) this.messageMap.clone()
-        );
-        return box;
+        CommitDepBox commitDepBox = new CommitDepBox(this);
+        return commitDepBox;
     }
 
     private class MessageMap {
@@ -98,8 +94,15 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
             this.messages.put(color, new ArrayList<>(Arrays.asList(p)));
         }
 
-        public MessageMap(HashMap<ByteString, ArrayList<PerMessage>> messages) {
-            this.messages = messages;
+        public MessageMap(MessageMap messageMap) {
+            this.messages = new HashMap<>();
+            for (Map.Entry<ByteString, ArrayList<PerMessage>> entry : messageMap.messages.entrySet()) {
+                ArrayList<PerMessage> perMessageList = new ArrayList<>();
+                for (PerMessage perMessage : entry.getValue()) {
+                    perMessageList.add((PerMessage) perMessage.clone());
+                }
+                this.messages.put(entry.getKey(), perMessageList);
+            }
         }
 
         public void merge(MessageMap o) {
@@ -114,7 +117,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
         @Override
         public Object clone() {
-            MessageMap messageMap = new MessageMap((HashMap<ByteString, ArrayList<PerMessage>>) this.messages.clone());
+            MessageMap messageMap = new MessageMap(this);
             return messageMap;
         }
     }
@@ -131,6 +134,15 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
             this.conf = conf;
         }
 
+        public PerMessage(PerMessage perMessage) {
+            this.dot = new Dot(perMessage.dot);
+            this.message = Message.newBuilder()
+                    .setHash(perMessage.message.getHash())
+                    .setData(perMessage.message.getData())
+                    .build();
+            this.conf = new Clock<>(perMessage.conf);
+        }
+
         public Dot getDot() {
             return dot;
         }
@@ -145,11 +157,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
         @Override
         public Object clone() {
-            PerMessage perMessage = new PerMessage(
-                    (Dot) this.dot.clone(),
-                    this.message, // TODO ?
-                    (Clock<MaxInt>) this.conf.clone()
-            );
+            PerMessage perMessage = new PerMessage(this);
             return perMessage;
         }
     }

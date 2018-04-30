@@ -16,6 +16,11 @@ public class Dot {
         this.seq = seq;
     }
 
+    public Dot(Dot dot) {
+        this.id = dot.id;
+        this.seq = dot.seq;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -35,7 +40,7 @@ public class Dot {
 
     @Override
     public Object clone() {
-        Dot dot = new Dot(this.id, this.seq);
+        Dot dot = new Dot(this);
         return dot;
     }
 }

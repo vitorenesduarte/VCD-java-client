@@ -20,6 +20,13 @@ public class Dots implements Iterable<Dot> {
         this.set = set;
     }
 
+    public Dots(Dots dots) {
+        this.set = new HashSet<>();
+        for (Dot dot : dots.set) {
+            this.set.add((Dot) dot.clone());
+        }
+    }
+
     public void merge(Dots dots) {
         this.set.addAll(dots.set);
     }
@@ -36,7 +43,7 @@ public class Dots implements Iterable<Dot> {
 
     @Override
     public Object clone() {
-        Dots dots = new Dots((HashSet<Dot>) this.set.clone());
+        Dots dots = new Dots(this);
         return dots;
     }
 }

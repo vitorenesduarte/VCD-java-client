@@ -18,6 +18,13 @@ public class Clock<T extends IntSet> {
         this.map = map;
     }
 
+    public Clock(Clock<T> clock) {
+        this.map = new HashMap<>();
+        for (Map.Entry<Integer, T> entry : clock.map.entrySet()) {
+            this.map.put(entry.getKey(), (T) entry.getValue().clone());
+        }
+    }
+
     public boolean contains(Dot dot) {
         return this.map.get(dot.getId()).contains(dot.getSeq());
     }
@@ -79,7 +86,7 @@ public class Clock<T extends IntSet> {
 
     @Override
     public Object clone() {
-        Clock clock = new Clock((HashMap<Integer, T>) this.map.clone());
+        Clock<T> clock = new Clock(this);
         return clock;
     }
 
