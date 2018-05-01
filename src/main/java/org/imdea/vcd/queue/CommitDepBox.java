@@ -1,7 +1,9 @@
 package org.imdea.vcd.queue;
 
+import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -109,22 +111,21 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
     private class MessageMap {
 
-        private final TreeMap<String, ArrayList<PerMessage>> messages;
+        private final HashMap<ByteString, ArrayList<PerMessage>> messages;
 
         public MessageMap(Dot dot, Commit commit) {
             this(dot, commit.getMessage(), Clock.vclock(commit.getConfMap()));
         }
 
         public MessageMap(Dot dot, Message message, Clock<MaxInt> conf) {
-            this.messages = new TreeMap<>();
-            String color = message.getHash().toString();
+            this.messages = new HashMap<>();
             PerMessage p = new PerMessage(dot, message, conf);
-            this.messages.put(color, new ArrayList<>(Arrays.asList(p)));
+            this.messages.put(message.getHash(), new ArrayList<>(Arrays.asList(p)));
         }
 
         public MessageMap(MessageMap messageMap) {
-            this.messages = new TreeMap<>();
-            for (Map.Entry<String, ArrayList<PerMessage>> entry : messageMap.messages.entrySet()) {
+            this.messages = new HashMap<>();
+            for (Map.Entry<ByteString, ArrayList<PerMessage>> entry : messageMap.messages.entrySet()) {
                 ArrayList<PerMessage> perMessageList = new ArrayList<>();
                 for (PerMessage perMessage : entry.getValue()) {
                     perMessageList.add((PerMessage) perMessage.clone());
@@ -138,7 +139,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
                 a.addAll(b);
                 return a;
             };
-            for (Map.Entry<String, ArrayList<PerMessage>> entry : o.messages.entrySet()) {
+            for (Map.Entry<ByteString, ArrayList<PerMessage>> entry : o.messages.entrySet()) {
                 this.messages.merge(entry.getKey(), entry.getValue(), f);
             }
         }
