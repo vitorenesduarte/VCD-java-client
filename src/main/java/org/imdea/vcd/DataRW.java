@@ -46,6 +46,8 @@ public class DataRW {
         byte data[] = new byte[length];
         in.readFully(data, 0, length);
 
+        long start;
+
         // check if reply is a message set
         // if yes, return it,
         // otherwise feed the dependency queue
@@ -58,13 +60,22 @@ public class DataRW {
             case SET:
                 return reply.getSet();
             case COMMIT:
+                start = System.nanoTime();
                 CommitDepBox box = new CommitDepBox(reply.getCommit());
+                System.out.println("create box: " + (System.nanoTime() - start));
+
+                start = System.nanoTime();
                 queue.add(box);
+                System.out.println("add box: " + (System.nanoTime() - start));
+
+                start = System.nanoTime();
                 List<CommitDepBox> toDeliver = queue.tryDeliver();
+                System.out.println("try deliver: " + (System.nanoTime() - start));
 
                 if (toDeliver.isEmpty()) {
                     return null;
                 } else {
+                    start = System.nanoTime();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
                         for (Message message : boxToDeliver.sortMessages()) {
@@ -73,6 +84,7 @@ public class DataRW {
                     }
                     builder.setStatus(MessageSet.Status.DELIVERED);
                     MessageSet messageSet = builder.build();
+                    System.out.println("sorting " + messageSet.getMessagesCount() + " messages: " + (System.nanoTime() - start));
                     return messageSet;
                 }
             default:
