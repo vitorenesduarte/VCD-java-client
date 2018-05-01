@@ -40,7 +40,8 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     }
 
     public MaxInt toMaxInt() {
-        return new MaxInt(this.seq);
+        MaxInt maxInt = new MaxInt(this.seq);
+        return maxInt;
     }
 
     @Override

@@ -25,9 +25,10 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
     private final MessageMap messageMap;
 
     public CommitDepBox(Commit commit) {
-        this.dots = new Dots(Dot.dot(commit.getDot()));
+        Dot dot = Dot.dot(commit.getDot());
+        this.dots = new Dots(dot);
         this.dep = Clock.eclock(commit.getDepMap());
-        this.messageMap = new MessageMap(commit);
+        this.messageMap = new MessageMap(dot, commit);
     }
 
     public CommitDepBox(Dot dot, Clock<ExceptionSet> dep, Message message, Clock<MaxInt> conf) {
@@ -110,8 +111,8 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
         private final TreeMap<String, ArrayList<PerMessage>> messages;
 
-        public MessageMap(Commit commit) {
-            this(Dot.dot(commit.getDot()), commit.getMessage(), Clock.vclock(commit.getConfMap()));
+        public MessageMap(Dot dot, Commit commit) {
+            this(dot, commit.getMessage(), Clock.vclock(commit.getConfMap()));
         }
 
         public MessageMap(Dot dot, Message message, Clock<MaxInt> conf) {

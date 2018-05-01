@@ -36,7 +36,8 @@ public class Dot implements Comparable<Dot> {
     }
 
     public static Dot dot(Proto.Dot dot) {
-        return new Dot(dot.getId(), dot.getSeq());
+        Dot newDot= new Dot(dot.getId(), dot.getSeq());
+        return newDot;
     }
 
     @Override
