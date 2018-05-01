@@ -36,12 +36,7 @@ public class DeliveredDepBox implements DepBox<DeliveredDepBox> {
     public void merge(DeliveredDepBox o) {
         this.dots.merge(o.dots);
         this.dep.merge(o.dep);
-        for (Map.Entry<Dot, Message> entry : o.messageMap.entrySet()) {
-            if (this.messageMap.containsKey(entry.getKey())) {
-                throw new RuntimeException("Duplicated dot " + entry.getKey());
-            }
-            this.messageMap.put(entry.getKey(), entry.getValue());
-        }
+        this.messageMap.putAll(o.messageMap);
     }
 
     @Override
@@ -54,10 +49,7 @@ public class DeliveredDepBox implements DepBox<DeliveredDepBox> {
 
     @Override
     public List<Message> sortMessages() {
-        List<Message> result = new ArrayList<>();
-        for (Message message : messageMap.values()) {
-            result.add(message);
-        }
+        List<Message> result = new ArrayList<>(messageMap.values());
         return result;
     }
 
