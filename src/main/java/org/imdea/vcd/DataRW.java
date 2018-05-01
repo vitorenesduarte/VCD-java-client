@@ -1,21 +1,37 @@
 package org.imdea.vcd;
 
-import org.imdea.vcd.queue.DependencyQueue;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.List;
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.MetricAttribute;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
 import org.imdea.vcd.queue.CommitDepBox;
+import org.imdea.vcd.queue.DependencyQueue;
 import org.imdea.vcd.queue.clock.Clock;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
  * @author Vitor Enes
  */
 public class DataRW {
+
+    private static final int METRICS_REPORT_PERIOD=10; // in seconds.
+    private final MetricRegistry metrics;
+    private final Timer toAdd;
+    private final Timer createBox;
+    private final Timer tryDeliver;
+    private final Timer sorting;
 
     private final DataInputStream in;
     private final DataOutputStream out;
@@ -24,6 +40,27 @@ public class DataRW {
     public DataRW(DataInputStream in, DataOutputStream out, Integer nodeNumber) {
         this.in = in;
         this.out = out;
+
+        metrics = new MetricRegistry();
+        Set<MetricAttribute> disabledMetricAttributes  =
+                new HashSet<>(Arrays.asList(new MetricAttribute[]{
+                        MetricAttribute.MAX, MetricAttribute.STDDEV,
+                        MetricAttribute.M1_RATE, MetricAttribute.M5_RATE,
+                        MetricAttribute.M15_RATE, MetricAttribute.MIN,
+                        MetricAttribute.P99, MetricAttribute.P50,
+                        MetricAttribute.P75, MetricAttribute.P95,
+                        MetricAttribute.P98, MetricAttribute.P999}));
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .disabledMetricAttributes(disabledMetricAttributes)
+                .build();
+        reporter.start(METRICS_REPORT_PERIOD, TimeUnit.SECONDS);
+
+        createBox = metrics.timer(MetricRegistry.name(DataRW.class,"createBox"));
+        toAdd = metrics.timer(MetricRegistry.name(DataRW.class,"toAdd"));
+        tryDeliver = metrics.timer(MetricRegistry.name(DataRW.class,"tryDeliver"));
+        sorting = metrics.timer(MetricRegistry.name(DataRW.class,"sorting"));
     }
 
     public void write(MessageSet messageSet) throws IOException {
@@ -60,22 +97,22 @@ public class DataRW {
             case SET:
                 return reply.getSet();
             case COMMIT:
-                start = System.nanoTime();
+                final Timer.Context createBoxContext = toAdd.time();
                 CommitDepBox box = new CommitDepBox(reply.getCommit());
-                System.out.println((System.nanoTime() - start) + " create box");
+                createBoxContext.stop();
 
-                start = System.nanoTime();
+                final Timer.Context toAddContext = createBox.time();
                 queue.add(box);
-                System.out.println((System.nanoTime() - start) + " add box");
+                toAddContext.stop();
 
-                start = System.nanoTime();
+                final Timer.Context tryDeliverContext = tryDeliver.time();
                 List<CommitDepBox> toDeliver = queue.tryDeliver();
-                System.out.println((System.nanoTime() - start) + " try deliver");
+                tryDeliverContext.stop();
 
                 if (toDeliver.isEmpty()) {
                     return null;
                 } else {
-                    start = System.nanoTime();
+                    final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
                         for (Message message : boxToDeliver.sortMessages()) {
@@ -84,7 +121,7 @@ public class DataRW {
                     }
                     builder.setStatus(MessageSet.Status.DELIVERED);
                     MessageSet messageSet = builder.build();
-                    System.out.println((System.nanoTime() - start) + " sorting " + messageSet.getMessagesCount() + " messages");
+                    sortingContext.stop();
                     return messageSet;
                 }
             default:
