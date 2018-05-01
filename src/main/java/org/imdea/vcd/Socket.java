@@ -108,7 +108,7 @@ public class Socket {
         return this.rw.read();
     }
 
-    public void closeRw() throws IOException {
+    public void close() throws IOException {
         this.rw.close();
     }
 

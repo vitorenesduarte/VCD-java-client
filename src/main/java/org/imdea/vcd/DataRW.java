@@ -32,16 +32,28 @@ public class DataRW {
     private final DataInputStream in;
     private final DataOutputStream out;
     private final LinkedBlockingQueue<MessageSet> toClient;
+    private final SocketReader socketReader;
 
     public DataRW(DataInputStream in, DataOutputStream out, Integer nodeNumber) {
         this.in = in;
         this.out = out;
         this.toClient = new LinkedBlockingQueue<>();
+        this.socketReader = new SocketReader(this.in, this.toClient);
     }
 
     public void start() {
-        SocketReader reader = new SocketReader(this.in, this.toClient);
-        reader.start();
+        this.socketReader.start();
+    }
+
+    public void close() throws IOException {
+        this.socketReader.close();
+        this.socketReader.interrupt();
+        this.in.close();
+        this.out.close();
+    }
+
+    public MessageSet read() throws IOException, InterruptedException {
+        return this.toClient.take();
     }
 
     public void write(MessageSet messageSet) throws IOException {
@@ -49,10 +61,6 @@ public class DataRW {
         this.out.writeInt(data.length);
         this.out.write(data, 0, data.length);
         this.out.flush();
-    }
-
-    public MessageSet read() throws IOException, InterruptedException {
-        return this.toClient.take();
     }
 
     // socket reader -> client | deliverer
@@ -64,18 +72,23 @@ public class DataRW {
         private final DataInputStream in;
         private final LinkedBlockingQueue<MessageSet> toClient;
         private final LinkedBlockingQueue<Reply> toDeliverer;
+        private final Deliverer deliverer;
 
         public SocketReader(DataInputStream in, LinkedBlockingQueue<MessageSet> toClient) {
             this.in = in;
             this.toClient = toClient;
             this.toDeliverer = new LinkedBlockingQueue<>();
+            this.deliverer = new Deliverer(this.toClient, this.toDeliverer);
+        }
+
+        public void close() {
+            this.deliverer.interrupt();
         }
 
         @Override
         public void run() {
             // start deliverer
-            Deliverer deliverer = new Deliverer(this.toClient, this.toDeliverer);
-            deliverer.start();
+            this.deliverer.start();
 
             try {
                 while (true) {
@@ -189,10 +202,5 @@ public class DataRW {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
-    }
-
-    public void close() throws IOException {
-        this.in.close();
-        this.out.close();
     }
 }

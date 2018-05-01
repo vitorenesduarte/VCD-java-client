@@ -125,6 +125,8 @@ public class Client {
 
             // and push them to redis
             redisPush();
+
+            SOCKET.close();
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.toString(), e);
         }
