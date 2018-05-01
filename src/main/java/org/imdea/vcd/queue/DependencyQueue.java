@@ -66,7 +66,6 @@ public class DependencyQueue<E extends DepBox> {
         } else {
 //            System.out.println("d)");
             // found cycle: merge all
-            size++;
             merge(e, x, y);
         }
     }
@@ -226,9 +225,8 @@ public class DependencyQueue<E extends DepBox> {
             // while not pointing to the same element, merge
             a = a.next;
             e.merge(a.item);
+            size--;
         }
-
-        size--;
 
         linkBetween(e, pred, succ);
     }
