@@ -1,8 +1,10 @@
 package org.imdea.vcd.queue;
 
+import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,7 +23,7 @@ import static org.junit.Assert.*;
  */
 public class DependencyQueueTest {
 
-    private static final int ITERATIONS = 10000;
+    private static final int ITERATIONS = 100000;
 
     @Test
     public void testAdd1() {
@@ -249,21 +251,18 @@ public class DependencyQueueTest {
 
     private void checkTerminationRandomShuffles(Integer nodeNumber, List<CommitDepBox> boxes) {
 
-        Pair<Boolean, List<Message>> result = checkTermination(nodeNumber, boxes);
-        assertTrue(result.getKey());
-        List<Message> totalOrder = result.getValue();
+        List<Message> totalOrder = checkTermination(nodeNumber, boxes);
 
         for (int it = 0; it < ITERATIONS; it++) {
             // shuffle list
             Collections.shuffle(boxes);
 
-            result = checkTermination(nodeNumber, boxes);
-            assertTrue(result.getKey());
-            assertEquals(totalOrder, result.getValue());
+            List<Message> sorted = checkTermination(nodeNumber, boxes);
+            checkTotalOrderPerColor(totalOrder, sorted);
         }
     }
 
-    private Pair<Boolean, List<Message>> checkTermination(Integer nodeNumber, List<CommitDepBox> boxes) {
+    private List<Message> checkTermination(Integer nodeNumber, List<CommitDepBox> boxes) {
         DependencyQueue<CommitDepBox> queue = new DependencyQueue<>(nodeNumber);
         List<CommitDepBox> results = new ArrayList<>();
         for (CommitDepBox box : boxes) {
@@ -272,25 +271,27 @@ public class DependencyQueueTest {
             results.addAll(result);
         }
 
-        Boolean termination = queue.isEmpty() && allDotsDelivered(boxes, results);
+        // check queue is empty and all dots were delivered
+        assertTrue(queue.isEmpty());
+        checkAllDotsDelivered(boxes, results);
+
+        // return messages sorted
         List<Message> sorted = new ArrayList<>();
         for (CommitDepBox box : results) {
             sorted.addAll(box.sortMessages());
         }
-        return Pair.of(termination, sorted);
+        return sorted;
     }
 
-    private boolean allDotsDelivered(List<CommitDepBox> boxes, List<CommitDepBox> results) {
+    private void checkAllDotsDelivered(List<CommitDepBox> boxes, List<CommitDepBox> results) {
         List<Dot> boxesDots = boxListToDots(boxes);
         List<Dot> resultsDots = boxListToDots(results);
 
         // all dots (and no more) were delivered
-        boolean result = boxesDots.size() == resultsDots.size();
+        assertTrue(boxesDots.size() == resultsDots.size());
         for (Dot dot : boxesDots) {
-            result = result && resultsDots.contains(dot);
+            assertTrue(resultsDots.contains(dot));
         }
-
-        return result;
     }
 
     private List<Dot> boxListToDots(List<CommitDepBox> list) {
@@ -314,5 +315,29 @@ public class DependencyQueueTest {
         }
 
         return new CommitDepBox(dot, new Clock<>(dep), message, new Clock<>(conf));
+    }
+
+    private void checkTotalOrderPerColor(List<Message> a, List<Message> b) {
+        HashSet<ByteString> colors = new HashSet<>();
+
+        for (Message m : a) {
+            colors.add(m.getHash());
+        }
+
+        for (ByteString color : colors) {
+            List<Message> perColorA = messagesPerColor(color, a);
+            List<Message> perColorB = messagesPerColor(color, b);
+            assertEquals(perColorA, perColorB);
+        }
+    }
+
+    private List<Message> messagesPerColor(ByteString color, List<Message> l) {
+        List<Message> perColor = new ArrayList<>();
+        for (Message m : l) {
+            if (m.getHash().equals(color)) {
+                perColor.add(m);
+            }
+        }
+        return perColor;
     }
 }
