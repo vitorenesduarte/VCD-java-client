@@ -34,6 +34,14 @@ public class DataRW {
     }
 
     public MessageSet read() throws IOException {
+        MessageSet result = null;
+        while (result == null) {
+            result = doRead();
+        }
+        return result;
+    }
+
+    private MessageSet doRead() throws IOException {
         int length = in.readInt();
         byte data[] = new byte[length];
         in.readFully(data, 0, length);
@@ -46,7 +54,7 @@ public class DataRW {
         switch (reply.getReplyCase()) {
             case INIT:
                 this.queue = new DependencyQueue(Clock.eclock(reply.getInit().getCommittedMap()));
-                return this.read();
+                return null;
             case SET:
                 return reply.getSet();
             case COMMIT:
@@ -55,7 +63,7 @@ public class DataRW {
                 List<CommitDepBox> toDeliver = queue.tryDeliver();
 
                 if (toDeliver.isEmpty()) {
-                    return this.read();
+                    return null;
                 } else {
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
