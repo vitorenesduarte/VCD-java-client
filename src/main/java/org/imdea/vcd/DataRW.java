@@ -65,7 +65,8 @@ public class DataRW {
     }
 
     // socket reader -> client | deliverer
-    // deliverer -> client
+    // deliverer -> sorter
+    // sorter -> client
     private class SocketReader extends Thread {
 
         private final Logger LOGGER = VCDLogger.init(SocketReader.class);
@@ -83,6 +84,7 @@ public class DataRW {
         }
 
         public void close() {
+            this.deliverer.close();
             this.deliverer.interrupt();
         }
 
@@ -119,8 +121,9 @@ public class DataRW {
 
         private final Logger LOGGER = VCDLogger.init(Deliverer.class);
 
-        private final LinkedBlockingQueue<MessageSet> toClient;
         private final LinkedBlockingQueue<Reply> toDeliverer;
+        private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
+        private final Sorter sorter;
         private DependencyQueue<CommitDepBox> queue;
 
         // metrics
@@ -132,9 +135,6 @@ public class DataRW {
         private final Timer sorting;
 
         public Deliverer(LinkedBlockingQueue<MessageSet> toClient, LinkedBlockingQueue<Reply> toDeliverer) {
-            this.toClient = toClient;
-            this.toDeliverer = toDeliverer;
-
             metrics = new MetricRegistry();
             Set<MetricAttribute> disabledMetricAttributes
                     = new HashSet<>(Arrays.asList(new MetricAttribute[]{
@@ -158,10 +158,21 @@ public class DataRW {
 
             metrics.register(MetricRegistry.name(DataRW.class, "queueSize"),
                     (Gauge<Integer>) () -> queue.size());
+
+            this.toDeliverer = toDeliverer;
+            this.toSorter = new LinkedBlockingQueue<>();
+            this.sorter = new Sorter(toClient, this.toSorter, this.sorting);
+        }
+
+        public void close() {
+            this.sorter.interrupt();
         }
 
         @Override
         public void run() {
+            // start sorter
+            this.sorter.start();
+
             try {
                 while (true) {
                     Reply reply = toDeliverer.take();
@@ -184,23 +195,49 @@ public class DataRW {
                             tryDeliverContext.stop();
 
                             if (!toDeliver.isEmpty()) {
-                                final Timer.Context sortingContext = sorting.time();
-                                MessageSet.Builder builder = MessageSet.newBuilder();
-                                for (CommitDepBox boxToDeliver : toDeliver) {
-                                    for (Message message : boxToDeliver.sortMessages()) {
-                                        builder.addMessages(message);
-                                    }
-                                }
-                                builder.setStatus(MessageSet.Status.DELIVERED);
-                                MessageSet messageSet = builder.build();
-                                sortingContext.stop();
-
-                                toClient.put(messageSet);
+                                toSorter.put(toDeliver);
                             }
                             break;
                         default:
                             throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
                     }
+                }
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+            }
+        }
+    }
+
+    private class Sorter extends Thread {
+
+        private final Logger LOGGER = VCDLogger.init(Sorter.class);
+        private final LinkedBlockingQueue<MessageSet> toClient;
+        private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
+        private final Timer sorting;
+
+        public Sorter(LinkedBlockingQueue<MessageSet> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Timer sorting) {
+            this.toClient = toClient;
+            this.toSorter = toSorter;
+            this.sorting = sorting;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    List<CommitDepBox> toDeliver = toSorter.take();
+                    final Timer.Context sortingContext = sorting.time();
+                    MessageSet.Builder builder = MessageSet.newBuilder();
+                    for (CommitDepBox boxToDeliver : toDeliver) {
+                        for (Message message : boxToDeliver.sortMessages()) {
+                            builder.addMessages(message);
+                        }
+                    }
+                    builder.setStatus(MessageSet.Status.DELIVERED);
+                    MessageSet messageSet = builder.build();
+                    sortingContext.stop();
+
+                    toClient.put(messageSet);
                 }
             } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
