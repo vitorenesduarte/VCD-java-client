@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -277,7 +277,7 @@ public class DependencyQueueTest {
         for (CommitDepBox box : results) {
             sorted.addAll(box.sortMessages());
         }
-        return new Pair<>(termination, sorted);
+        return Pair.of(termination, sorted);
     }
 
     private boolean allDotsDelivered(List<CommitDepBox> boxes, List<CommitDepBox> results) {
