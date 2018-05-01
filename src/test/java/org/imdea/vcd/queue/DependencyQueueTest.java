@@ -1,12 +1,6 @@
 package org.imdea.vcd.queue;
 
 import com.google.protobuf.ByteString;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -14,7 +8,16 @@ import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -271,7 +274,7 @@ public class DependencyQueueTest {
         }
 
         // check queue is empty and all dots were delivered
-        assertTrue(queue.isEmpty());
+        assertTrue(queue.isEmpty() && queue.size()==0);
         checkAllDotsDelivered(boxes, results);
 
         // return messages sorted

@@ -1,6 +1,7 @@
 package org.imdea.vcd;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricAttribute;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
@@ -174,6 +175,9 @@ public class DataRW {
                             final Timer.Context toAddContext = toAdd.time();
                             queue.add(box);
                             toAddContext.stop();
+
+                            metrics.register(MetricRegistry.name(DataRW.class, "queueSize"),
+                                    (Gauge<Integer>) () -> queue.size());
 
                             final Timer.Context tryDeliverContext = tryDeliver.time();
                             List<CommitDepBox> toDeliver = queue.tryDeliver();

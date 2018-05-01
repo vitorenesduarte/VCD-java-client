@@ -1,9 +1,10 @@
 package org.imdea.vcd.queue;
 
+import org.imdea.vcd.queue.clock.Clock;
+import org.imdea.vcd.queue.clock.ExceptionSet;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.imdea.vcd.queue.clock.ExceptionSet;
-import org.imdea.vcd.queue.clock.Clock;
 
 /**
  *
@@ -16,15 +17,18 @@ public class DependencyQueue<E extends DepBox> {
 
     Node<E> first;
     Node<E> last;
+    int size;
 
     private Clock<ExceptionSet> delivered;
 
     public DependencyQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
+        this.size = 0;
     }
 
     public DependencyQueue(Clock<ExceptionSet> delivered) {
         this.delivered = delivered;
+        this.size = 0;
     }
 
     public boolean isEmpty() {
@@ -44,20 +48,25 @@ public class DependencyQueue<E extends DepBox> {
 
         if (x == null && y == null) {
 //            System.out.println("a)");
+            size++;
             linkFirst(e);
         } else if (x == null) {
 //            System.out.println("b)");
+            size++;
             linkAfter(e, y);
         } else if (y == null) {
 //            System.out.println("c)");
+            size++;
             linkBefore(e, x);
         } else if (y.next == x) {
 //            System.out.println("e)");
             // insert in between both
+            size++;
             linkBetween(e, y, x);
         } else {
 //            System.out.println("d)");
             // found cycle: merge all
+            size++;
             merge(e, x, y);
         }
     }
@@ -89,6 +98,8 @@ public class DependencyQueue<E extends DepBox> {
                 } else {
                     first.prev = null;
                 }
+
+                size--;
             }
         }
 
@@ -217,6 +228,8 @@ public class DependencyQueue<E extends DepBox> {
             e.merge(a.item);
         }
 
+        size--;
+
         linkBetween(e, pred, succ);
     }
 
@@ -239,6 +252,10 @@ public class DependencyQueue<E extends DepBox> {
             sb.append("[empty]");
         }
         return sb.toString();
+    }
+
+    public Integer size() {
+        return size;
     }
 
     private static class Node<E> {
