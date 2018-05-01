@@ -99,8 +99,8 @@ public class Clock<T extends IntSet> {
         for (int id = 0; id < nodeNumber; id++) {
             map.put(id, new MaxInt());
         }
-
-        return new Clock<>(map);
+        Clock<MaxInt> clock = new Clock<>(map);
+        return clock;
     }
 
     public static Clock<MaxInt> vclock(Map<Integer, Long> o) {
@@ -108,7 +108,8 @@ public class Clock<T extends IntSet> {
         for (Map.Entry<Integer, Long> entry : o.entrySet()) {
             map.put(entry.getKey(), new MaxInt(entry.getValue()));
         }
-        return new Clock<>(map);
+        Clock<MaxInt> clock = new Clock<>(map);
+        return clock;
     }
 
     public static Clock<ExceptionSet> eclock(Integer nodeNumber) {
@@ -116,8 +117,8 @@ public class Clock<T extends IntSet> {
         for (int id = 0; id < nodeNumber; id++) {
             map.put(id, new ExceptionSet());
         }
-
-        return new Clock<>(map);
+        Clock<ExceptionSet> clock = new Clock<>(map);
+        return clock;
     }
 
     public static Clock<ExceptionSet> eclock(Map<Integer, Proto.ExceptionSet> o) {
@@ -125,7 +126,8 @@ public class Clock<T extends IntSet> {
         for (Map.Entry<Integer, Proto.ExceptionSet> entry : o.entrySet()) {
             map.put(entry.getKey(), new ExceptionSet(entry.getValue()));
         }
-        return new Clock<>(map);
+        Clock<ExceptionSet> clock = new Clock<>(map);
+        return clock;
     }
 
     public static Clock<ExceptionSet> eclock(Clock<MaxInt> conf) {
@@ -133,6 +135,7 @@ public class Clock<T extends IntSet> {
         for (Map.Entry<Integer, MaxInt> entry : conf.map.entrySet()) {
             map.put(entry.getKey(), entry.getValue().toExceptionSet());
         }
-        return new Clock<>(map);
+        Clock<ExceptionSet> clock = new Clock<>(map);
+        return clock;
     }
 }

@@ -23,7 +23,8 @@ public class MaxInt implements IntSet<MaxInt> {
     }
 
     public ExceptionSet toExceptionSet() {
-        return new ExceptionSet(this.seq);
+        ExceptionSet exceptionSet = new ExceptionSet(this.seq);
+        return exceptionSet;
     }
 
     @Override
