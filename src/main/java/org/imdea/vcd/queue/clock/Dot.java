@@ -65,7 +65,7 @@ public class Dot implements Comparable<Dot> {
 
     @Override
     public int compareTo(Dot o) {
-        if(Objects.equals(this.id, o.id)) {
+        if (Objects.equals(this.id, o.id)) {
             return this.seq.compareTo(o.seq);
         }
         return this.id.compareTo(o.id);

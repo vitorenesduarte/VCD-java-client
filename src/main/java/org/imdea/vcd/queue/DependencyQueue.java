@@ -1,9 +1,7 @@
 package org.imdea.vcd.queue;
 
-import static com.google.protobuf.TextFormatParseInfoTree.builder;
 import java.util.ArrayList;
 import java.util.List;
-import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.Clock;
 
