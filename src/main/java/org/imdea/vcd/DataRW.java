@@ -155,6 +155,9 @@ public class DataRW {
             toAdd = metrics.timer(MetricRegistry.name(DataRW.class, "toAdd"));
             tryDeliver = metrics.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
             sorting = metrics.timer(MetricRegistry.name(DataRW.class, "sorting"));
+
+            metrics.register(MetricRegistry.name(DataRW.class, "queueSize"),
+                    (Gauge<Integer>) () -> queue.size());
         }
 
         @Override
@@ -175,9 +178,6 @@ public class DataRW {
                             final Timer.Context toAddContext = toAdd.time();
                             queue.add(box);
                             toAddContext.stop();
-
-                            metrics.register(MetricRegistry.name(DataRW.class, "queueSize"),
-                                    (Gauge<Integer>) () -> queue.size());
 
                             final Timer.Context tryDeliverContext = tryDeliver.time();
                             List<CommitDepBox> toDeliver = queue.tryDeliver();
