@@ -27,7 +27,11 @@ public class DependencyQueue<E extends DepBox> {
         this.delivered = delivered;
     }
 
-    public List<E> add(E e) {
+    public boolean isEmpty() {
+        return first == null;
+    }
+
+    public void add(E e) {
 //        System.out.println("Adding " + e);
         Node<E> x = findDependsOnE(e);
         Node<E> y = findEDependsOn(e);
@@ -56,7 +60,9 @@ public class DependencyQueue<E extends DepBox> {
             // found cycle: merge all
             merge(e, x, y);
         }
+    }
 
+    public List<E> tryDeliver() {
         List<E> result = new ArrayList<>();
         boolean flag = true;
 
@@ -88,6 +94,17 @@ public class DependencyQueue<E extends DepBox> {
 
 //        System.out.println("final queue:");
 //        System.out.println(this);
+        return result;
+    }
+
+    public List<E> toList() {
+        List<E> result = new ArrayList<>();
+        Node<E> it = first;
+
+        while (it != null) {
+            result.add(it.item);
+            it = it.next;
+        }
 
         return result;
     }

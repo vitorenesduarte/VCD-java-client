@@ -1,5 +1,7 @@
 package org.imdea.vcd.queue;
 
+import java.util.List;
+import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 
@@ -15,4 +17,6 @@ public interface DepBox<T> {
     void merge(T box);
 
     boolean canDeliver(Clock<ExceptionSet> delivered);
+
+    List<Message> sortMessages();
 }

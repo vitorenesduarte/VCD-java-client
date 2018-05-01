@@ -1,11 +1,10 @@
 package org.imdea.vcd.queue;
 
-import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.Clock;
@@ -63,12 +62,35 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         return delivered.equals(this.dep);
     }
 
-    public List<Message> messages() {
+    @Override
+    public List<Message> sortMessages() {
         List<Message> result = new ArrayList<>();
         for (ArrayList<PerMessage> messages : this.messageMap.messages.values()) {
-            for (PerMessage message : messages) {
-                result.add(message.message);
-            }
+            // sort for each color
+            result.addAll(sortPerColor(messages));
+        }
+        return result;
+    }
+
+    public Dots getDots() {
+        return this.dots;
+    }
+
+    private List<Message> sortPerColor(List<PerMessage> messages) {
+        // create queue to sort messages
+        Integer nodeNumber = messages.get(0).getConf().size();
+        DependencyQueue<DeliveredDepBox> queue = new DependencyQueue<>(nodeNumber);
+
+        // add all to the queue
+        for (PerMessage message : messages) {
+            DeliveredDepBox box = new DeliveredDepBox(message);
+            queue.add(box);
+        }
+
+        // take all messages in the queue
+        List<Message> result = new ArrayList<>();
+        for (DeliveredDepBox box : queue.toList()) {
+            result.addAll(box.sortMessages());
         }
         return result;
     }
@@ -86,22 +108,22 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
     private class MessageMap {
 
-        private final HashMap<ByteString, ArrayList<PerMessage>> messages;
+        private final TreeMap<String, ArrayList<PerMessage>> messages;
 
         public MessageMap(Commit commit) {
             this(Dot.dot(commit.getDot()), commit.getMessage(), Clock.vclock(commit.getConfMap()));
         }
 
         public MessageMap(Dot dot, Message message, Clock<MaxInt> conf) {
-            this.messages = new HashMap<>();
-            ByteString color = message.getHash();
+            this.messages = new TreeMap<>();
+            String color = message.getHash().toString();
             PerMessage p = new PerMessage(dot, message, conf);
             this.messages.put(color, new ArrayList<>(Arrays.asList(p)));
         }
 
         public MessageMap(MessageMap messageMap) {
-            this.messages = new HashMap<>();
-            for (Map.Entry<ByteString, ArrayList<PerMessage>> entry : messageMap.messages.entrySet()) {
+            this.messages = new TreeMap<>();
+            for (Map.Entry<String, ArrayList<PerMessage>> entry : messageMap.messages.entrySet()) {
                 ArrayList<PerMessage> perMessageList = new ArrayList<>();
                 for (PerMessage perMessage : entry.getValue()) {
                     perMessageList.add((PerMessage) perMessage.clone());
@@ -115,7 +137,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
                 a.addAll(b);
                 return a;
             };
-            for (Map.Entry<ByteString, ArrayList<PerMessage>> entry : o.messages.entrySet()) {
+            for (Map.Entry<String, ArrayList<PerMessage>> entry : o.messages.entrySet()) {
                 this.messages.merge(entry.getKey(), entry.getValue(), f);
             }
         }
@@ -124,46 +146,6 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         public Object clone() {
             MessageMap messageMap = new MessageMap(this);
             return messageMap;
-        }
-    }
-
-    private class PerMessage {
-
-        private final Dot dot;
-        private final Message message;
-        private final Clock<MaxInt> conf;
-
-        public PerMessage(Dot dot, Message message, Clock<MaxInt> conf) {
-            this.dot = dot;
-            this.message = message;
-            this.conf = conf;
-        }
-
-        public PerMessage(PerMessage perMessage) {
-            this.dot = new Dot(perMessage.dot);
-            this.message = Message.newBuilder()
-                    .setHash(perMessage.message.getHash())
-                    .setData(perMessage.message.getData())
-                    .build();
-            this.conf = new Clock<>(perMessage.conf);
-        }
-
-        public Dot getDot() {
-            return dot;
-        }
-
-        public Message getMessage() {
-            return message;
-        }
-
-        public Clock<MaxInt> getConf() {
-            return conf;
-        }
-
-        @Override
-        public Object clone() {
-            PerMessage perMessage = new PerMessage(this);
-            return perMessage;
         }
     }
 }

@@ -54,6 +54,10 @@ public class Clock<T extends IntSet> {
         }
     }
 
+    public int size() {
+        return this.map.size();
+    }
+
     @Override
     public boolean equals(Object o) {
         // self check
@@ -120,6 +124,14 @@ public class Clock<T extends IntSet> {
         HashMap<Integer, ExceptionSet> map = new HashMap<>();
         for (Map.Entry<Integer, Proto.ExceptionSet> entry : o.entrySet()) {
             map.put(entry.getKey(), new ExceptionSet(entry.getValue()));
+        }
+        return new Clock<>(map);
+    }
+
+    public static Clock<ExceptionSet> eclock(Clock<MaxInt> conf) {
+        HashMap<Integer, ExceptionSet> map = new HashMap<>();
+        for (Map.Entry<Integer, MaxInt> entry : conf.map.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().toExceptionSet());
         }
         return new Clock<>(map);
     }
