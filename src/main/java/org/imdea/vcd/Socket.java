@@ -34,6 +34,7 @@ public class Socket {
 
     protected Socket(DataRW rw) {
         this.rw = rw;
+        this.rw.start();
     }
 
     public static Socket createStatic(Config config, int retries) throws IOException, InterruptedException {
@@ -103,7 +104,7 @@ public class Socket {
         this.rw.write(messageSet);
     }
 
-    public MessageSet receive() throws IOException {
+    public MessageSet receive() throws IOException, InterruptedException {
         return this.rw.read();
     }
 
