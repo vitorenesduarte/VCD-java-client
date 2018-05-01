@@ -62,15 +62,15 @@ public class DataRW {
             case COMMIT:
                 start = System.nanoTime();
                 CommitDepBox box = new CommitDepBox(reply.getCommit());
-                System.out.println("create box: " + (System.nanoTime() - start));
+                System.out.println((System.nanoTime() - start) + " create box");
 
                 start = System.nanoTime();
                 queue.add(box);
-                System.out.println("add box: " + (System.nanoTime() - start));
+                System.out.println((System.nanoTime() - start) + " add box");
 
                 start = System.nanoTime();
                 List<CommitDepBox> toDeliver = queue.tryDeliver();
-                System.out.println("try deliver: " + (System.nanoTime() - start));
+                System.out.println((System.nanoTime() - start) + " try deliver");
 
                 if (toDeliver.isEmpty()) {
                     return null;
@@ -84,7 +84,7 @@ public class DataRW {
                     }
                     builder.setStatus(MessageSet.Status.DELIVERED);
                     MessageSet messageSet = builder.build();
-                    System.out.println("sorting " + messageSet.getMessagesCount() + " messages: " + (System.nanoTime() - start));
+                    System.out.println((System.nanoTime() - start) + " sorting " + messageSet.getMessagesCount() + " messages");
                     return messageSet;
                 }
             default:
