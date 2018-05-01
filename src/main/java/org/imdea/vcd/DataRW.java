@@ -167,11 +167,11 @@ public class DataRW {
                             this.queue = new DependencyQueue(Clock.eclock(reply.getInit().getCommittedMap()));
                             break;
                         case COMMIT:
-                            final Timer.Context createBoxContext = toAdd.time();
+                            final Timer.Context createBoxContext = createBox.time();
                             CommitDepBox box = new CommitDepBox(reply.getCommit());
                             createBoxContext.stop();
 
-                            final Timer.Context toAddContext = createBox.time();
+                            final Timer.Context toAddContext = toAdd.time();
                             queue.add(box);
                             toAddContext.stop();
 
