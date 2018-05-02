@@ -2,6 +2,7 @@ package org.imdea.vcd;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricAttribute;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
@@ -147,12 +148,13 @@ public class DataRW {
         private final Timer createBox;
         private final Timer tryDeliver;
         private final Timer sorting;
+        private final Histogram toSort;
 
         public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer) {
             metrics = new MetricRegistry();
             Set<MetricAttribute> disabledMetricAttributes
                     = new HashSet<>(Arrays.asList(new MetricAttribute[]{
-                MetricAttribute.MAX, MetricAttribute.STDDEV,
+                MetricAttribute.MAX,
                 MetricAttribute.M1_RATE, MetricAttribute.M5_RATE,
                 MetricAttribute.M15_RATE, MetricAttribute.MIN,
                 MetricAttribute.P99, MetricAttribute.P50,
@@ -169,7 +171,7 @@ public class DataRW {
             toAdd = metrics.timer(MetricRegistry.name(DataRW.class, "toAdd"));
             tryDeliver = metrics.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
             sorting = metrics.timer(MetricRegistry.name(DataRW.class, "sorting"));
-
+            toSort =  metrics.histogram(MetricRegistry.name(DataRW.class, "toSort"));
             metrics.register(MetricRegistry.name(DataRW.class, "queueSize"),
                     (Gauge<Integer>) () -> queue.size());
 
@@ -207,6 +209,8 @@ public class DataRW {
                             final Timer.Context tryDeliverContext = tryDeliver.time();
                             List<CommitDepBox> toDeliver = queue.tryDeliver();
                             tryDeliverContext.stop();
+
+                            toSort.update(toDeliver.size());
 
                             if (!toDeliver.isEmpty()) {
                                 toSorter.put(toDeliver);
