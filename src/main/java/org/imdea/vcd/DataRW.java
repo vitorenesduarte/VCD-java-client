@@ -1,7 +1,6 @@
 package org.imdea.vcd;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricAttribute;
 import com.codahale.metrics.MetricRegistry;
@@ -149,6 +148,7 @@ public class DataRW {
         private final Timer tryDeliver;
         private final Timer sorting;
         private final Histogram toSort;
+        private final Histogram queueSize;
 
         public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer) {
             metrics = new MetricRegistry();
@@ -171,9 +171,9 @@ public class DataRW {
             toAdd = metrics.timer(MetricRegistry.name(DataRW.class, "toAdd"));
             tryDeliver = metrics.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
             sorting = metrics.timer(MetricRegistry.name(DataRW.class, "sorting"));
+
             toSort =  metrics.histogram(MetricRegistry.name(DataRW.class, "toSort"));
-            metrics.register(MetricRegistry.name(DataRW.class, "queueSize"),
-                    (Gauge<Integer>) () -> queue.size());
+            queueSize =  metrics.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
 
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
@@ -210,6 +210,7 @@ public class DataRW {
                             List<CommitDepBox> toDeliver = queue.tryDeliver();
                             tryDeliverContext.stop();
 
+                            queueSize.update(queue.size());
                             toSort.update(toDeliver.size());
 
                             if (!toDeliver.isEmpty()) {
