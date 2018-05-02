@@ -64,6 +64,16 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         return delivered.equals(this.dep);
     }
 
+    public List<Message> getMessages() {
+        List<Message> result = new ArrayList<>();
+        for (ArrayList<PerMessage> messages : this.messageMap.messages.values()) {
+            for(PerMessage message : messages) {
+                result.add(message.getMessage());
+            }
+        }
+        return result;
+    }
+
     @Override
     public List<Message> sortMessages() {
         List<Message> result = new ArrayList<>();
