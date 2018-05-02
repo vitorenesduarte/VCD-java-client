@@ -54,7 +54,11 @@ public class DataRW {
     }
 
     public MessageSet read() throws IOException, InterruptedException {
-        return this.toClient.take();
+        MessageSet result = this.toClient.take();
+        if (result == null) {
+            throw new IOException();
+        }
+        return result;
     }
 
     public void write(MessageSet messageSet) throws IOException {
@@ -62,6 +66,10 @@ public class DataRW {
         this.out.writeInt(data.length);
         this.out.write(data, 0, data.length);
         this.out.flush();
+    }
+
+    private void notifyFailureToClient(LinkedBlockingQueue<MessageSet> toClient) throws InterruptedException {
+        toClient.put(null);
     }
 
     // socket reader -> client | deliverer
@@ -94,24 +102,29 @@ public class DataRW {
             this.deliverer.start();
 
             try {
-                while (true) {
-                    int length = in.readInt();
-                    byte data[] = new byte[length];
-                    in.readFully(data, 0, length);
-                    Reply reply = Reply.parseFrom(data);
+                try {
+                    while (true) {
+                        int length = in.readInt();
+                        byte data[] = new byte[length];
+                        in.readFully(data, 0, length);
+                        Reply reply = Reply.parseFrom(data);
 
-                    // if durable notification, send it to client
-                    // otherwise to dep queue thread
-                    switch (reply.getReplyCase()) {
-                        case SET:
-                            toClient.put(reply.getSet());
-                            break;
-                        default:
-                            toDeliverer.put(reply);
-                            break;
+                        // if durable notification, send it to client
+                        // otherwise to dep queue thread
+                        switch (reply.getReplyCase()) {
+                            case SET:
+                                toClient.put(reply.getSet());
+                                break;
+                            default:
+                                toDeliverer.put(reply);
+                                break;
+                        }
                     }
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, e.toString(), e);
+                    notifyFailureToClient(toClient);
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
