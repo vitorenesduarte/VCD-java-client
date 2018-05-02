@@ -243,7 +243,7 @@ public class DataRW {
                     final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
-                        for (Message message : boxToDeliver.sortMessages()) {
+                        for (Message message : boxToDeliver.getMessages()) {
                             builder.addMessages(message);
                         }
                     }
