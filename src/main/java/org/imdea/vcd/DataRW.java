@@ -33,6 +33,26 @@ import java.util.logging.Logger;
  */
 public class DataRW {
 
+    private static final MetricRegistry METRICS = new MetricRegistry();
+    private static final int METRICS_REPORT_PERIOD = 10; // in seconds.
+
+    static {
+        Set<MetricAttribute> disabledMetricAttributes
+                = new HashSet<>(Arrays.asList(new MetricAttribute[]{
+            MetricAttribute.MAX,
+            MetricAttribute.M1_RATE, MetricAttribute.M5_RATE,
+            MetricAttribute.M15_RATE, MetricAttribute.MIN,
+            MetricAttribute.P99, MetricAttribute.P50,
+            MetricAttribute.P75, MetricAttribute.P95,
+            MetricAttribute.P98, MetricAttribute.P999}));
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(METRICS)
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .disabledMetricAttributes(disabledMetricAttributes)
+                .build();
+        reporter.start(METRICS_REPORT_PERIOD, TimeUnit.SECONDS);
+    }
+
     private final DataInputStream in;
     private final DataOutputStream out;
     private final Integer batchWait;
@@ -105,11 +125,13 @@ public class DataRW {
         private final LinkedBlockingQueue<Message> toWriter;
         private final DataOutputStream out;
         private final Integer batchWait;
+        private final Histogram batchSize;
 
         public Writer(DataOutputStream out, LinkedBlockingQueue<Message> toWriter, Integer batchWait) {
             this.out = out;
             this.toWriter = toWriter;
             this.batchWait = batchWait;
+            this.batchSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "batchSize"));
         }
 
         @Override
@@ -129,6 +151,9 @@ public class DataRW {
                                 .addMessages(first)
                                 .addAllMessages(rest)
                                 .build();
+
+                        // batch size metrics
+                        batchSize.update(allMessages.getMessagesCount());
 
                         // create a message that has as data
                         // a protobuf with the previous message set
@@ -187,7 +212,6 @@ public class DataRW {
                 try {
                     while (true) {
                         int length = in.readInt();
-
                         byte data[] = new byte[length];
                         in.readFully(data, 0, length);
                         Reply reply = Reply.parseFrom(data);
@@ -223,8 +247,6 @@ public class DataRW {
         private DependencyQueue<CommitDepBox> queue;
 
         // metrics
-        private final int METRICS_REPORT_PERIOD = 10; // in seconds.
-        private final MetricRegistry metrics;
         private final Timer toAdd;
         private final Timer createBox;
         private final Timer tryDeliver;
@@ -234,30 +256,15 @@ public class DataRW {
         private final Histogram queueElements;
 
         public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer, Integer batchWait) {
-            metrics = new MetricRegistry();
-            Set<MetricAttribute> disabledMetricAttributes
-                    = new HashSet<>(Arrays.asList(new MetricAttribute[]{
-                MetricAttribute.MAX,
-                MetricAttribute.M1_RATE, MetricAttribute.M5_RATE,
-                MetricAttribute.M15_RATE, MetricAttribute.MIN,
-                MetricAttribute.P99, MetricAttribute.P50,
-                MetricAttribute.P75, MetricAttribute.P95,
-                MetricAttribute.P98, MetricAttribute.P999}));
-            ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
-                    .convertRatesTo(TimeUnit.SECONDS)
-                    .convertDurationsTo(TimeUnit.MICROSECONDS)
-                    .disabledMetricAttributes(disabledMetricAttributes)
-                    .build();
-            reporter.start(METRICS_REPORT_PERIOD, TimeUnit.SECONDS);
 
-            createBox = metrics.timer(MetricRegistry.name(DataRW.class, "createBox"));
-            toAdd = metrics.timer(MetricRegistry.name(DataRW.class, "toAdd"));
-            tryDeliver = metrics.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
-            sorting = metrics.timer(MetricRegistry.name(DataRW.class, "sorting"));
+            createBox = METRICS.timer(MetricRegistry.name(DataRW.class, "createBox"));
+            toAdd = METRICS.timer(MetricRegistry.name(DataRW.class, "toAdd"));
+            tryDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
+            sorting = METRICS.timer(MetricRegistry.name(DataRW.class, "sorting"));
 
-            toSort = metrics.histogram(MetricRegistry.name(DataRW.class, "toSort"));
-            queueSize = metrics.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
-            queueElements = metrics.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
+            toSort = METRICS.histogram(MetricRegistry.name(DataRW.class, "toSort"));
+            queueSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
+            queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
 
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
