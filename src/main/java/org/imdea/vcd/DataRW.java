@@ -364,7 +364,7 @@ public class DataRW {
                     final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
-                        for (Message message : boxToDeliver.getMessages()) {
+                        for (Message message : boxToDeliver.sortMessages()) {
                             if (this.batchWait > 0) {
                                 MessageSet batch = MessageSet.parseFrom(message.getData());
                                 builder.addAllMessages(batch.getMessagesList());
