@@ -211,9 +211,9 @@ public class DataRW {
                             tryDeliverContext.stop();
 
                             queueSize.update(queue.size());
-                            toSort.update(toDeliver.size());
 
                             if (!toDeliver.isEmpty()) {
+                                toSort.update(toDeliver.size());
                                 toSorter.put(toDeliver);
                             }
                             break;
