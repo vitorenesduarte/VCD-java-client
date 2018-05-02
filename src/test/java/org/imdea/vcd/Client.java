@@ -108,6 +108,8 @@ public class Client {
                             break;
                     }
                 } catch (IOException e) {
+                    // close current socket
+                    SOCKET.close();
                     // if at any point the socket errors inside this loop,
                     // reconnect to the closest server
                     SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
