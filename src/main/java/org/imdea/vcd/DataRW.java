@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +33,7 @@ public class DataRW {
 
     private final DataInputStream in;
     private final DataOutputStream out;
-    private final LinkedBlockingQueue<MessageSet> toClient;
+    private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
     private final SocketReader socketReader;
 
     public DataRW(DataInputStream in, DataOutputStream out, Integer nodeNumber) {
@@ -54,7 +55,11 @@ public class DataRW {
     }
 
     public MessageSet read() throws IOException, InterruptedException {
-        return this.toClient.take();
+        Optional<MessageSet> result = this.toClient.take();
+        if (!result.isPresent()) {
+            throw new IOException();
+        }
+        return result.get();
     }
 
     public void write(MessageSet messageSet) throws IOException {
@@ -62,6 +67,10 @@ public class DataRW {
         this.out.writeInt(data.length);
         this.out.write(data, 0, data.length);
         this.out.flush();
+    }
+
+    private void notifyFailureToClient(LinkedBlockingQueue<Optional<MessageSet>> toClient) throws InterruptedException {
+        toClient.put(Optional.empty());
     }
 
     // socket reader -> client | deliverer
@@ -72,11 +81,11 @@ public class DataRW {
         private final Logger LOGGER = VCDLogger.init(SocketReader.class);
 
         private final DataInputStream in;
-        private final LinkedBlockingQueue<MessageSet> toClient;
+        private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final Deliverer deliverer;
 
-        public SocketReader(DataInputStream in, LinkedBlockingQueue<MessageSet> toClient) {
+        public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient) {
             this.in = in;
             this.toClient = toClient;
             this.toDeliverer = new LinkedBlockingQueue<>();
@@ -94,24 +103,29 @@ public class DataRW {
             this.deliverer.start();
 
             try {
-                while (true) {
-                    int length = in.readInt();
-                    byte data[] = new byte[length];
-                    in.readFully(data, 0, length);
-                    Reply reply = Reply.parseFrom(data);
+                try {
+                    while (true) {
+                        int length = in.readInt();
+                        byte data[] = new byte[length];
+                        in.readFully(data, 0, length);
+                        Reply reply = Reply.parseFrom(data);
 
-                    // if durable notification, send it to client
-                    // otherwise to dep queue thread
-                    switch (reply.getReplyCase()) {
-                        case SET:
-                            toClient.put(reply.getSet());
-                            break;
-                        default:
-                            toDeliverer.put(reply);
-                            break;
+                        // if durable notification, send it to client
+                        // otherwise to dep queue thread
+                        switch (reply.getReplyCase()) {
+                            case SET:
+                                toClient.put(Optional.of(reply.getSet()));
+                                break;
+                            default:
+                                toDeliverer.put(reply);
+                                break;
+                        }
                     }
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, e.toString(), e);
+                    notifyFailureToClient(toClient);
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
@@ -134,7 +148,7 @@ public class DataRW {
         private final Timer tryDeliver;
         private final Timer sorting;
 
-        public Deliverer(LinkedBlockingQueue<MessageSet> toClient, LinkedBlockingQueue<Reply> toDeliverer) {
+        public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer) {
             metrics = new MetricRegistry();
             Set<MetricAttribute> disabledMetricAttributes
                     = new HashSet<>(Arrays.asList(new MetricAttribute[]{
@@ -211,11 +225,11 @@ public class DataRW {
     private class Sorter extends Thread {
 
         private final Logger LOGGER = VCDLogger.init(Sorter.class);
-        private final LinkedBlockingQueue<MessageSet> toClient;
+        private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
         private final Timer sorting;
 
-        public Sorter(LinkedBlockingQueue<MessageSet> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Timer sorting) {
+        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Timer sorting) {
             this.toClient = toClient;
             this.toSorter = toSorter;
             this.sorting = sorting;
@@ -229,7 +243,7 @@ public class DataRW {
                     final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
-                        for (Message message : boxToDeliver.sortMessages()) {
+                        for (Message message : boxToDeliver.getMessages()) {
                             builder.addMessages(message);
                         }
                     }
@@ -237,7 +251,7 @@ public class DataRW {
                     MessageSet messageSet = builder.build();
                     sortingContext.stop();
 
-                    toClient.put(messageSet);
+                    toClient.put(Optional.of(messageSet));
                 }
             } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
