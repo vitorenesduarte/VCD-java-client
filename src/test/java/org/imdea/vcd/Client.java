@@ -134,13 +134,13 @@ public class Client {
         }
     }
 
-    private static void start() throws IOException {
+    private static void start() throws IOException, InterruptedException {
         for (int i = 0; i < CONFIG.getClients(); i++) {
             sendOp(i);
         }
     }
 
-    private static void sendOp(int client) throws IOException {
+    private static void sendOp(int client) throws IOException, InterruptedException {
         MessageSet messageSet = Generator.messageSet(CONFIG);
         ByteString data = messageSet.getMessagesList().get(0).getData();
         if (MAP.containsKey(data)) {
