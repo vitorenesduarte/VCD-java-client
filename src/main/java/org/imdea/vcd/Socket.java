@@ -32,7 +32,7 @@ public class Socket {
 
     protected Socket(DataRW rw) {
         this.rw = rw;
-        this.rw.start();
+        if (rw!=null) this.rw.start();
     }
 
     public static Socket createStatic(Config config, int retries) throws IOException, InterruptedException {
