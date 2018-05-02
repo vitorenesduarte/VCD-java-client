@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  * @author Vitor Enes
  */
 public class DataRW {
-    
+
     private static final MetricRegistry METRICS = new MetricRegistry();
     private static final int METRICS_REPORT_PERIOD = 10; // in seconds.
 
@@ -52,16 +52,16 @@ public class DataRW {
                 .build();
         reporter.start(METRICS_REPORT_PERIOD, TimeUnit.SECONDS);
     }
-    
+
     private final DataInputStream in;
     private final DataOutputStream out;
     private final Integer batchWait;
-    
-    private final LinkedBlockingQueue<Message> toWriter;
+
+    private final LinkedBlockingQueue<MessageSet> toWriter;
     private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
     private final Writer writer;
     private final SocketReader socketReader;
-    
+
     public DataRW(DataInputStream in, DataOutputStream out, Integer batchWait) {
         this.in = in;
         this.out = out;
@@ -71,7 +71,7 @@ public class DataRW {
         this.writer = new Writer(this.out, this.toWriter, this.batchWait);
         this.socketReader = new SocketReader(this.in, this.toClient, this.batchWait);
     }
-    
+
     public void start() {
         // start writer, if batching enabled
         if (this.batchWait > 0) {
@@ -79,7 +79,7 @@ public class DataRW {
         }
         this.socketReader.start();
     }
-    
+
     public void close() throws IOException {
         if (this.batchWait > 0) {
             this.writer.interrupt();
@@ -89,7 +89,7 @@ public class DataRW {
         this.in.close();
         this.out.close();
     }
-    
+
     public MessageSet read() throws IOException, InterruptedException {
         Optional<MessageSet> result = this.toClient.take();
         if (!result.isPresent()) {
@@ -97,60 +97,62 @@ public class DataRW {
         }
         return result.get();
     }
-    
+
     public void write(MessageSet messageSet) throws IOException, InterruptedException {
         if (this.batchWait > 0) {
-            toWriter.put(messageSet.getMessages(0));
+            toWriter.put(messageSet);
         } else {
             doWrite(messageSet, this.out);
         }
     }
-    
+
     private void doWrite(MessageSet messageSet, DataOutputStream o) throws IOException {
         byte[] data = messageSet.toByteArray();
         o.writeInt(data.length);
         o.write(data, 0, data.length);
         o.flush();
     }
-    
+
     private void notifyFailureToClient(LinkedBlockingQueue<Optional<MessageSet>> toClient) throws InterruptedException {
         toClient.put(Optional.empty());
     }
-    
+
     private class Writer extends Thread {
-        
+
         private final ByteString BLACK = ByteString.copyFrom(new byte[]{1});
         private final Logger LOGGER = VCDLogger.init(Writer.class);
-        
-        private final LinkedBlockingQueue<Message> toWriter;
+
+        private final LinkedBlockingQueue<MessageSet> toWriter;
         private final DataOutputStream out;
         private final Integer batchWait;
         private final Histogram batchSize;
-        
-        public Writer(DataOutputStream out, LinkedBlockingQueue<Message> toWriter, Integer batchWait) {
+
+        public Writer(DataOutputStream out, LinkedBlockingQueue<MessageSet> toWriter, Integer batchWait) {
             this.out = out;
             this.toWriter = toWriter;
             this.batchWait = batchWait;
             this.batchSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "batchSize"));
         }
-        
+
         @Override
         public void run() {
             try {
                 try {
                     while (true) {
-                        Message first = toWriter.take();
-                        List<Message> rest = new ArrayList<>();
+                        MessageSet first = toWriter.take();
+                        List<MessageSet> rest = new ArrayList<>();
 
                         // wait, and drain the queue
                         Thread.sleep(this.batchWait);
                         toWriter.drainTo(rest);
 
                         // create a message set with all messages in the batch
-                        MessageSet allMessages = MessageSet.newBuilder()
-                                .addMessages(first)
-                                .addAllMessages(rest)
-                                .build();
+                        rest.add(first);
+                        MessageSet.Builder builder = MessageSet.newBuilder();
+                        for (MessageSet ms : rest) {
+                            builder.addAllMessages(ms.getMessagesList());
+                        }
+                        MessageSet allMessages = builder.build();
 
                         // batch size metrics
                         batchSize.update(allMessages.getMessagesCount());
@@ -183,15 +185,15 @@ public class DataRW {
     // deliverer -> sorter
     // sorter -> client
     private class SocketReader extends Thread {
-        
+
         private final Logger LOGGER = VCDLogger.init(SocketReader.class);
-        
+
         private final DataInputStream in;
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final Integer batchWait;
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final Deliverer deliverer;
-        
+
         public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Integer batchWait) {
             this.in = in;
             this.toClient = toClient;
@@ -199,17 +201,17 @@ public class DataRW {
             this.toDeliverer = new LinkedBlockingQueue<>();
             this.deliverer = new Deliverer(this.toClient, this.toDeliverer, batchWait);
         }
-        
+
         public void close() {
             this.deliverer.close();
             this.deliverer.interrupt();
         }
-        
+
         @Override
         public void run() {
             // start deliverer
             this.deliverer.start();
-            
+
             try {
                 try {
                     while (true) {
@@ -226,10 +228,10 @@ public class DataRW {
                                 if (durable.getMessagesCount() != 1 || durable.getStatus() != MessageSet.Status.DURABLE) {
                                     LOGGER.log(Level.INFO, "Invalid durable notification");
                                 }
-                                
+
                                 if (this.batchWait > 0) {
                                     MessageSet batch = MessageSet.parseFrom(durable.getMessages(0).getData());
-                                    
+
                                     for (Message m : batch.getMessagesList()) {
                                         MessageSet singleDurable = MessageSet.newBuilder().
                                                 addMessages(m)
@@ -255,11 +257,11 @@ public class DataRW {
             }
         }
     }
-    
+
     private class Deliverer extends Thread {
-        
+
         private final Logger LOGGER = VCDLogger.init(Deliverer.class);
-        
+
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
         private final Sorter sorter;
@@ -271,34 +273,34 @@ public class DataRW {
         private final Timer tryDeliver;
         private final Histogram queueSize;
         private final Histogram queueElements;
-        
+
         public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer, Integer batchWait) {
-            
+
             createBox = METRICS.timer(MetricRegistry.name(DataRW.class, "createBox"));
             toAdd = METRICS.timer(MetricRegistry.name(DataRW.class, "toAdd"));
             tryDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
-            
+
             queueSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
             queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
-            
+
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
             this.sorter = new Sorter(toClient, this.toSorter, batchWait);
         }
-        
+
         public void close() {
             this.sorter.interrupt();
         }
-        
+
         @Override
         public void run() {
             // start sorter
             this.sorter.start();
-            
+
             try {
                 while (true) {
                     Reply reply = toDeliverer.take();
-                    
+
                     switch (reply.getReplyCase()) {
                         case INIT:
                             this.queue = new DependencyQueue(Clock.eclock(reply.getInit().getCommittedMap()));
@@ -307,18 +309,18 @@ public class DataRW {
                             final Timer.Context createBoxContext = createBox.time();
                             CommitDepBox box = new CommitDepBox(reply.getCommit());
                             createBoxContext.stop();
-                            
+
                             final Timer.Context toAddContext = toAdd.time();
                             queue.add(box);
                             toAddContext.stop();
-                            
+
                             final Timer.Context tryDeliverContext = tryDeliver.time();
                             List<CommitDepBox> toDeliver = queue.tryDeliver();
                             tryDeliverContext.stop();
-                            
+
                             queueSize.update(queue.size());
                             queueElements.update(queue.elements());
-                            
+
                             if (!toDeliver.isEmpty()) {
                                 toSorter.put(toDeliver);
                             }
@@ -332,33 +334,33 @@ public class DataRW {
             }
         }
     }
-    
+
     private class Sorter extends Thread {
-        
+
         private final Logger LOGGER = VCDLogger.init(Sorter.class);
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
         private final Integer batchWait;
-        
+
         private final Timer sorting;
         private final Histogram toSort;
-        
+
         public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Integer batchWait) {
             this.toClient = toClient;
             this.toSorter = toSorter;
             this.batchWait = batchWait;
-            
+
             this.sorting = METRICS.timer(MetricRegistry.name(DataRW.class, "sorting"));
             this.toSort = METRICS.histogram(MetricRegistry.name(DataRW.class, "toSort"));
         }
-        
+
         @Override
         public void run() {
             try {
                 while (true) {
                     List<CommitDepBox> toDeliver = toSorter.take();
                     toSort.update(toDeliver.size());
-                    
+
                     final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
@@ -374,7 +376,7 @@ public class DataRW {
                     builder.setStatus(MessageSet.Status.DELIVERED);
                     MessageSet messageSet = builder.build();
                     sortingContext.stop();
-                    
+
                     toClient.put(Optional.of(messageSet));
                 }
             } catch (InterruptedException | IOException e) {
