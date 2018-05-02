@@ -250,8 +250,6 @@ public class DataRW {
         private final Timer toAdd;
         private final Timer createBox;
         private final Timer tryDeliver;
-        private final Timer sorting;
-        private final Histogram toSort;
         private final Histogram queueSize;
         private final Histogram queueElements;
 
@@ -260,15 +258,13 @@ public class DataRW {
             createBox = METRICS.timer(MetricRegistry.name(DataRW.class, "createBox"));
             toAdd = METRICS.timer(MetricRegistry.name(DataRW.class, "toAdd"));
             tryDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
-            sorting = METRICS.timer(MetricRegistry.name(DataRW.class, "sorting"));
 
-            toSort = METRICS.histogram(MetricRegistry.name(DataRW.class, "toSort"));
             queueSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
             queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
 
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
-            this.sorter = new Sorter(toClient, this.toSorter, this.sorting, batchWait);
+            this.sorter = new Sorter(toClient, this.toSorter, batchWait);
         }
 
         public void close() {
@@ -305,7 +301,6 @@ public class DataRW {
                             queueElements.update(queue.elements());
 
                             if (!toDeliver.isEmpty()) {
-                                toSort.update(toDeliver.size());
                                 toSorter.put(toDeliver);
                             }
                             break;
@@ -324,14 +319,18 @@ public class DataRW {
         private final Logger LOGGER = VCDLogger.init(Sorter.class);
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
-        private final Timer sorting;
         private final Integer batchWait;
 
-        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Timer sorting, Integer batchWait) {
+        private final Timer sorting;
+        private final Histogram toSort;
+
+        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Integer batchWait) {
             this.toClient = toClient;
             this.toSorter = toSorter;
-            this.sorting = sorting;
             this.batchWait = batchWait;
+
+            this.sorting = METRICS.timer(MetricRegistry.name(DataRW.class, "sorting"));
+            this.toSort = METRICS.histogram(MetricRegistry.name(DataRW.class, "toSort"));
         }
 
         @Override
@@ -339,6 +338,8 @@ public class DataRW {
             try {
                 while (true) {
                     List<CommitDepBox> toDeliver = toSorter.take();
+                    toSort.update(toDeliver.size());
+
                     final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommitDepBox boxToDeliver : toDeliver) {
