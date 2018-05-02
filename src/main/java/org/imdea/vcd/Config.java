@@ -12,6 +12,9 @@ import com.beust.jcommander.ParameterException;
 @Parameters(separators = "=") // http://jcommander.org/#_parameter_separators
 public class Config {
 
+    @Parameter(names = "-batch_wait")
+    private Integer batchWait = 0; // if 0, batching is disabled
+
     @Parameter(names = "-ops")
     private Integer ops = 1000;
 
@@ -46,6 +49,14 @@ public class Config {
     private String zk = "127.0.0.1:2181";
 
     private Config() {
+    }
+
+    public Integer getBatchWait() {
+        return batchWait;
+    }
+
+    public void setBatchWait(Integer batchWait) {
+        this.batchWait = batchWait;
     }
 
     public Integer getOps() {

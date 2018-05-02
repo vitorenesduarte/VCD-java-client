@@ -32,7 +32,9 @@ public class Socket {
 
     protected Socket(DataRW rw) {
         this.rw = rw;
-        if (rw!=null) this.rw.start();
+        if (rw != null) {
+            this.rw.start();
+        }
     }
 
     public static Socket createStatic(Config config, int retries) throws IOException, InterruptedException {
@@ -54,7 +56,7 @@ public class Socket {
 
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                DataRW rw = new DataRW(in, out, config.getNodeNumber());
+                DataRW rw = new DataRW(in, out, config.getBatchWait());
 
                 return new Socket(rw);
             } catch (java.net.ConnectException e) {
@@ -77,7 +79,7 @@ public class Socket {
 
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-        DataRW rw = new DataRW(in, out, config.getNodeNumber());
+        DataRW rw = new DataRW(in, out, config.getBatchWait());
 
         return new Socket(rw);
     }
@@ -98,7 +100,7 @@ public class Socket {
         throw new java.net.ConnectException();
     }
 
-    public void send(MessageSet messageSet) throws IOException {
+    public void send(MessageSet messageSet) throws IOException, InterruptedException {
         this.rw.write(messageSet);
     }
 
