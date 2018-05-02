@@ -19,4 +19,6 @@ public interface DepBox<T> {
     boolean canDeliver(Clock<ExceptionSet> delivered);
 
     List<Message> sortMessages();
+
+    int size();
 }

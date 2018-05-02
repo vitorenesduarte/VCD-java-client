@@ -52,6 +52,11 @@ public class DeliveredDepBox implements DepBox<DeliveredDepBox> {
         return result;
     }
 
+    @Override
+    public int size() {
+        return this.dots.size();
+    }
+
     public Dots getDots() {
         return this.dots;
     }

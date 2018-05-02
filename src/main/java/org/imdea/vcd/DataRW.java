@@ -149,6 +149,7 @@ public class DataRW {
         private final Timer sorting;
         private final Histogram toSort;
         private final Histogram queueSize;
+        private final Histogram queueElements;
 
         public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer) {
             metrics = new MetricRegistry();
@@ -172,8 +173,9 @@ public class DataRW {
             tryDeliver = metrics.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
             sorting = metrics.timer(MetricRegistry.name(DataRW.class, "sorting"));
 
-            toSort =  metrics.histogram(MetricRegistry.name(DataRW.class, "toSort"));
-            queueSize =  metrics.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
+            toSort = metrics.histogram(MetricRegistry.name(DataRW.class, "toSort"));
+            queueSize = metrics.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
+            queueElements = metrics.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
 
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
@@ -211,6 +213,7 @@ public class DataRW {
                             tryDeliverContext.stop();
 
                             queueSize.update(queue.size());
+                            queueElements.update(queue.elements());
 
                             if (!toDeliver.isEmpty()) {
                                 toSort.update(toDeliver.size());

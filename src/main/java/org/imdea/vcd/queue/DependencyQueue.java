@@ -18,17 +18,20 @@ public class DependencyQueue<E extends DepBox> {
     Node<E> first;
     Node<E> last;
     int size;
+    int elements;
 
     private Clock<ExceptionSet> delivered;
 
     public DependencyQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
         this.size = 0;
+        this.elements = 0;
     }
 
     public DependencyQueue(Clock<ExceptionSet> delivered) {
         this.delivered = delivered;
         this.size = 0;
+        this.elements = 0;
     }
 
     public boolean isEmpty() {
@@ -68,6 +71,8 @@ public class DependencyQueue<E extends DepBox> {
             // found cycle: merge all
             merge(e, x, y);
         }
+
+        elements++;
     }
 
     public List<E> tryDeliver() {
@@ -99,6 +104,8 @@ public class DependencyQueue<E extends DepBox> {
                 }
 
                 size--;
+                elements -= candidate.item.size();
+
             }
         }
 
@@ -252,8 +259,12 @@ public class DependencyQueue<E extends DepBox> {
         return sb.toString();
     }
 
-    public Integer size() {
-        return size;
+    public int size() {
+        return this.size;
+    }
+
+    public int elements() {
+        return this.elements;
     }
 
     private static class Node<E> {

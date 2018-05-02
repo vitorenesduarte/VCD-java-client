@@ -67,7 +67,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
     public List<Message> getMessages() {
         List<Message> result = new ArrayList<>();
         for (ArrayList<PerMessage> messages : this.messageMap.messages.values()) {
-            for(PerMessage message : messages) {
+            for (PerMessage message : messages) {
                 result.add(message.getMessage());
             }
         }
@@ -82,6 +82,11 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
             result.addAll(sortPerColor(messages));
         }
         return result;
+    }
+
+    @Override
+    public int size() {
+        return this.dots.size();
     }
 
     public Dots getDots() {

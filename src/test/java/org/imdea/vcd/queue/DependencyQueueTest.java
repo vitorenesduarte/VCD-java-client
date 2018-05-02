@@ -274,7 +274,7 @@ public class DependencyQueueTest {
         }
 
         // check queue is empty and all dots were delivered
-        assertTrue(queue.isEmpty() && queue.size()==0);
+        assertTrue(queue.isEmpty() && queue.size() == 0 && queue.elements() == 0);
         checkAllDotsDelivered(boxes, results);
 
         // return messages sorted

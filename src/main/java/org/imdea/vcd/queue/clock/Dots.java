@@ -31,6 +31,10 @@ public class Dots implements Iterable<Dot> {
         this.set.addAll(dots.set);
     }
 
+    public int size() {
+        return this.set.size();
+    }
+
     @Override
     public Iterator<Dot> iterator() {
         return this.set.iterator();
