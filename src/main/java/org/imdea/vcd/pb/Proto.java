@@ -712,9 +712,17 @@ public final class Proto {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>bytes hash = 1;</code>
+     * <code>repeated bytes hashes = 1;</code>
      */
-    com.google.protobuf.ByteString getHash();
+    java.util.List<com.google.protobuf.ByteString> getHashesList();
+    /**
+     * <code>repeated bytes hashes = 1;</code>
+     */
+    int getHashesCount();
+    /**
+     * <code>repeated bytes hashes = 1;</code>
+     */
+    com.google.protobuf.ByteString getHashes(int index);
 
     /**
      * <code>bytes data = 2;</code>
@@ -734,7 +742,7 @@ public final class Proto {
       super(builder);
     }
     private Message() {
-      hash_ = com.google.protobuf.ByteString.EMPTY;
+      hashes_ = java.util.Collections.emptyList();
       data_ = com.google.protobuf.ByteString.EMPTY;
     }
 
@@ -767,8 +775,11 @@ public final class Proto {
               break;
             }
             case 10: {
-
-              hash_ = input.readBytes();
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                hashes_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              hashes_.add(input.readBytes());
               break;
             }
             case 18: {
@@ -784,6 +795,9 @@ public final class Proto {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          hashes_ = java.util.Collections.unmodifiableList(hashes_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -800,13 +814,27 @@ public final class Proto {
               org.imdea.vcd.pb.Proto.Message.class, org.imdea.vcd.pb.Proto.Message.Builder.class);
     }
 
-    public static final int HASH_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString hash_;
+    private int bitField0_;
+    public static final int HASHES_FIELD_NUMBER = 1;
+    private java.util.List<com.google.protobuf.ByteString> hashes_;
     /**
-     * <code>bytes hash = 1;</code>
+     * <code>repeated bytes hashes = 1;</code>
      */
-    public com.google.protobuf.ByteString getHash() {
-      return hash_;
+    public java.util.List<com.google.protobuf.ByteString>
+        getHashesList() {
+      return hashes_;
+    }
+    /**
+     * <code>repeated bytes hashes = 1;</code>
+     */
+    public int getHashesCount() {
+      return hashes_.size();
+    }
+    /**
+     * <code>repeated bytes hashes = 1;</code>
+     */
+    public com.google.protobuf.ByteString getHashes(int index) {
+      return hashes_.get(index);
     }
 
     public static final int DATA_FIELD_NUMBER = 2;
@@ -830,8 +858,8 @@ public final class Proto {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!hash_.isEmpty()) {
-        output.writeBytes(1, hash_);
+      for (int i = 0; i < hashes_.size(); i++) {
+        output.writeBytes(1, hashes_.get(i));
       }
       if (!data_.isEmpty()) {
         output.writeBytes(2, data_);
@@ -844,9 +872,14 @@ public final class Proto {
       if (size != -1) return size;
 
       size = 0;
-      if (!hash_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, hash_);
+      {
+        int dataSize = 0;
+        for (int i = 0; i < hashes_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(hashes_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getHashesList().size();
       }
       if (!data_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
@@ -868,8 +901,8 @@ public final class Proto {
       org.imdea.vcd.pb.Proto.Message other = (org.imdea.vcd.pb.Proto.Message) obj;
 
       boolean result = true;
-      result = result && getHash()
-          .equals(other.getHash());
+      result = result && getHashesList()
+          .equals(other.getHashesList());
       result = result && getData()
           .equals(other.getData());
       result = result && unknownFields.equals(other.unknownFields);
@@ -883,8 +916,10 @@ public final class Proto {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + HASH_FIELD_NUMBER;
-      hash = (53 * hash) + getHash().hashCode();
+      if (getHashesCount() > 0) {
+        hash = (37 * hash) + HASHES_FIELD_NUMBER;
+        hash = (53 * hash) + getHashesList().hashCode();
+      }
       hash = (37 * hash) + DATA_FIELD_NUMBER;
       hash = (53 * hash) + getData().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
@@ -1016,8 +1051,8 @@ public final class Proto {
       }
       public Builder clear() {
         super.clear();
-        hash_ = com.google.protobuf.ByteString.EMPTY;
-
+        hashes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         data_ = com.google.protobuf.ByteString.EMPTY;
 
         return this;
@@ -1042,8 +1077,15 @@ public final class Proto {
 
       public org.imdea.vcd.pb.Proto.Message buildPartial() {
         org.imdea.vcd.pb.Proto.Message result = new org.imdea.vcd.pb.Proto.Message(this);
-        result.hash_ = hash_;
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          hashes_ = java.util.Collections.unmodifiableList(hashes_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.hashes_ = hashes_;
         result.data_ = data_;
+        result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
@@ -1085,8 +1127,15 @@ public final class Proto {
 
       public Builder mergeFrom(org.imdea.vcd.pb.Proto.Message other) {
         if (other == org.imdea.vcd.pb.Proto.Message.getDefaultInstance()) return this;
-        if (other.getHash() != com.google.protobuf.ByteString.EMPTY) {
-          setHash(other.getHash());
+        if (!other.hashes_.isEmpty()) {
+          if (hashes_.isEmpty()) {
+            hashes_ = other.hashes_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureHashesIsMutable();
+            hashes_.addAll(other.hashes_);
+          }
+          onChanged();
         }
         if (other.getData() != com.google.protobuf.ByteString.EMPTY) {
           setData(other.getData());
@@ -1117,32 +1166,76 @@ public final class Proto {
         }
         return this;
       }
+      private int bitField0_;
 
-      private com.google.protobuf.ByteString hash_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <code>bytes hash = 1;</code>
-       */
-      public com.google.protobuf.ByteString getHash() {
-        return hash_;
+      private java.util.List<com.google.protobuf.ByteString> hashes_ = java.util.Collections.emptyList();
+      private void ensureHashesIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          hashes_ = new java.util.ArrayList<com.google.protobuf.ByteString>(hashes_);
+          bitField0_ |= 0x00000001;
+         }
       }
       /**
-       * <code>bytes hash = 1;</code>
+       * <code>repeated bytes hashes = 1;</code>
        */
-      public Builder setHash(com.google.protobuf.ByteString value) {
+      public java.util.List<com.google.protobuf.ByteString>
+          getHashesList() {
+        return java.util.Collections.unmodifiableList(hashes_);
+      }
+      /**
+       * <code>repeated bytes hashes = 1;</code>
+       */
+      public int getHashesCount() {
+        return hashes_.size();
+      }
+      /**
+       * <code>repeated bytes hashes = 1;</code>
+       */
+      public com.google.protobuf.ByteString getHashes(int index) {
+        return hashes_.get(index);
+      }
+      /**
+       * <code>repeated bytes hashes = 1;</code>
+       */
+      public Builder setHashes(
+          int index, com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  
-        hash_ = value;
+  ensureHashesIsMutable();
+        hashes_.set(index, value);
         onChanged();
         return this;
       }
       /**
-       * <code>bytes hash = 1;</code>
+       * <code>repeated bytes hashes = 1;</code>
        */
-      public Builder clearHash() {
-        
-        hash_ = getDefaultInstance().getHash();
+      public Builder addHashes(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureHashesIsMutable();
+        hashes_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes hashes = 1;</code>
+       */
+      public Builder addAllHashes(
+          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+        ensureHashesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, hashes_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated bytes hashes = 1;</code>
+       */
+      public Builder clearHashes() {
+        hashes_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
         onChanged();
         return this;
       }
@@ -6502,23 +6595,23 @@ public final class Proto {
       "\n\014client.proto\"p\n\004Init\022\'\n\tcommitted\030\001 \003(" +
       "\0132\024.Init.CommittedEntry\032?\n\016CommittedEntr" +
       "y\022\013\n\003key\030\001 \001(\005\022\034\n\005value\030\002 \001(\0132\r.Exceptio" +
-      "nSet:\0028\001\"%\n\007Message\022\014\n\004hash\030\001 \001(\014\022\014\n\004dat" +
-      "a\030\002 \001(\014\"}\n\nMessageSet\022\032\n\010messages\030\001 \003(\0132" +
-      "\010.Message\022\"\n\006status\030\002 \001(\0162\022.MessageSet.S" +
-      "tatus\"/\n\006Status\022\t\n\005START\020\000\022\013\n\007DURABLE\020\001\022" +
-      "\r\n\tDELIVERED\020\002\"0\n\010NodeSpec\022\n\n\002id\030\001 \001(\005\022\n" +
-      "\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n\002id\030\001 " +
-      "\001(\005\022\013\n\003seq\030\002 \001(\003\"\'\n\014ExceptionSet\022\013\n\003seq\030",
-      "\001 \001(\003\022\n\n\002ex\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003dot\030\001 \001(" +
-      "\0132\004.Dot\022\031\n\007message\030\002 \001(\0132\010.Message\022\035\n\003de" +
-      "p\030\003 \003(\0132\020.Commit.DepEntry\022\037\n\004conf\030\004 \003(\0132" +
-      "\021.Commit.ConfEntry\0329\n\010DepEntry\022\013\n\003key\030\001 " +
-      "\001(\005\022\034\n\005value\030\002 \001(\0132\r.ExceptionSet:\0028\001\032+\n" +
-      "\tConfEntry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001(\003:\002" +
-      "8\001\"^\n\005Reply\022\025\n\004init\030\001 \001(\0132\005.InitH\000\022\032\n\003se" +
-      "t\030\002 \001(\0132\013.MessageSetH\000\022\031\n\006commit\030\003 \001(\0132\007" +
-      ".CommitH\000B\007\n\005replyB\031\n\020org.imdea.vcd.pbB\005" +
-      "Protob\006proto3"
+      "nSet:\0028\001\"\'\n\007Message\022\016\n\006hashes\030\001 \003(\014\022\014\n\004d" +
+      "ata\030\002 \001(\014\"}\n\nMessageSet\022\032\n\010messages\030\001 \003(" +
+      "\0132\010.Message\022\"\n\006status\030\002 \001(\0162\022.MessageSet" +
+      ".Status\"/\n\006Status\022\t\n\005START\020\000\022\013\n\007DURABLE\020" +
+      "\001\022\r\n\tDELIVERED\020\002\"0\n\010NodeSpec\022\n\n\002id\030\001 \001(\005" +
+      "\022\n\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n\002id\030" +
+      "\001 \001(\005\022\013\n\003seq\030\002 \001(\003\"\'\n\014ExceptionSet\022\013\n\003se",
+      "q\030\001 \001(\003\022\n\n\002ex\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003dot\030\001 " +
+      "\001(\0132\004.Dot\022\031\n\007message\030\002 \001(\0132\010.Message\022\035\n\003" +
+      "dep\030\003 \003(\0132\020.Commit.DepEntry\022\037\n\004conf\030\004 \003(" +
+      "\0132\021.Commit.ConfEntry\0329\n\010DepEntry\022\013\n\003key\030" +
+      "\001 \001(\005\022\034\n\005value\030\002 \001(\0132\r.ExceptionSet:\0028\001\032" +
+      "+\n\tConfEntry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001(\003" +
+      ":\0028\001\"^\n\005Reply\022\025\n\004init\030\001 \001(\0132\005.InitH\000\022\032\n\003" +
+      "set\030\002 \001(\0132\013.MessageSetH\000\022\031\n\006commit\030\003 \001(\013" +
+      "2\007.CommitH\000B\007\n\005replyB\031\n\020org.imdea.vcd.pb" +
+      "B\005Protob\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -6549,7 +6642,7 @@ public final class Proto {
     internal_static_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Message_descriptor,
-        new java.lang.String[] { "Hash", "Data", });
+        new java.lang.String[] { "Hashes", "Data", });
     internal_static_MessageSet_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_MessageSet_fieldAccessorTable = new

@@ -134,7 +134,10 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
         public MessageMap(Dot dot, Message message, Clock<MaxInt> conf) {
             this.messages = new HashMap<>();
             PerMessage p = new PerMessage(dot, message, conf);
-            this.messages.put(message.getHash(), new ArrayList<>(Arrays.asList(p)));
+            if (message.getHashesCount() > 1) {
+                throw new RuntimeException("Number of hashes is bigger than 1");
+            }
+            this.messages.put(message.getHashes(0), new ArrayList<>(Arrays.asList(p)));
         }
 
         public MessageMap(MessageMap messageMap) {

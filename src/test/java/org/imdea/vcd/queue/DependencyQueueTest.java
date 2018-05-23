@@ -323,7 +323,7 @@ public class DependencyQueueTest {
         HashSet<ByteString> colors = new HashSet<>();
 
         for (Message m : a) {
-            colors.add(m.getHash());
+            colors.add(m.getHashes(0));
         }
 
         for (ByteString color : colors) {
@@ -336,7 +336,7 @@ public class DependencyQueueTest {
     private List<Message> messagesPerColor(ByteString color, List<Message> l) {
         List<Message> perColor = new ArrayList<>();
         for (Message m : l) {
-            if (m.getHash().equals(color)) {
+            if (m.getHashes(0).equals(color)) {
                 perColor.add(m);
             }
         }

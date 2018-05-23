@@ -22,7 +22,7 @@ public class Generator {
         Integer conflicts = RANDOM().nextInt(100);
         ByteString data = randomByteString(RANDOM().nextInt(100));
         return Message.newBuilder()
-                .setHash(hash(conflicts))
+                .addHashes(hash(conflicts))
                 .setData(data)
                 .build();
     }
@@ -39,7 +39,7 @@ public class Generator {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
-                .setHash(hash(conflicts))
+                .addHashes(hash(conflicts))
                 .setData(data)
                 .build();
         builder.addMessages(m);
