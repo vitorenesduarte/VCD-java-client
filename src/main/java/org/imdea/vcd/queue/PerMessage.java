@@ -24,7 +24,7 @@ public class PerMessage {
     public PerMessage(PerMessage perMessage) {
         this.dot = new Dot(perMessage.dot);
         this.message = Message.newBuilder()
-                .setHash(perMessage.message.getHash())
+                .addAllHashes(perMessage.message.getHashesList())
                 .setData(perMessage.message.getData())
                 .build();
         this.conf = new Clock<>(perMessage.conf);

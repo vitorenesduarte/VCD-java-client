@@ -119,7 +119,6 @@ public class DataRW {
 
     private class Writer extends Thread {
 
-        private final ByteString BLACK = ByteString.copyFrom(new byte[]{1});
         private final Logger LOGGER = VCDLogger.init(Writer.class);
 
         private final LinkedBlockingQueue<MessageSet> toWriter;
@@ -146,11 +145,17 @@ public class DataRW {
                         Thread.sleep(this.batchWait);
                         toWriter.drainTo(rest);
 
-                        // create a message set with all messages in the batch
                         rest.add(first);
+
+                        // create a message set with all messages in the batch
+                        // also compute the set of all hashes
                         MessageSet.Builder builder = MessageSet.newBuilder();
+                        HashSet<ByteString> hashes = new HashSet<>();
                         for (MessageSet ms : rest) {
-                            builder.addAllMessages(ms.getMessagesList());
+                            for (Message m : ms.getMessagesList()) {
+                                builder.addMessages(m);
+                                hashes.addAll(m.getHashesList());
+                            }
                         }
                         MessageSet allMessages = builder.build();
 
@@ -160,7 +165,7 @@ public class DataRW {
                         // create a message that has as data
                         // a protobuf with the previous message set
                         Message theMessage = Message.newBuilder()
-                                .setHash(BLACK)
+                                .addAllHashes(hashes)
                                 .setData(allMessages.toByteString())
                                 .build();
 
