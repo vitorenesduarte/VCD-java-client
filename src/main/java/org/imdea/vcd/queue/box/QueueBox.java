@@ -24,4 +24,6 @@ public interface QueueBox<T> {
     List<Message> sortMessages();
 
     int size();
+
+    Object clone();
 }

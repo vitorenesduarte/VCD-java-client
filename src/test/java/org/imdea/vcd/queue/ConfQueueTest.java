@@ -22,9 +22,9 @@ import static org.junit.Assert.assertTrue;
 
 /**
  *
- * @author user
+ * @author Vitor Enes
  */
-public class DependencyQueueTest {
+public class ConfQueueTest {
 
     private static final int ITERATIONS = 100000;
 
@@ -86,18 +86,18 @@ public class DependencyQueueTest {
         mapI.put(0, new ExceptionSet(6L));
         mapI.put(1, new ExceptionSet(3L));
 
-        List<CommittedQueueBox> boxes = new ArrayList<>();
-        boxes.add(box(dotA, mapA));
-        boxes.add(box(dotB, mapB));
-        boxes.add(box(dotC, mapC));
-        boxes.add(box(dotD, mapD));
-        boxes.add(box(dotE, mapE));
-        boxes.add(box(dotF, mapF));
-        boxes.add(box(dotG, mapG));
-        boxes.add(box(dotH, mapH));
-        boxes.add(box(dotI, mapI));
+        List<QueueAddArgs> argsList = new ArrayList<>();
+        argsList.add(args(dotA, mapA));
+        argsList.add(args(dotB, mapB));
+        argsList.add(args(dotC, mapC));
+        argsList.add(args(dotD, mapD));
+        argsList.add(args(dotE, mapE));
+        argsList.add(args(dotF, mapF));
+        argsList.add(args(dotG, mapG));
+        argsList.add(args(dotH, mapH));
+        argsList.add(args(dotI, mapI));
 
-        checkTerminationRandomShuffles(nodeNumber, boxes);
+        checkTerminationRandomShuffles(nodeNumber, argsList);
     }
 
     @Test
@@ -146,16 +146,16 @@ public class DependencyQueueTest {
         mapG.put(0, new ExceptionSet(3L, 2L));
         mapG.put(1, new ExceptionSet(3L));
 
-        List<CommittedQueueBox> boxes = new ArrayList<>();
-        boxes.add(box(dotA, mapA));
-        boxes.add(box(dotB, mapB));
-        boxes.add(box(dotC, mapC));
-        boxes.add(box(dotD, mapD));
-        boxes.add(box(dotE, mapE));
-        boxes.add(box(dotF, mapF));
-        boxes.add(box(dotG, mapG));
+        List<QueueAddArgs> argsList = new ArrayList<>();
+        argsList.add(args(dotA, mapA));
+        argsList.add(args(dotB, mapB));
+        argsList.add(args(dotC, mapC));
+        argsList.add(args(dotD, mapD));
+        argsList.add(args(dotE, mapE));
+        argsList.add(args(dotF, mapF));
+        argsList.add(args(dotG, mapG));
 
-        checkTerminationRandomShuffles(nodeNumber, boxes);
+        checkTerminationRandomShuffles(nodeNumber, argsList);
     }
 
     @Test
@@ -197,14 +197,14 @@ public class DependencyQueueTest {
         mapE.put(1, new ExceptionSet(1L));
         mapE.put(2, new ExceptionSet(2L, 1L));
 
-        List<CommittedQueueBox> boxes = new ArrayList<>();
-        boxes.add(box(dotA, mapA));
-        boxes.add(box(dotB, mapB));
-        boxes.add(box(dotC, mapC));
-        boxes.add(box(dotD, mapD));
-        boxes.add(box(dotE, mapE));
+        List<QueueAddArgs> argsList = new ArrayList<>();
+        argsList.add(args(dotA, mapA));
+        argsList.add(args(dotB, mapB));
+        argsList.add(args(dotC, mapC));
+        argsList.add(args(dotD, mapD));
+        argsList.add(args(dotE, mapE));
 
-        checkTerminationRandomShuffles(nodeNumber, boxes);
+        checkTerminationRandomShuffles(nodeNumber, argsList);
     }
 
     @Test
@@ -241,42 +241,42 @@ public class DependencyQueueTest {
         HashMap<Integer, ExceptionSet> mapF = new HashMap<>();
         mapF.put(0, new ExceptionSet(6L, 2L, 4L));
 
-        List<CommittedQueueBox> boxes = new ArrayList<>();
-        boxes.add(box(dotA, mapA));
-        boxes.add(box(dotB, mapB));
-        boxes.add(box(dotC, mapC));
-        boxes.add(box(dotD, mapD));
-        boxes.add(box(dotE, mapE));
-        boxes.add(box(dotF, mapF));
+        List<QueueAddArgs> argsList = new ArrayList<>();
+        argsList.add(args(dotA, mapA));
+        argsList.add(args(dotB, mapB));
+        argsList.add(args(dotC, mapC));
+        argsList.add(args(dotD, mapD));
+        argsList.add(args(dotE, mapE));
+        argsList.add(args(dotF, mapF));
 
-        checkTerminationRandomShuffles(nodeNumber, boxes);
+        checkTerminationRandomShuffles(nodeNumber, argsList);
     }
 
-    private void checkTerminationRandomShuffles(Integer nodeNumber, List<CommittedQueueBox> boxes) {
+    private void checkTerminationRandomShuffles(Integer nodeNumber, List<QueueAddArgs> argsList) {
 
-        List<Message> totalOrder = checkTermination(nodeNumber, boxes);
+        List<Message> totalOrder = checkTermination(nodeNumber, argsList);
 
         for (int it = 0; it < ITERATIONS; it++) {
             // shuffle list
-            Collections.shuffle(boxes);
+            Collections.shuffle(argsList);
 
-            List<Message> sorted = checkTermination(nodeNumber, boxes);
+            List<Message> sorted = checkTermination(nodeNumber, argsList);
             checkTotalOrderPerColor(totalOrder, sorted);
         }
     }
 
-    private List<Message> checkTermination(Integer nodeNumber, List<CommittedQueueBox> boxes) {
-        DepQueue<CommittedQueueBox> queue = new DepQueue<>(nodeNumber);
+    private List<Message> checkTermination(Integer nodeNumber, List<QueueAddArgs> argsList) {
+        ConfQueue<CommittedQueueBox> queue = new ConfQueue<>(nodeNumber);
         List<CommittedQueueBox> results = new ArrayList<>();
-        for (CommittedQueueBox box : boxes) {
-            queue.add((CommittedQueueBox) box.clone(), null);
+        for (QueueAddArgs args : argsList) {
+            queue.add((QueueAddArgs) args.clone());
             List<CommittedQueueBox> result = queue.tryDeliver();
             results.addAll(result);
         }
 
         // check queue is empty and all dots were delivered
         assertTrue(queue.isEmpty() && queue.size() == 0 && queue.elements() == 0);
-        checkAllDotsDelivered(boxes, results);
+        checkAllDotsDelivered(argsList, results);
 
         // return messages sorted
         List<Message> sorted = new ArrayList<>();
@@ -286,7 +286,12 @@ public class DependencyQueueTest {
         return sorted;
     }
 
-    private void checkAllDotsDelivered(List<CommittedQueueBox> boxes, List<CommittedQueueBox> results) {
+    private void checkAllDotsDelivered(List<QueueAddArgs> argsList, List<CommittedQueueBox> results) {
+        List<CommittedQueueBox> boxes = new ArrayList<>();
+        for (QueueAddArgs args : argsList) {
+            boxes.add((CommittedQueueBox) args.getBox());
+        }
+
         List<Dot> boxesDots = boxListToDots(boxes);
         List<Dot> resultsDots = boxListToDots(results);
 
@@ -307,17 +312,21 @@ public class DependencyQueueTest {
         return dots;
     }
 
-    private CommittedQueueBox box(Dot dot, HashMap<Integer, ExceptionSet> dep) {
+    private QueueAddArgs args(Dot dot, HashMap<Integer, ExceptionSet> depMap) {
         // build random message
         Message message = Generator.message();
 
         // create conf, given dep
-        HashMap<Integer, MaxInt> conf = new HashMap<>();
-        for (Map.Entry<Integer, ExceptionSet> entry : dep.entrySet()) {
-            conf.put(entry.getKey(), entry.getValue().toMaxInt());
+        HashMap<Integer, MaxInt> confMap = new HashMap<>();
+        for (Map.Entry<Integer, ExceptionSet> entry : depMap.entrySet()) {
+            confMap.put(entry.getKey(), entry.getValue().toMaxInt());
         }
+        Clock<MaxInt> conf = new Clock<>(confMap);
+        Clock<ExceptionSet> dep = new Clock<>(depMap);
 
-        return new CommittedQueueBox(dot, new Clock<>(dep), message, new Clock<>(conf));
+        CommittedQueueBox box = new CommittedQueueBox(dot, dep, message, conf);
+        QueueAddArgs args = new QueueAddArgs(dot, conf, box);
+        return args;
     }
 
     private void checkTotalOrderPerColor(List<Message> a, List<Message> b) {

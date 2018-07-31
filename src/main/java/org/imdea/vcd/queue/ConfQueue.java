@@ -46,11 +46,11 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
     }
 
     @Override
-    public void add(E e, Commit commit) {
-        // fetch dot
-        Dot dot = Dot.dot(commit.getDot());
-        // create per message
-        Clock<ExceptionSet> conf = Clock.eclock(Clock.vclock(commit.getConfMap()));
+    public void add(QueueAddArgs<E> args) {
+        // fetch box, dot and conf
+        E e = args.getBox();
+        Dot dot = args.getDot();
+        Clock<ExceptionSet> conf = Clock.eclock(args.getConf());
 
         // update committed
         this.committed.addDot(dot);

@@ -29,6 +29,10 @@ import java.util.logging.Logger;
 import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.queue.ConfQueue;
 import org.imdea.vcd.queue.Queue;
+import org.imdea.vcd.queue.QueueAddArgs;
+import org.imdea.vcd.queue.clock.Dot;
+import org.imdea.vcd.queue.clock.ExceptionSet;
+import org.imdea.vcd.queue.clock.MaxInt;
 
 /**
  *
@@ -321,13 +325,12 @@ public class DataRW {
                             break;
                         case COMMIT:
                             final Timer.Context createBoxContext = createBox.time();
-                            Commit commit = reply.getCommit();
-                            CommittedQueueBox box = new CommittedQueueBox(commit);
+                            QueueAddArgs args = createArgs(reply);
                             createBoxContext.stop();
 
                             final Timer.Context toAddContext = toAdd.time();
                             // hack: pass commit so that ConfQueue has all info
-                            queue.add(box, commit);
+                            queue.add(args);
                             toAddContext.stop();
 
                             final Timer.Context tryDeliverContext = tryDeliver.time();
@@ -348,6 +351,23 @@ public class DataRW {
             } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
+        }
+
+        private QueueAddArgs createArgs(Reply reply) {
+            Commit commit = reply.getCommit();
+
+            // fetch dot, dep, message and conf
+            Dot dot = Dot.dot(commit.getDot());
+            Clock<ExceptionSet> dep = Clock.eclock(commit.getDepMap());
+            Message message = commit.getMessage();
+            Clock<MaxInt> conf = Clock.vclock(commit.getConfMap());
+
+            // create box
+            CommittedQueueBox box = new CommittedQueueBox(dot, dep, message, conf);
+
+            // create args
+            QueueAddArgs args = new QueueAddArgs(dot, conf, box);
+            return args;
         }
     }
 

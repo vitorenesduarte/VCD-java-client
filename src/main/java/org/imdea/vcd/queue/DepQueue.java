@@ -42,7 +42,9 @@ public class DepQueue<E extends QueueBox> implements Queue<E> {
     }
 
     @Override
-    public void add(E e, Commit _commit) {
+    public void add(QueueAddArgs<E> args) {
+        E e = args.getBox();
+
 //        System.out.println("Adding " + e);
         Node<E> x = findDependsOnE(e);
         Node<E> y = findEDependsOn(e);

@@ -19,6 +19,12 @@ public class DeliveredQueueBox implements QueueBox<DeliveredQueueBox> {
     private final Clock<ExceptionSet> dep;
     private final TreeMap<Dot, Message> messageMap;
 
+    public DeliveredQueueBox(DeliveredQueueBox deliveredQueueBox) {
+        this.dots = new Dots(deliveredQueueBox.dots);
+        this.dep = new Clock<>(deliveredQueueBox.dep);
+        this.messageMap = new TreeMap<>(deliveredQueueBox.messageMap);
+    }
+
     public DeliveredQueueBox(PerMessage perMessage) {
         this.dots = new Dots(perMessage.getDot());
         this.dep = Clock.eclock(perMessage.getConf());
@@ -65,5 +71,11 @@ public class DeliveredQueueBox implements QueueBox<DeliveredQueueBox> {
     @Override
     public String toString() {
         return dots + " " + dep;
+    }
+
+    @Override
+    public Object clone() {
+        DeliveredQueueBox deliveredQueueBox = new DeliveredQueueBox(this);
+        return deliveredQueueBox;
     }
 }

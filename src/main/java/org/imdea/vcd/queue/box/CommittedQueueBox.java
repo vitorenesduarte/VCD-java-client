@@ -13,6 +13,7 @@ import org.imdea.vcd.queue.clock.MaxInt;
 import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.DepQueue;
+import org.imdea.vcd.queue.QueueAddArgs;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
 
@@ -25,13 +26,6 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
     private final Dots dots;
     private final Clock<ExceptionSet> dep;
     private final MessageMap messageMap;
-
-    public CommittedQueueBox(Commit commit) {
-        Dot dot = Dot.dot(commit.getDot());
-        this.dots = new Dots(dot);
-        this.dep = Clock.eclock(commit.getDepMap());
-        this.messageMap = new MessageMap(dot, commit);
-    }
 
     public CommittedQueueBox(Dot dot, Clock<ExceptionSet> dep, Message message, Clock<MaxInt> conf) {
         this.dots = new Dots(dot);
@@ -103,7 +97,8 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
         // add all to the queue
         for (PerMessage message : messages) {
             DeliveredQueueBox box = new DeliveredQueueBox(message);
-            queue.add(box, null);
+            QueueAddArgs args = new QueueAddArgs(null, null, box);
+            queue.add(args);
         }
 
         // take all messages in the queue
@@ -121,8 +116,8 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
 
     @Override
     public Object clone() {
-        CommittedQueueBox commitDepBox = new CommittedQueueBox(this);
-        return commitDepBox;
+        CommittedQueueBox committedQueueBox = new CommittedQueueBox(this);
+        return committedQueueBox;
     }
 
     private class MessageMap {
