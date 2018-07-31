@@ -1,5 +1,7 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -40,6 +42,18 @@ public class MaxInt implements IntSet<MaxInt> {
     @Override
     public void merge(MaxInt o) {
         this.seq = Long.max(this.seq, o.seq);
+    }
+
+    @Override
+    public List<Long> subtract(MaxInt b) {
+        List<Long> result = new ArrayList<>();
+
+        // returns [b.seq + 1 .. this.seq]
+        for (Long i = b.seq + 1; i <= this.seq; i++) {
+            result.add(i);
+        }
+
+        return result;
     }
 
     @Override

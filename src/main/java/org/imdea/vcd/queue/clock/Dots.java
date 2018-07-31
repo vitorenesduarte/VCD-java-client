@@ -12,12 +12,12 @@ public class Dots implements Iterable<Dot> {
 
     private final HashSet<Dot> set;
 
-    public Dots(Dot dot) {
-        this.set = new HashSet<>(Arrays.asList(dot));
+    public Dots() {
+        this.set = new HashSet<>();
     }
 
-    public Dots(HashSet<Dot> set) {
-        this.set = set;
+    public Dots(Dot dot) {
+        this.set = new HashSet<>(Arrays.asList(dot));
     }
 
     public Dots(Dots dots) {
@@ -25,6 +25,10 @@ public class Dots implements Iterable<Dot> {
         for (Dot dot : dots.set) {
             this.set.add((Dot) dot.clone());
         }
+    }
+
+    public void add(Dot dot) {
+        this.set.add(dot);
     }
 
     public void merge(Dots dots) {

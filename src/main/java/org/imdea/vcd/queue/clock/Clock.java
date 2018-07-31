@@ -1,6 +1,8 @@
 package org.imdea.vcd.queue.clock;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.imdea.vcd.pb.Proto;
@@ -46,6 +48,28 @@ public class Clock<T extends IntSet> {
             }
         }
         return false;
+    }
+
+    public Dots subtract(Clock<T> clock) {
+        Dots dots = new Dots();
+
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            // get actor
+            Integer actor = entry.getKey();
+
+            // subtract b from a
+            T a = entry.getValue();
+            T b = clock.map.get(actor);
+            List<Long> seqs = a.subtract(b);
+
+            // create dots from subtract result
+            for (Long seq : seqs) {
+                Dot dot = new Dot(actor, seq);
+                dots.add(dot);
+            }
+        }
+
+        return dots;
     }
 
     public void addDots(Dots dots) {

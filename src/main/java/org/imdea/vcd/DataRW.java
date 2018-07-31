@@ -26,6 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.queue.ConfQueue;
 import org.imdea.vcd.queue.Queue;
 
@@ -320,11 +321,13 @@ public class DataRW {
                             break;
                         case COMMIT:
                             final Timer.Context createBoxContext = createBox.time();
-                            CommittedQueueBox box = new CommittedQueueBox(reply.getCommit());
+                            Commit commit = reply.getCommit();
+                            CommittedQueueBox box = new CommittedQueueBox(commit);
                             createBoxContext.stop();
 
                             final Timer.Context toAddContext = toAdd.time();
-                            queue.add(box);
+                            // hack: pass commit so that ConfQueue has all info
+                            queue.add(box, commit);
                             toAddContext.stop();
 
                             final Timer.Context tryDeliverContext = tryDeliver.time();

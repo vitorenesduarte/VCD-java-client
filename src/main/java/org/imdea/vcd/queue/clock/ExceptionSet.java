@@ -1,7 +1,9 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import org.imdea.vcd.pb.Proto;
 
@@ -93,6 +95,28 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
 
         ExceptionSet c = new ExceptionSet(newSeq, newExceptions);
         return c;
+    }
+
+    @Override
+    public List<Long> subtract(ExceptionSet b) {
+        List<Long> result = new ArrayList<>();
+
+        // returns
+        // [b.seq + 1 .. this.seq] \minus this.exceptions
+        for (Long i = b.seq + 1; i <= this.seq; i++) {
+            if (!this.exceptions.contains(i)) {
+                result.add(i);
+            }
+        }
+        // ++
+        // [e =< this.seq || e \in b.exceptions] \minus this.exceptions
+        for (Long i : b.exceptions) {
+            if (i <= this.seq && !this.exceptions.contains(i)) {
+                result.add(i);
+            }
+        }
+
+        return result;
     }
 
     @Override

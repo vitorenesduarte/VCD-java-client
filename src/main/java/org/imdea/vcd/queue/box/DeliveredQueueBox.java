@@ -27,6 +27,11 @@ public class DeliveredQueueBox implements QueueBox<DeliveredQueueBox> {
     }
 
     @Override
+    public Dots getDots() {
+        return this.dots;
+    }
+
+    @Override
     public boolean before(DeliveredQueueBox o) {
         return o.dep.intersects(this.dots);
     }
@@ -55,10 +60,6 @@ public class DeliveredQueueBox implements QueueBox<DeliveredQueueBox> {
     @Override
     public int size() {
         return this.dots.size();
-    }
-
-    public Dots getDots() {
-        return this.dots;
     }
 
     @Override

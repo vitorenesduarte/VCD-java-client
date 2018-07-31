@@ -1,5 +1,7 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.List;
+
 /**
  *
  * @author Vitor Enes
@@ -12,6 +14,8 @@ public interface IntSet<T> {
     void add(Long seq);
 
     void merge(T o);
+
+    List<Long> subtract(T o);
 
     Object clone();
 }

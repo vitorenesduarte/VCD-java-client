@@ -6,6 +6,7 @@ import org.imdea.vcd.queue.clock.ExceptionSet;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.imdea.vcd.pb.Proto.Commit;
 
 /**
  *
@@ -41,7 +42,7 @@ public class DepQueue<E extends QueueBox> implements Queue<E> {
     }
 
     @Override
-    public void add(E e) {
+    public void add(E e, Commit _commit) {
 //        System.out.println("Adding " + e);
         Node<E> x = findDependsOnE(e);
         Node<E> y = findEDependsOn(e);

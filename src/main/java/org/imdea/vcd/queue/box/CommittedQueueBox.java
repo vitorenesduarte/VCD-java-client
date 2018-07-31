@@ -46,6 +46,11 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
     }
 
     @Override
+    public Dots getDots() {
+        return this.dots;
+    }
+
+    @Override
     public boolean before(CommittedQueueBox o) {
         return o.dep.intersects(this.dots);
     }
@@ -90,10 +95,6 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
         return this.dots.size();
     }
 
-    public Dots getDots() {
-        return this.dots;
-    }
-
     private List<Message> sortPerColor(List<PerMessage> messages) {
         // create queue to sort messages
         Integer nodeNumber = messages.get(0).getConf().size();
@@ -102,7 +103,7 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
         // add all to the queue
         for (PerMessage message : messages) {
             DeliveredQueueBox box = new DeliveredQueueBox(message);
-            queue.add(box);
+            queue.add(box, null);
         }
 
         // take all messages in the queue

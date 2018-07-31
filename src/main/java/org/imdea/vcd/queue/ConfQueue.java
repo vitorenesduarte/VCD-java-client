@@ -1,9 +1,10 @@
 package org.imdea.vcd.queue;
 
-import org.imdea.vcd.queue.box.PerMessage;
-import org.imdea.vcd.queue.box.QueueBox;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.imdea.vcd.pb.Proto.Commit;
+import org.imdea.vcd.queue.box.QueueBox;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.ExceptionSet;
@@ -15,43 +16,60 @@ import org.imdea.vcd.queue.clock.ExceptionSet;
  */
 public class ConfQueue<E extends QueueBox> implements Queue<E> {
 
-    private HashMap<Dot, PerMessage> dotMap;
+    // these two should always have the same size
+    private final HashMap<Dot, E> dotToBox = new HashMap<>();
+    private final HashMap<Dot, Clock<ExceptionSet>> dotToInfo = new HashMap<>();
+    private List<E> toDeliver = new ArrayList<>();
 
-    private Clock<ExceptionSet> delivered;
+    private final Clock<ExceptionSet> committed;
+    private final Clock<ExceptionSet> delivered;
 
     public ConfQueue(Integer nodeNumber) {
+        this.committed = Clock.eclock(nodeNumber);
         this.delivered = Clock.eclock(nodeNumber);
-        this.dotMap = new HashMap<>();
     }
 
     public ConfQueue(Clock<ExceptionSet> delivered) {
+        this.committed = Clock.eclock(delivered.size());
         this.delivered = delivered;
-        this.dotMap = new HashMap<>();
     }
 
     @Override
     public boolean isEmpty() {
-        return this.dotMap.isEmpty();
+        return this.dotToInfo.isEmpty();
     }
 
     @Override
-    public void add(E e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void add(E e, Commit commit) {
+        // fetch dot
+        Dot dot = Dot.dot(commit.getDot());
+        // create per message
+        Clock<ExceptionSet> conf = Clock.eclock(Clock.vclock(commit.getConfMap()));
+
+        // save box
+        this.dotToBox.put(dot, e);
+        // save info
+        this.dotToInfo.put(dot, conf);
+
     }
 
     @Override
     public List<E> tryDeliver() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // return current list to be delivered,
+        // and create a new one
+        List<E> result = this.toDeliver;
+        this.toDeliver = new ArrayList<>();
+        return result;
     }
 
     @Override
     public List<E> toList() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Method not supported.");
     }
 
     @Override
     public int size() {
-        return this.dotMap.size();
+        return this.dotToInfo.size();
     }
 
     @Override

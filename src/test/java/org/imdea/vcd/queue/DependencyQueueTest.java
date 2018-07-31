@@ -269,7 +269,7 @@ public class DependencyQueueTest {
         DepQueue<CommittedQueueBox> queue = new DepQueue<>(nodeNumber);
         List<CommittedQueueBox> results = new ArrayList<>();
         for (CommittedQueueBox box : boxes) {
-            queue.add((CommittedQueueBox) box.clone());
+            queue.add((CommittedQueueBox) box.clone(), null);
             List<CommittedQueueBox> result = queue.tryDeliver();
             results.addAll(result);
         }
