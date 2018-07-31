@@ -10,7 +10,7 @@ import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
 import org.imdea.vcd.queue.CommitDepBox;
-import org.imdea.vcd.queue.DependencyQueue;
+import org.imdea.vcd.queue.DepDeliveryQueue;
 import org.imdea.vcd.queue.clock.Clock;
 
 import java.io.DataInputStream;
@@ -26,6 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.imdea.vcd.queue.ConfDeliveryQueue;
+import org.imdea.vcd.queue.DeliveryQueue;
 
 /**
  *
@@ -62,14 +64,14 @@ public class DataRW {
     private final Writer writer;
     private final SocketReader socketReader;
 
-    public DataRW(DataInputStream in, DataOutputStream out, Integer batchWait) {
+    public DataRW(DataInputStream in, DataOutputStream out, Config config) {
         this.in = in;
         this.out = out;
-        this.batchWait = batchWait;
+        this.batchWait = config.getBatchWait();
         this.toWriter = new LinkedBlockingQueue<>();
         this.toClient = new LinkedBlockingQueue<>();
         this.writer = new Writer(this.out, this.toWriter, this.batchWait);
-        this.socketReader = new SocketReader(this.in, this.toClient, this.batchWait);
+        this.socketReader = new SocketReader(this.in, this.toClient, config);
     }
 
     public void start() {
@@ -199,12 +201,12 @@ public class DataRW {
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final Deliverer deliverer;
 
-        public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Integer batchWait) {
+        public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Config config) {
             this.in = in;
             this.toClient = toClient;
-            this.batchWait = batchWait;
+            this.batchWait = config.getBatchWait();
             this.toDeliverer = new LinkedBlockingQueue<>();
-            this.deliverer = new Deliverer(this.toClient, this.toDeliverer, batchWait);
+            this.deliverer = new Deliverer(this.toClient, this.toDeliverer, config);
         }
 
         public void close() {
@@ -270,7 +272,8 @@ public class DataRW {
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
         private final Sorter sorter;
-        private DependencyQueue<CommitDepBox> queue;
+        private final Boolean deliverByConf;
+        private DeliveryQueue<CommitDepBox> queue;
 
         // metrics
         private final Timer toAdd;
@@ -279,7 +282,7 @@ public class DataRW {
         private final Histogram queueSize;
         private final Histogram queueElements;
 
-        public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer, Integer batchWait) {
+        public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer, Config config) {
 
             createBox = METRICS.timer(MetricRegistry.name(DataRW.class, "createBox"));
             toAdd = METRICS.timer(MetricRegistry.name(DataRW.class, "toAdd"));
@@ -290,7 +293,8 @@ public class DataRW {
 
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
-            this.sorter = new Sorter(toClient, this.toSorter, batchWait);
+            this.sorter = new Sorter(toClient, this.toSorter, config);
+            this.deliverByConf = config.getDeliverByConf();
         }
 
         public void close() {
@@ -308,7 +312,11 @@ public class DataRW {
 
                     switch (reply.getReplyCase()) {
                         case INIT:
-                            this.queue = new DependencyQueue(Clock.eclock(reply.getInit().getCommittedMap()));
+                            if (this.deliverByConf) {
+                                this.queue = new ConfDeliveryQueue();
+                            } else {
+                                this.queue = new DepDeliveryQueue(Clock.eclock(reply.getInit().getCommittedMap()));
+                            }
                             break;
                         case COMMIT:
                             final Timer.Context createBoxContext = createBox.time();
@@ -350,10 +358,10 @@ public class DataRW {
         private final Timer sorting;
         private final Histogram toSort;
 
-        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Integer batchWait) {
+        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Config config) {
             this.toClient = toClient;
             this.toSorter = toSorter;
-            this.batchWait = batchWait;
+            this.batchWait = config.getBatchWait();
 
             this.sorting = METRICS.timer(MetricRegistry.name(DataRW.class, "sorting"));
             this.toSort = METRICS.histogram(MetricRegistry.name(DataRW.class, "toSort"));

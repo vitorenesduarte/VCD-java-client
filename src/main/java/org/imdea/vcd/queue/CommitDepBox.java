@@ -96,7 +96,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
     private List<Message> sortPerColor(List<PerMessage> messages) {
         // create queue to sort messages
         Integer nodeNumber = messages.get(0).getConf().size();
-        DependencyQueue<DeliveredDepBox> queue = new DependencyQueue<>(nodeNumber);
+        DepDeliveryQueue<DeliveredDepBox> queue = new DepDeliveryQueue<>(nodeNumber);
 
         // add all to the queue
         for (PerMessage message : messages) {

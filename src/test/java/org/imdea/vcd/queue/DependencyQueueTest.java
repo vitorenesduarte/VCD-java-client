@@ -265,7 +265,7 @@ public class DependencyQueueTest {
     }
 
     private List<Message> checkTermination(Integer nodeNumber, List<CommitDepBox> boxes) {
-        DependencyQueue<CommitDepBox> queue = new DependencyQueue<>(nodeNumber);
+        DepDeliveryQueue<CommitDepBox> queue = new DepDeliveryQueue<>(nodeNumber);
         List<CommitDepBox> results = new ArrayList<>();
         for (CommitDepBox box : boxes) {
             queue.add((CommitDepBox) box.clone());

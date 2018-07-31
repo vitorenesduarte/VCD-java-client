@@ -13,7 +13,7 @@ import java.util.List;
  * @author Vitor Enes
  * @param <E>
  */
-public class DependencyQueue<E extends DepBox> {
+public class DepDeliveryQueue<E extends DepBox> implements DeliveryQueue<E> {
 
     Node<E> first;
     Node<E> last;
@@ -22,22 +22,24 @@ public class DependencyQueue<E extends DepBox> {
 
     private Clock<ExceptionSet> delivered;
 
-    public DependencyQueue(Integer nodeNumber) {
+    public DepDeliveryQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
         this.size = 0;
         this.elements = 0;
     }
 
-    public DependencyQueue(Clock<ExceptionSet> delivered) {
+    public DepDeliveryQueue(Clock<ExceptionSet> delivered) {
         this.delivered = delivered;
         this.size = 0;
         this.elements = 0;
     }
 
+    @Override
     public boolean isEmpty() {
         return first == null;
     }
 
+    @Override
     public void add(E e) {
 //        System.out.println("Adding " + e);
         Node<E> x = findDependsOnE(e);
@@ -75,6 +77,7 @@ public class DependencyQueue<E extends DepBox> {
         elements++;
     }
 
+    @Override
     public List<E> tryDeliver() {
         List<E> result = new ArrayList<>();
         boolean flag = true;
@@ -114,6 +117,7 @@ public class DependencyQueue<E extends DepBox> {
         return result;
     }
 
+    @Override
     public List<E> toList() {
         List<E> result = new ArrayList<>();
         Node<E> it = first;
@@ -259,10 +263,12 @@ public class DependencyQueue<E extends DepBox> {
         return sb.toString();
     }
 
+    @Override
     public int size() {
         return this.size;
     }
 
+    @Override
     public int elements() {
         return this.elements;
     }
