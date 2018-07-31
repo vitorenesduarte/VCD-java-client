@@ -1,5 +1,6 @@
 package org.imdea.vcd.queue;
 
+import org.imdea.vcd.queue.box.QueueBox;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 
@@ -13,22 +14,22 @@ import java.util.List;
  * @author Vitor Enes
  * @param <E>
  */
-public class DepDeliveryQueue<E extends DepBox> implements DeliveryQueue<E> {
+public class DepQueue<E extends QueueBox> implements Queue<E> {
 
-    Node<E> first;
-    Node<E> last;
-    int size;
-    int elements;
+    private Node<E> first;
+    private Node<E> last;
+    private int size;
+    private int elements;
 
     private Clock<ExceptionSet> delivered;
 
-    public DepDeliveryQueue(Integer nodeNumber) {
+    public DepQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
         this.size = 0;
         this.elements = 0;
     }
 
-    public DepDeliveryQueue(Clock<ExceptionSet> delivered) {
+    public DepQueue(Clock<ExceptionSet> delivered) {
         this.delivered = delivered;
         this.size = 0;
         this.elements = 0;
@@ -178,7 +179,7 @@ public class DepDeliveryQueue<E extends DepBox> implements DeliveryQueue<E> {
     /**
      * Inserts element e before non-null Node succ.
      */
-    void linkBefore(E e, Node<E> succ) {
+    private void linkBefore(E e, Node<E> succ) {
         // assert n != null;
         final Node<E> pred = succ.prev;
         final Node<E> newNode = new Node<>(pred, e, succ);
@@ -193,7 +194,7 @@ public class DepDeliveryQueue<E extends DepBox> implements DeliveryQueue<E> {
     /**
      * Inserts element e after non-null Node pred.
      */
-    void linkAfter(E e, Node<E> pred) {
+    private void linkAfter(E e, Node<E> pred) {
         // assert n != null;
         final Node<E> succ = pred.next;
         final Node<E> newNode = new Node<>(pred, e, succ);
@@ -208,7 +209,7 @@ public class DepDeliveryQueue<E extends DepBox> implements DeliveryQueue<E> {
     /**
      * Inserts element e between Node pred and Node succ.
      */
-    void linkBetween(E e, Node<E> pred, Node<E> succ) {
+    private void linkBetween(E e, Node<E> pred, Node<E> succ) {
         final Node<E> newNode = new Node<>(pred, e, succ);
         if (pred == null) {
             first = newNode;
@@ -225,7 +226,7 @@ public class DepDeliveryQueue<E extends DepBox> implements DeliveryQueue<E> {
     /**
      * Merge e with all from Node a to Node b.
      */
-    void merge(E e, Node<E> a, Node<E> b) {
+    private void merge(E e, Node<E> a, Node<E> b) {
         Node<E> pred = a.prev;
         Node<E> succ = b.next;
 

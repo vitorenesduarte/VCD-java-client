@@ -9,8 +9,8 @@ import com.google.protobuf.ByteString;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
-import org.imdea.vcd.queue.CommitDepBox;
-import org.imdea.vcd.queue.DepDeliveryQueue;
+import org.imdea.vcd.queue.box.CommittedQueueBox;
+import org.imdea.vcd.queue.DepQueue;
 import org.imdea.vcd.queue.clock.Clock;
 
 import java.io.DataInputStream;
@@ -26,8 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.imdea.vcd.queue.ConfDeliveryQueue;
-import org.imdea.vcd.queue.DeliveryQueue;
+import org.imdea.vcd.queue.ConfQueue;
+import org.imdea.vcd.queue.Queue;
 
 /**
  *
@@ -270,10 +270,10 @@ public class DataRW {
         private final Logger LOGGER = VCDLogger.init(Deliverer.class);
 
         private final LinkedBlockingQueue<Reply> toDeliverer;
-        private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
+        private final LinkedBlockingQueue<List<CommittedQueueBox>> toSorter;
         private final Sorter sorter;
         private final Boolean deliverByConf;
-        private DeliveryQueue<CommitDepBox> queue;
+        private Queue<CommittedQueueBox> queue;
 
         // metrics
         private final Timer toAdd;
@@ -313,14 +313,14 @@ public class DataRW {
                     switch (reply.getReplyCase()) {
                         case INIT:
                             if (this.deliverByConf) {
-                                this.queue = new ConfDeliveryQueue();
+                                this.queue = new ConfQueue(Clock.eclock(reply.getInit().getCommittedMap()));
                             } else {
-                                this.queue = new DepDeliveryQueue(Clock.eclock(reply.getInit().getCommittedMap()));
+                                this.queue = new DepQueue(Clock.eclock(reply.getInit().getCommittedMap()));
                             }
                             break;
                         case COMMIT:
                             final Timer.Context createBoxContext = createBox.time();
-                            CommitDepBox box = new CommitDepBox(reply.getCommit());
+                            CommittedQueueBox box = new CommittedQueueBox(reply.getCommit());
                             createBoxContext.stop();
 
                             final Timer.Context toAddContext = toAdd.time();
@@ -328,7 +328,7 @@ public class DataRW {
                             toAddContext.stop();
 
                             final Timer.Context tryDeliverContext = tryDeliver.time();
-                            List<CommitDepBox> toDeliver = queue.tryDeliver();
+                            List<CommittedQueueBox> toDeliver = queue.tryDeliver();
                             tryDeliverContext.stop();
 
                             queueSize.update(queue.size());
@@ -352,13 +352,13 @@ public class DataRW {
 
         private final Logger LOGGER = VCDLogger.init(Sorter.class);
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
-        private final LinkedBlockingQueue<List<CommitDepBox>> toSorter;
+        private final LinkedBlockingQueue<List<CommittedQueueBox>> toSorter;
         private final Integer batchWait;
 
         private final Timer sorting;
         private final Histogram toSort;
 
-        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommitDepBox>> toSorter, Config config) {
+        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommittedQueueBox>> toSorter, Config config) {
             this.toClient = toClient;
             this.toSorter = toSorter;
             this.batchWait = config.getBatchWait();
@@ -371,12 +371,12 @@ public class DataRW {
         public void run() {
             try {
                 while (true) {
-                    List<CommitDepBox> toDeliver = toSorter.take();
+                    List<CommittedQueueBox> toDeliver = toSorter.take();
                     toSort.update(toDeliver.size());
 
                     final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
-                    for (CommitDepBox boxToDeliver : toDeliver) {
+                    for (CommittedQueueBox boxToDeliver : toDeliver) {
                         for (Message message : boxToDeliver.sortMessages()) {
                             if (this.batchWait > 0) {
                                 MessageSet batch = MessageSet.parseFrom(message.getData());

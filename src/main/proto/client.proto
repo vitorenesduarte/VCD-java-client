@@ -47,8 +47,13 @@ message Commit {
 
 message Reply {
   oneof reply {
+    // initialize queue with dots of committed messages
     Init init = 1;
+
+    // durable notification
     MessageSet set = 2;
+
+    // commit notification
     Commit commit = 3;
   }
 }

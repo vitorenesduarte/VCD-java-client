@@ -5427,40 +5427,76 @@ public final class Proto {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * initialize queue with dots of committed messages
+     * </pre>
+     *
      * <code>.Init init = 1;</code>
      */
     boolean hasInit();
     /**
+     * <pre>
+     * initialize queue with dots of committed messages
+     * </pre>
+     *
      * <code>.Init init = 1;</code>
      */
     org.imdea.vcd.pb.Proto.Init getInit();
     /**
+     * <pre>
+     * initialize queue with dots of committed messages
+     * </pre>
+     *
      * <code>.Init init = 1;</code>
      */
     org.imdea.vcd.pb.Proto.InitOrBuilder getInitOrBuilder();
 
     /**
+     * <pre>
+     * durable notification
+     * </pre>
+     *
      * <code>.MessageSet set = 2;</code>
      */
     boolean hasSet();
     /**
+     * <pre>
+     * durable notification
+     * </pre>
+     *
      * <code>.MessageSet set = 2;</code>
      */
     org.imdea.vcd.pb.Proto.MessageSet getSet();
     /**
+     * <pre>
+     * durable notification
+     * </pre>
+     *
      * <code>.MessageSet set = 2;</code>
      */
     org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder();
 
     /**
+     * <pre>
+     * commit notification
+     * </pre>
+     *
      * <code>.Commit commit = 3;</code>
      */
     boolean hasCommit();
     /**
+     * <pre>
+     * commit notification
+     * </pre>
+     *
      * <code>.Commit commit = 3;</code>
      */
     org.imdea.vcd.pb.Proto.Commit getCommit();
     /**
+     * <pre>
+     * commit notification
+     * </pre>
+     *
      * <code>.Commit commit = 3;</code>
      */
     org.imdea.vcd.pb.Proto.CommitOrBuilder getCommitOrBuilder();
@@ -5618,12 +5654,20 @@ public final class Proto {
 
     public static final int INIT_FIELD_NUMBER = 1;
     /**
+     * <pre>
+     * initialize queue with dots of committed messages
+     * </pre>
+     *
      * <code>.Init init = 1;</code>
      */
     public boolean hasInit() {
       return replyCase_ == 1;
     }
     /**
+     * <pre>
+     * initialize queue with dots of committed messages
+     * </pre>
+     *
      * <code>.Init init = 1;</code>
      */
     public org.imdea.vcd.pb.Proto.Init getInit() {
@@ -5633,6 +5677,10 @@ public final class Proto {
       return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
     }
     /**
+     * <pre>
+     * initialize queue with dots of committed messages
+     * </pre>
+     *
      * <code>.Init init = 1;</code>
      */
     public org.imdea.vcd.pb.Proto.InitOrBuilder getInitOrBuilder() {
@@ -5644,12 +5692,20 @@ public final class Proto {
 
     public static final int SET_FIELD_NUMBER = 2;
     /**
+     * <pre>
+     * durable notification
+     * </pre>
+     *
      * <code>.MessageSet set = 2;</code>
      */
     public boolean hasSet() {
       return replyCase_ == 2;
     }
     /**
+     * <pre>
+     * durable notification
+     * </pre>
+     *
      * <code>.MessageSet set = 2;</code>
      */
     public org.imdea.vcd.pb.Proto.MessageSet getSet() {
@@ -5659,6 +5715,10 @@ public final class Proto {
       return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
     }
     /**
+     * <pre>
+     * durable notification
+     * </pre>
+     *
      * <code>.MessageSet set = 2;</code>
      */
     public org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder() {
@@ -5670,12 +5730,20 @@ public final class Proto {
 
     public static final int COMMIT_FIELD_NUMBER = 3;
     /**
+     * <pre>
+     * commit notification
+     * </pre>
+     *
      * <code>.Commit commit = 3;</code>
      */
     public boolean hasCommit() {
       return replyCase_ == 3;
     }
     /**
+     * <pre>
+     * commit notification
+     * </pre>
+     *
      * <code>.Commit commit = 3;</code>
      */
     public org.imdea.vcd.pb.Proto.Commit getCommit() {
@@ -5685,6 +5753,10 @@ public final class Proto {
       return org.imdea.vcd.pb.Proto.Commit.getDefaultInstance();
     }
     /**
+     * <pre>
+     * commit notification
+     * </pre>
+     *
      * <code>.Commit commit = 3;</code>
      */
     public org.imdea.vcd.pb.Proto.CommitOrBuilder getCommitOrBuilder() {
@@ -6075,12 +6147,20 @@ public final class Proto {
       private com.google.protobuf.SingleFieldBuilderV3<
           org.imdea.vcd.pb.Proto.Init, org.imdea.vcd.pb.Proto.Init.Builder, org.imdea.vcd.pb.Proto.InitOrBuilder> initBuilder_;
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public boolean hasInit() {
         return replyCase_ == 1;
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public org.imdea.vcd.pb.Proto.Init getInit() {
@@ -6097,6 +6177,10 @@ public final class Proto {
         }
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public Builder setInit(org.imdea.vcd.pb.Proto.Init value) {
@@ -6113,6 +6197,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public Builder setInit(
@@ -6127,6 +6215,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public Builder mergeInit(org.imdea.vcd.pb.Proto.Init value) {
@@ -6149,6 +6241,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public Builder clearInit() {
@@ -6168,12 +6264,20 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public org.imdea.vcd.pb.Proto.Init.Builder getInitBuilder() {
         return getInitFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       public org.imdea.vcd.pb.Proto.InitOrBuilder getInitOrBuilder() {
@@ -6187,6 +6291,10 @@ public final class Proto {
         }
       }
       /**
+       * <pre>
+       * initialize queue with dots of committed messages
+       * </pre>
+       *
        * <code>.Init init = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -6211,12 +6319,20 @@ public final class Proto {
       private com.google.protobuf.SingleFieldBuilderV3<
           org.imdea.vcd.pb.Proto.MessageSet, org.imdea.vcd.pb.Proto.MessageSet.Builder, org.imdea.vcd.pb.Proto.MessageSetOrBuilder> setBuilder_;
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public boolean hasSet() {
         return replyCase_ == 2;
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public org.imdea.vcd.pb.Proto.MessageSet getSet() {
@@ -6233,6 +6349,10 @@ public final class Proto {
         }
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public Builder setSet(org.imdea.vcd.pb.Proto.MessageSet value) {
@@ -6249,6 +6369,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public Builder setSet(
@@ -6263,6 +6387,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public Builder mergeSet(org.imdea.vcd.pb.Proto.MessageSet value) {
@@ -6285,6 +6413,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public Builder clearSet() {
@@ -6304,12 +6436,20 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public org.imdea.vcd.pb.Proto.MessageSet.Builder getSetBuilder() {
         return getSetFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       public org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder() {
@@ -6323,6 +6463,10 @@ public final class Proto {
         }
       }
       /**
+       * <pre>
+       * durable notification
+       * </pre>
+       *
        * <code>.MessageSet set = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -6347,12 +6491,20 @@ public final class Proto {
       private com.google.protobuf.SingleFieldBuilderV3<
           org.imdea.vcd.pb.Proto.Commit, org.imdea.vcd.pb.Proto.Commit.Builder, org.imdea.vcd.pb.Proto.CommitOrBuilder> commitBuilder_;
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public boolean hasCommit() {
         return replyCase_ == 3;
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public org.imdea.vcd.pb.Proto.Commit getCommit() {
@@ -6369,6 +6521,10 @@ public final class Proto {
         }
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public Builder setCommit(org.imdea.vcd.pb.Proto.Commit value) {
@@ -6385,6 +6541,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public Builder setCommit(
@@ -6399,6 +6559,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public Builder mergeCommit(org.imdea.vcd.pb.Proto.Commit value) {
@@ -6421,6 +6585,10 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public Builder clearCommit() {
@@ -6440,12 +6608,20 @@ public final class Proto {
         return this;
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public org.imdea.vcd.pb.Proto.Commit.Builder getCommitBuilder() {
         return getCommitFieldBuilder().getBuilder();
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       public org.imdea.vcd.pb.Proto.CommitOrBuilder getCommitOrBuilder() {
@@ -6459,6 +6635,10 @@ public final class Proto {
         }
       }
       /**
+       * <pre>
+       * commit notification
+       * </pre>
+       *
        * <code>.Commit commit = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<

@@ -1,4 +1,4 @@
-package org.imdea.vcd.queue;
+package org.imdea.vcd.queue.box;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +13,13 @@ import org.imdea.vcd.queue.clock.Dots;
  *
  * @author Vitor Enes
  */
-public class DeliveredDepBox implements DepBox<DeliveredDepBox> {
+public class DeliveredQueueBox implements QueueBox<DeliveredQueueBox> {
 
     private final Dots dots;
     private final Clock<ExceptionSet> dep;
     private final TreeMap<Dot, Message> messageMap;
 
-    public DeliveredDepBox(PerMessage perMessage) {
+    public DeliveredQueueBox(PerMessage perMessage) {
         this.dots = new Dots(perMessage.getDot());
         this.dep = Clock.eclock(perMessage.getConf());
         this.messageMap = new TreeMap<>();
@@ -27,12 +27,12 @@ public class DeliveredDepBox implements DepBox<DeliveredDepBox> {
     }
 
     @Override
-    public boolean before(DeliveredDepBox o) {
+    public boolean before(DeliveredQueueBox o) {
         return o.dep.intersects(this.dots);
     }
 
     @Override
-    public void merge(DeliveredDepBox o) {
+    public void merge(DeliveredQueueBox o) {
         this.dots.merge(o.dots);
         this.dep.merge(o.dep);
         this.messageMap.putAll(o.messageMap);

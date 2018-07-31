@@ -1,4 +1,4 @@
-package org.imdea.vcd.queue;
+package org.imdea.vcd.queue.box;
 
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;

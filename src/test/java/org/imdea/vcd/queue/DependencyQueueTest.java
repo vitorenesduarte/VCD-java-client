@@ -1,5 +1,6 @@
 package org.imdea.vcd.queue;
 
+import org.imdea.vcd.queue.box.CommittedQueueBox;
 import com.google.protobuf.ByteString;
 import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
@@ -85,7 +86,7 @@ public class DependencyQueueTest {
         mapI.put(0, new ExceptionSet(6L));
         mapI.put(1, new ExceptionSet(3L));
 
-        List<CommitDepBox> boxes = new ArrayList<>();
+        List<CommittedQueueBox> boxes = new ArrayList<>();
         boxes.add(box(dotA, mapA));
         boxes.add(box(dotB, mapB));
         boxes.add(box(dotC, mapC));
@@ -145,7 +146,7 @@ public class DependencyQueueTest {
         mapG.put(0, new ExceptionSet(3L, 2L));
         mapG.put(1, new ExceptionSet(3L));
 
-        List<CommitDepBox> boxes = new ArrayList<>();
+        List<CommittedQueueBox> boxes = new ArrayList<>();
         boxes.add(box(dotA, mapA));
         boxes.add(box(dotB, mapB));
         boxes.add(box(dotC, mapC));
@@ -196,7 +197,7 @@ public class DependencyQueueTest {
         mapE.put(1, new ExceptionSet(1L));
         mapE.put(2, new ExceptionSet(2L, 1L));
 
-        List<CommitDepBox> boxes = new ArrayList<>();
+        List<CommittedQueueBox> boxes = new ArrayList<>();
         boxes.add(box(dotA, mapA));
         boxes.add(box(dotB, mapB));
         boxes.add(box(dotC, mapC));
@@ -240,7 +241,7 @@ public class DependencyQueueTest {
         HashMap<Integer, ExceptionSet> mapF = new HashMap<>();
         mapF.put(0, new ExceptionSet(6L, 2L, 4L));
 
-        List<CommitDepBox> boxes = new ArrayList<>();
+        List<CommittedQueueBox> boxes = new ArrayList<>();
         boxes.add(box(dotA, mapA));
         boxes.add(box(dotB, mapB));
         boxes.add(box(dotC, mapC));
@@ -251,7 +252,7 @@ public class DependencyQueueTest {
         checkTerminationRandomShuffles(nodeNumber, boxes);
     }
 
-    private void checkTerminationRandomShuffles(Integer nodeNumber, List<CommitDepBox> boxes) {
+    private void checkTerminationRandomShuffles(Integer nodeNumber, List<CommittedQueueBox> boxes) {
 
         List<Message> totalOrder = checkTermination(nodeNumber, boxes);
 
@@ -264,12 +265,12 @@ public class DependencyQueueTest {
         }
     }
 
-    private List<Message> checkTermination(Integer nodeNumber, List<CommitDepBox> boxes) {
-        DepDeliveryQueue<CommitDepBox> queue = new DepDeliveryQueue<>(nodeNumber);
-        List<CommitDepBox> results = new ArrayList<>();
-        for (CommitDepBox box : boxes) {
-            queue.add((CommitDepBox) box.clone());
-            List<CommitDepBox> result = queue.tryDeliver();
+    private List<Message> checkTermination(Integer nodeNumber, List<CommittedQueueBox> boxes) {
+        DepQueue<CommittedQueueBox> queue = new DepQueue<>(nodeNumber);
+        List<CommittedQueueBox> results = new ArrayList<>();
+        for (CommittedQueueBox box : boxes) {
+            queue.add((CommittedQueueBox) box.clone());
+            List<CommittedQueueBox> result = queue.tryDeliver();
             results.addAll(result);
         }
 
@@ -279,13 +280,13 @@ public class DependencyQueueTest {
 
         // return messages sorted
         List<Message> sorted = new ArrayList<>();
-        for (CommitDepBox box : results) {
+        for (CommittedQueueBox box : results) {
             sorted.addAll(box.sortMessages());
         }
         return sorted;
     }
 
-    private void checkAllDotsDelivered(List<CommitDepBox> boxes, List<CommitDepBox> results) {
+    private void checkAllDotsDelivered(List<CommittedQueueBox> boxes, List<CommittedQueueBox> results) {
         List<Dot> boxesDots = boxListToDots(boxes);
         List<Dot> resultsDots = boxListToDots(results);
 
@@ -296,9 +297,9 @@ public class DependencyQueueTest {
         }
     }
 
-    private List<Dot> boxListToDots(List<CommitDepBox> list) {
+    private List<Dot> boxListToDots(List<CommittedQueueBox> list) {
         List<Dot> dots = new ArrayList<>();
-        for (CommitDepBox e : list) {
+        for (CommittedQueueBox e : list) {
             for (Dot dot : e.getDots()) {
                 dots.add(dot);
             }
@@ -306,7 +307,7 @@ public class DependencyQueueTest {
         return dots;
     }
 
-    private CommitDepBox box(Dot dot, HashMap<Integer, ExceptionSet> dep) {
+    private CommittedQueueBox box(Dot dot, HashMap<Integer, ExceptionSet> dep) {
         // build random message
         Message message = Generator.message();
 
@@ -316,7 +317,7 @@ public class DependencyQueueTest {
             conf.put(entry.getKey(), entry.getValue().toMaxInt());
         }
 
-        return new CommitDepBox(dot, new Clock<>(dep), message, new Clock<>(conf));
+        return new CommittedQueueBox(dot, new Clock<>(dep), message, new Clock<>(conf));
     }
 
     private void checkTotalOrderPerColor(List<Message> a, List<Message> b) {

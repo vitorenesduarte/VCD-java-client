@@ -1,4 +1,4 @@
-package org.imdea.vcd.queue;
+package org.imdea.vcd.queue.box;
 
 import com.google.protobuf.ByteString;
 import java.util.ArrayList;
@@ -12,6 +12,7 @@ import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.MaxInt;
 import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
+import org.imdea.vcd.queue.DepQueue;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
 
@@ -19,38 +20,38 @@ import org.imdea.vcd.queue.clock.Dots;
  *
  * @author Vitor Enes
  */
-public class CommitDepBox implements DepBox<CommitDepBox> {
+public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
 
     private final Dots dots;
     private final Clock<ExceptionSet> dep;
     private final MessageMap messageMap;
 
-    public CommitDepBox(Commit commit) {
+    public CommittedQueueBox(Commit commit) {
         Dot dot = Dot.dot(commit.getDot());
         this.dots = new Dots(dot);
         this.dep = Clock.eclock(commit.getDepMap());
         this.messageMap = new MessageMap(dot, commit);
     }
 
-    public CommitDepBox(Dot dot, Clock<ExceptionSet> dep, Message message, Clock<MaxInt> conf) {
+    public CommittedQueueBox(Dot dot, Clock<ExceptionSet> dep, Message message, Clock<MaxInt> conf) {
         this.dots = new Dots(dot);
         this.dep = dep;
         this.messageMap = new MessageMap(dot, message, conf);
     }
 
-    public CommitDepBox(CommitDepBox commitDepBox) {
+    public CommittedQueueBox(CommittedQueueBox commitDepBox) {
         this.dots = new Dots(commitDepBox.dots);
         this.dep = new Clock<>(commitDepBox.dep);
         this.messageMap = new MessageMap(commitDepBox.messageMap);
     }
 
     @Override
-    public boolean before(CommitDepBox o) {
+    public boolean before(CommittedQueueBox o) {
         return o.dep.intersects(this.dots);
     }
 
     @Override
-    public void merge(CommitDepBox o) {
+    public void merge(CommittedQueueBox o) {
         this.dots.merge(o.dots);
         this.dep.merge(o.dep);
         this.messageMap.merge(o.messageMap);
@@ -96,17 +97,17 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
     private List<Message> sortPerColor(List<PerMessage> messages) {
         // create queue to sort messages
         Integer nodeNumber = messages.get(0).getConf().size();
-        DepDeliveryQueue<DeliveredDepBox> queue = new DepDeliveryQueue<>(nodeNumber);
+        DepQueue<DeliveredQueueBox> queue = new DepQueue<>(nodeNumber);
 
         // add all to the queue
         for (PerMessage message : messages) {
-            DeliveredDepBox box = new DeliveredDepBox(message);
+            DeliveredQueueBox box = new DeliveredQueueBox(message);
             queue.add(box);
         }
 
         // take all messages in the queue
         List<Message> result = new ArrayList<>();
-        for (DeliveredDepBox box : queue.toList()) {
+        for (DeliveredQueueBox box : queue.toList()) {
             result.addAll(box.sortMessages());
         }
         return result;
@@ -119,7 +120,7 @@ public class CommitDepBox implements DepBox<CommitDepBox> {
 
     @Override
     public Object clone() {
-        CommitDepBox commitDepBox = new CommitDepBox(this);
+        CommittedQueueBox commitDepBox = new CommittedQueueBox(this);
         return commitDepBox;
     }
 

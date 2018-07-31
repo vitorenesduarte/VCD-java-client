@@ -1,4 +1,4 @@
-package org.imdea.vcd.queue;
+package org.imdea.vcd.queue.box;
 
 import java.util.List;
 import org.imdea.vcd.pb.Proto.Message;
@@ -10,7 +10,7 @@ import org.imdea.vcd.queue.clock.ExceptionSet;
  * @author Vitor Enes
  * @param <T>
  */
-public interface DepBox<T> {
+public interface QueueBox<T> {
 
     boolean before(T box);
 
