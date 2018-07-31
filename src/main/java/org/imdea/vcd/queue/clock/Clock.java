@@ -1,7 +1,6 @@
 package org.imdea.vcd.queue.clock;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -72,9 +71,13 @@ public class Clock<T extends IntSet> {
         return dots;
     }
 
+    public void addDot(Dot dot) {
+        this.map.get(dot.getId()).add(dot.getSeq());
+    }
+
     public void addDots(Dots dots) {
         for (Dot dot : dots) {
-            this.map.get(dot.getId()).add(dot.getSeq());
+            addDot(dot);
         }
     }
 
