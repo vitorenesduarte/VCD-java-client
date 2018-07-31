@@ -35,6 +35,14 @@ public class Dots implements Iterable<Dot> {
         this.set.addAll(dots.set);
     }
 
+    public boolean contains(Dot dot) {
+        return this.set.contains(dot);
+    }
+
+    public boolean isEmpty() {
+        return this.set.isEmpty();
+    }
+
     public int size() {
         return this.set.size();
     }

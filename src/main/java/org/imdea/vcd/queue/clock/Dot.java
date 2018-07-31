@@ -65,6 +65,14 @@ public class Dot implements Comparable<Dot> {
     }
 
     @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 89 * hash + Objects.hashCode(this.id);
+        hash = 89 * hash + Objects.hashCode(this.seq);
+        return hash;
+    }
+
+    @Override
     public int compareTo(Dot o) {
         if (Objects.equals(this.id, o.id)) {
             return this.seq.compareTo(o.seq);
