@@ -4,10 +4,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.imdea.vcd.queue.box.QueueBox;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -71,18 +73,30 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         }
 
         TarjanSCCFinder finder = new TarjanSCCFinder();
-        try {
-            Dots scc = finder.dfs(dot);
-            saveSCC(scc);
-            for (Dot del : scc) {
-                Dots children = dotToChildren.remove(del);
-                if (children != null) {
-                    for (Dot child : children) {
-                        findSCC(child);
+        FinderResult res = finder.dfs(dot);
+        switch (res) {
+            case FOUND:
+                List<Dots> sccs = finder.getSCCs();
+                Dots delivered = new Dots();
+
+                // deliver all sccs by the order they were found
+                for (Dots scc : sccs) {
+                    saveSCC(scc);
+                    delivered.merge(scc);
+                }
+
+                // and try to deliver more, based on the
+                // children of the dots delivered
+                for (Dot del : delivered) {
+                    Dots children = dotToChildren.remove(del);
+                    if (children != null) {
+                        for (Dot child : children) {
+                            findSCC(child);
+                        }
                     }
                 }
-            }
-        } catch (Exception e) {
+            default:
+                break;
         }
     }
 
@@ -131,6 +145,10 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         return size();
     }
 
+    private enum FinderResult {
+        FOUND, NOT_FOUND, MISSING_DEP
+    }
+
     /**
      * Find a SCC using Tarjan's algorithm.
      *
@@ -146,23 +164,27 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         private final Map<Dot, Boolean> onStack;
         private Integer id;
 
+        private final List<Dots> sccs;
+
         public TarjanSCCFinder() {
             this.stack = new ArrayDeque<>();
             this.ids = new HashMap<>();
             this.low = new HashMap<>();
             this.onStack = new HashMap<>();
             this.id = 0;
+            this.sccs = new ArrayList();
         }
 
-        // TODO fix Exception
-        public Dots dfs(Dot at) throws Exception {
+        public FinderResult dfs(Dot at) {
             // get conf
             Clock<ExceptionSet> conf = dotToConf.get(at);
 
+            // get neighbors: subtract delivered and self
+            Dots deps = conf.subtract(delivered);
+            deps.remove(at);
+
             // update dotToChildren
-            Dots missingNonDeliveredDeps = conf.subtract(delivered);
-            missingNonDeliveredDeps.remove(at);
-            for (Dot missingDep : missingNonDeliveredDeps) {
+            for (Dot missingDep : deps) {
                 Dots children = dotToChildren.get(missingDep);
                 if (children == null) {
                     children = new Dots();
@@ -172,9 +194,9 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             }
 
             // if not all deps are committed, give up
-            Dots missingNonCommittedDeps = conf.subtract(committed);
-            if (!missingNonCommittedDeps.isEmpty()) {
-                throw new Exception("Dependency missing");
+            Dots missingDeps = conf.subtract(committed);
+            if (!missingDeps.isEmpty()) {
+                return FinderResult.MISSING_DEP;
             }
 
             // add to the stack
@@ -187,16 +209,20 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             // update id
             id++;
 
-            // get neighbors: subtract delivered and self
-            Dots deps = conf.subtract(delivered);
-            deps.remove(at);
-
             // for all neighbors
             for (Dot to : deps) {
                 // if not visited, visit
                 boolean visited = ids.containsKey(to);
                 if (!visited) {
-                    dfs(to);
+                    FinderResult result = dfs(to);
+
+                    switch (result) {
+                        case MISSING_DEP:
+                            // propagate missing dep
+                            return result;
+                        default:
+                            break;
+                    }
                 }
 
                 // if visited neighbor is on stack, min lows
@@ -228,10 +254,17 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                     }
                 }
 
-                return scc;
+                // add scc to the set of sccs
+                sccs.add(scc);
+
+                return FinderResult.FOUND;
             }
 
-            return null;
+            return FinderResult.NOT_FOUND;
+        }
+
+        private List<Dots> getSCCs() {
+            return this.sccs;
         }
     }
 }
