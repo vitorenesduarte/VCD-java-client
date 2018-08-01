@@ -75,17 +75,17 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         switch (res) {
             case FOUND:
                 List<Dots> sccs = finder.getSCCs();
-                Dots delivered = new Dots();
+                Dots toBeDelivered = new Dots();
 
                 // deliver all sccs by the order they were found
                 for (Dots scc : sccs) {
                     saveSCC(scc);
-                    delivered.merge(scc);
+                    toBeDelivered.merge(scc);
                 }
 
                 // and try to deliver more, based on the
                 // children of the dots delivered
-                for (Dot del : delivered) {
+                for (Dot del : toBeDelivered) {
                     Dots children = dotToChildren.remove(del);
                     if (children != null) {
                         for (Dot child : children) {
