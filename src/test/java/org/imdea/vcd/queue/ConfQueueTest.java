@@ -31,7 +31,7 @@ public class ConfQueueTest {
     @Test
     public void testRandom() {
         for (int i = 0; i < ITERATIONS; i++) {
-            Integer nodeNumber = 3;
+            Integer nodeNumber = 2;
             Map<Dot, Clock<MaxInt>> dotToConf = Generator.dotToConf(nodeNumber);
 
             List<QueueAddArgs> argsList = new ArrayList<>();

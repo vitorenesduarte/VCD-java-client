@@ -62,7 +62,7 @@ public class Generator {
     }
 
     private static final int MAX_SEQ_PER_NODE = 10;
-    private static final int MAX_DEPS = 10;
+    private static final int MAX_DEPS = 5;
 
     public static Map<Dot, Clock<MaxInt>> dotToConf(Integer nodeNumber) {
         Map<Dot, Clock<MaxInt>> result = new HashMap<>();
@@ -85,6 +85,7 @@ public class Generator {
             for (int i = 0; i < numberOfDeps; i++) {
                 conf.addDot(deps.get(i));
             }
+            conf.addDot(dot);
             result.put(dot, conf);
         }
 
