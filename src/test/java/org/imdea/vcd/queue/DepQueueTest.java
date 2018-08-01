@@ -11,7 +11,6 @@ import org.imdea.vcd.queue.clock.MaxInt;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +24,6 @@ import static org.junit.Assert.assertTrue;
  * @author Vitor Enes
  */
 public class DepQueueTest {
-
-    private static final int ITERATIONS = 100000;
 
     @Test
     public void testAdd1() {
@@ -253,14 +250,11 @@ public class DepQueueTest {
     }
 
     private void checkTerminationRandomShuffles(Integer nodeNumber, List<QueueAddArgs> argsList) {
-
+        List<List<QueueAddArgs>> permutations = Permutations.of(argsList);
         List<Message> totalOrder = checkTermination(nodeNumber, argsList);
 
-        for (int it = 0; it < ITERATIONS; it++) {
-            // shuffle list
-            Collections.shuffle(argsList);
-
-            List<Message> sorted = checkTermination(nodeNumber, argsList);
+        for (int i = 0; i < permutations.size(); i++) {
+            List<Message> sorted = checkTermination(nodeNumber, permutations.get(i));
             checkTotalOrderPerColor(totalOrder, sorted);
         }
     }

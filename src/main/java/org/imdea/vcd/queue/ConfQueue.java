@@ -24,6 +24,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
     // these two should always have the same size
     private final HashMap<Dot, E> dotToBox = new HashMap<>();
     private final HashMap<Dot, Clock<ExceptionSet>> dotToConf = new HashMap<>();
+    private final HashMap<Dot, Dots> dotToChildren = new HashMap<>();
     private List<E> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> committed;
@@ -60,28 +61,52 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         this.dotToConf.put(dot, conf);
 
         // try to find an SCC
-        TarjanSCCFinder finder = new TarjanSCCFinder();
-        Dots scc = finder.dfs(dot);
-        if (scc != null) {
-            // update delivered
-            this.delivered.addDots(scc);
+        findSCC(dot);
+    }
 
-            // merge boxes of dots in SCC
-            // - remove dot's box and conf along the way
-            Iterator<Dot> it = scc.iterator();
-            Dot member = it.next();
-            E box = this.dotToBox.remove(member);
-            this.dotToConf.remove(member);
-
-            while (it.hasNext()) {
-                member = it.next();
-                box.merge(this.dotToBox.remove(member));
-                this.dotToConf.remove(member);
-            }
-
-            // add to toDeliver list
-            this.toDeliver.add(box);
+    private void findSCC(Dot dot) {
+        // if already delivered, return
+        if (delivered.contains(dot)) {
+            return;
         }
+
+        TarjanSCCFinder finder = new TarjanSCCFinder();
+        try {
+            finder.dfs(dot);
+            for (Dots scc : finder.getSccs()) {
+                saveSCC(scc);
+                for (Dot del : scc) {
+                    Dots children = dotToChildren.remove(del);
+                    if (children != null) {
+                        for (Dot child : children) {
+                            findSCC(child);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    private void saveSCC(Dots scc) {
+        // update delivered
+        this.delivered.addDots(scc);
+
+        // merge boxes of dots in SCC
+        // - remove dot's box and conf along the way
+        Iterator<Dot> it = scc.iterator();
+        Dot member = it.next();
+        E box = this.dotToBox.remove(member);
+        this.dotToConf.remove(member);
+
+        while (it.hasNext()) {
+            member = it.next();
+            box.merge(this.dotToBox.remove(member));
+            this.dotToConf.remove(member);
+        }
+
+        // add to toDeliver list
+        this.toDeliver.add(box);
     }
 
     @Override
@@ -121,6 +146,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         private final Map<Dot, Integer> ids;
         private final Map<Dot, Integer> low;
         private final Map<Dot, Boolean> onStack;
+        private final Deque<Dots> sccs;
         private Integer id;
 
         public TarjanSCCFinder() {
@@ -128,16 +154,34 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             this.ids = new HashMap<>();
             this.low = new HashMap<>();
             this.onStack = new HashMap<>();
+            this.sccs = new ArrayDeque<>();
             this.id = 0;
         }
 
-        public Dots dfs(Dot at) {
+        public Deque<Dots> getSccs() {
+            return sccs;
+        }
+
+        // TODO fix Exception
+        public void dfs(Dot at) throws Exception {
             // get conf
             Clock<ExceptionSet> conf = dotToConf.get(at);
 
             // if not all deps are committed, give up
-            if (!allDepsCommitted(conf)) {
-                return null;
+            Dots missingDeps = conf.subtract(committed);
+            if (!missingDeps.isEmpty()) {
+
+                // update dotToChildren
+                for (Dot missingDep : missingDeps) {
+                    Dots children = dotToChildren.get(missingDep);
+                    if (children == null) {
+                        children = new Dots();
+                    }
+                    children.add(at);
+                    dotToChildren.put(missingDep, children);
+                }
+
+                throw new Exception("Dependency missing");
             }
 
             // add to the stack
@@ -150,8 +194,9 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             // update id
             id++;
 
-            // get neighbors
+            // get neighbors: subtract delivered and self
             Dots deps = conf.subtract(delivered);
+            deps.remove(at);
 
             // for all neighbors
             for (Dot to : deps) {
@@ -162,14 +207,15 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                 }
 
                 // if visited neighbor is on stack, min lows
-                if (isStacked(to)) {
+                Boolean stacked = onStack.get(to);
+                if (stacked != null && stacked) {
                     // low[at] = min(low[at], low[to])
                     Integer newLow = Math.min(low.get(at), low.get(to));
                     low.put(at, newLow);
                 }
             }
 
-            // if after visiting all neighbors, and SCC was found if
+            // if after visiting all neighbors, an SCC was found if
             // id[at] == low[at]
             // good news: the SCC members are in the stack
             if (Objects.equals(atId, low.get(at))) {
@@ -189,20 +235,8 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                     }
                 }
 
-                return scc;
-            } else {
-                return null;
+                sccs.add(scc);
             }
-        }
-
-        private boolean allDepsCommitted(Clock<ExceptionSet> conf) {
-            Dots missingDeps = conf.subtract(committed);
-            return missingDeps.isEmpty();
-        }
-
-        private boolean isStacked(Dot to) {
-            Boolean stacked = onStack.get(to);
-            return stacked != null && stacked;
         }
     }
 }

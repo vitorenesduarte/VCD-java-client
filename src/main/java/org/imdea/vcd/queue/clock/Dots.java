@@ -3,6 +3,7 @@ package org.imdea.vcd.queue.clock;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  *
@@ -29,6 +30,10 @@ public class Dots implements Iterable<Dot> {
 
     public void add(Dot dot) {
         this.set.add(dot);
+    }
+
+    public void remove(Dot dot) {
+        this.set.remove(dot);
     }
 
     public void merge(Dots dots) {
@@ -61,5 +66,23 @@ public class Dots implements Iterable<Dot> {
     public Object clone() {
         Dots dots = new Dots(this);
         return dots;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o) {
+            return true;
+        }
+        // null check
+        if (o == null) {
+            return false;
+        }
+        // type check and cast
+        if (getClass() != o.getClass()) {
+            return false;
+        }
+        Dots t = (Dots) o;
+        return Objects.equals(this.set, t.set);
     }
 }
