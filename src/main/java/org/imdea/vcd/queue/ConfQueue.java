@@ -162,8 +162,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                 }
 
                 // if visited neighbor is on stack, min lows
-                Boolean stacked = onStack.get(to);
-                if (stacked != null && stacked) {
+                if (isStacked(to)) {
                     // low[at] = min(low[at], low[to])
                     Integer newLow = Math.min(low.get(at), low.get(to));
                     low.put(at, newLow);
@@ -199,6 +198,11 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         private boolean allDepsCommitted(Clock<ExceptionSet> conf) {
             Dots missingDeps = conf.subtract(committed);
             return missingDeps.isEmpty();
+        }
+
+        private boolean isStacked(Dot to) {
+            Boolean stacked = onStack.get(to);
+            return stacked != null && stacked;
         }
     }
 }
