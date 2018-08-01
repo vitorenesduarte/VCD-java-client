@@ -36,8 +36,8 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
     }
 
     public ConfQueue(Clock<ExceptionSet> delivered) {
-        this.committed = Clock.eclock(delivered.size());
-        this.delivered = delivered;
+        this.committed = (Clock<ExceptionSet>) delivered.clone();
+        this.delivered = (Clock<ExceptionSet>) delivered.clone();
     }
 
     @Override
