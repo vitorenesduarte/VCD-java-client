@@ -11,11 +11,11 @@ import org.imdea.vcd.queue.clock.MaxInt;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.imdea.vcd.queue.clock.Dots;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class ConfQueueTest {
 
-    public static final int ITERATIONS = 10;
+    public static final int ITERATIONS = 100;
 
     @Test
     public void testRandom() {
@@ -38,7 +38,6 @@ public class ConfQueueTest {
             for (Map.Entry<Dot, Clock<MaxInt>> e : dotToConf.entrySet()) {
                 argsList.add(args(e.getKey(), e.getValue()));
             }
-            Collections.shuffle(argsList);
 
             checkTerminationRandomShuffles(nodeNumber, argsList);
         }
@@ -268,17 +267,98 @@ public class ConfQueueTest {
         checkTerminationRandomShuffles(nodeNumber, argsList);
     }
 
+    @Test
+    public void testAdd5() {
+        Integer nodeNumber = 2;
+
+        // {{0, 1}, [{0, 1}, {1, 1}]}
+        Dot dotA = new Dot(0, 1L);
+        HashMap<Integer, ExceptionSet> mapA = new HashMap<>();
+        mapA.put(0, new ExceptionSet(1L));
+        mapA.put(1, new ExceptionSet(1L));
+
+        // {{0, 2}, [{0, 2}, {1, 0}]}
+        Dot dotB = new Dot(0, 2L);
+        HashMap<Integer, ExceptionSet> mapB = new HashMap<>();
+        mapB.put(0, new ExceptionSet(2L));
+        mapB.put(1, new ExceptionSet());
+
+        // {{1, 1}, [{0, 1}, {1, 1}]}
+        Dot dotC = new Dot(1, 1L);
+        HashMap<Integer, ExceptionSet> mapC = new HashMap<>();
+        mapC.put(0, new ExceptionSet(1L));
+        mapC.put(1, new ExceptionSet(1L));
+
+        List<QueueAddArgs> argsList = new ArrayList<>();
+        argsList.add(args(dotA, mapA));
+        argsList.add(args(dotB, mapB));
+        argsList.add(args(dotC, mapC));
+
+        checkTerminationRandomShuffles(nodeNumber, argsList);
+    }
+
+    @Test
+    public void testAdd6() {
+        Integer nodeNumber = 2;
+
+        // {{0, 1}, [{0, 1}]}
+        Dot dotA = new Dot(0, 1L);
+        HashMap<Integer, ExceptionSet> mapA = new HashMap<>();
+        mapA.put(0, new ExceptionSet(1L));
+        mapA.put(1, new ExceptionSet());
+
+        // {{0, 2}, [{0, 4}, {1, 1}]}
+        Dot dotB = new Dot(0, 2L);
+        HashMap<Integer, ExceptionSet> mapB = new HashMap<>();
+        mapB.put(0, new ExceptionSet(4L));
+        mapB.put(1, new ExceptionSet(1L));
+
+        // {{0, 3}, [{0, 3}]}
+        Dot dotC = new Dot(0, 3L);
+        HashMap<Integer, ExceptionSet> mapC = new HashMap<>();
+        mapC.put(0, new ExceptionSet(3L));
+        mapC.put(1, new ExceptionSet());
+
+        // {{0, 4}, [{0, 4}]}
+        Dot dotD = new Dot(0, 4L);
+        HashMap<Integer, ExceptionSet> mapD = new HashMap<>();
+        mapD.put(0, new ExceptionSet(4L));
+        mapD.put(1, new ExceptionSet());
+
+        // {{1, 1}, [{1, 1}]}
+        Dot dotE = new Dot(1, 1L);
+        HashMap<Integer, ExceptionSet> mapE = new HashMap<>();
+        mapE.put(0, new ExceptionSet());
+        mapE.put(1, new ExceptionSet(1L));
+
+        // {{1, 2}, [{0,3}, {1, 2}]}
+        Dot dotF = new Dot(1, 2L);
+        HashMap<Integer, ExceptionSet> mapF = new HashMap<>();
+        mapF.put(0, new ExceptionSet(3L));
+        mapF.put(1, new ExceptionSet(2L));
+
+        List<QueueAddArgs> argsList = new ArrayList<>();
+        argsList.add(args(dotA, mapA));
+        argsList.add(args(dotB, mapB));
+        argsList.add(args(dotC, mapC));
+        argsList.add(args(dotD, mapD));
+        argsList.add(args(dotE, mapE));
+        argsList.add(args(dotF, mapF));
+
+        checkTerminationRandomShuffles(nodeNumber, argsList);
+    }
+
     private void checkTerminationRandomShuffles(Integer nodeNumber, List<QueueAddArgs> argsList) {
         List<List<QueueAddArgs>> permutations = Permutations.of(argsList);
-        List<Message> totalOrder = checkTermination(nodeNumber, argsList);
+        Map<Dots, List<Message>> totalOrder = checkTermination(nodeNumber, argsList);
 
         for (int i = 0; i < permutations.size(); i++) {
-            List<Message> sorted = checkTermination(nodeNumber, permutations.get(i));
+            Map<Dots, List<Message>> sorted = checkTermination(nodeNumber, permutations.get(i));
             checkTotalOrderPerColor(totalOrder, sorted);
         }
     }
 
-    private List<Message> checkTermination(Integer nodeNumber, List<QueueAddArgs> argsList) {
+    private Map<Dots, List<Message>> checkTermination(Integer nodeNumber, List<QueueAddArgs> argsList) {
         ConfQueue<CommittedQueueBox> queue = new ConfQueue<>(nodeNumber);
         List<CommittedQueueBox> results = new ArrayList<>();
         for (QueueAddArgs args : argsList) {
@@ -298,9 +378,9 @@ public class ConfQueueTest {
         assertTrue(termination);
 
         // return messages sorted
-        List<Message> sorted = new ArrayList<>();
+        Map<Dots, List<Message>> sorted = new HashMap<>();
         for (CommittedQueueBox box : results) {
-            sorted.addAll(box.sortMessages());
+            sorted.put(box.getDots(), box.sortMessages());
         }
         return sorted;
     }
@@ -350,6 +430,14 @@ public class ConfQueueTest {
         CommittedQueueBox box = new CommittedQueueBox(dot, dep, message, conf);
         QueueAddArgs args = new QueueAddArgs(dot, conf, box);
         return args;
+    }
+
+    private void checkTotalOrderPerColor(Map<Dots, List<Message>> ma, Map<Dots, List<Message>> mb) {
+        for(Map.Entry<Dots, List<Message>> entry : ma.entrySet()) {
+            List<Message> a = entry.getValue();
+            List<Message> b = mb.get(entry.getKey());
+            checkTotalOrderPerColor(a, b);
+        }
     }
 
     private void checkTotalOrderPerColor(List<Message> a, List<Message> b) {

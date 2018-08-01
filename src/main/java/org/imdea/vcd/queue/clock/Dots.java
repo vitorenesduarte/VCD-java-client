@@ -85,4 +85,11 @@ public class Dots implements Iterable<Dot> {
         Dots t = (Dots) o;
         return Objects.equals(this.set, t.set);
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.set);
+        return hash;
+    }
 }

@@ -29,7 +29,7 @@ public class Clock<T extends IntSet> {
     public Clock(Integer nodeNumber, T bottom) {
         this.map = new HashMap<>();
         for (Integer actor = 0; actor < nodeNumber; actor++) {
-            this.map.put(actor, bottom);
+            this.map.put(actor, (T) bottom.clone());
         }
     }
 

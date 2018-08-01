@@ -159,20 +159,21 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             // get conf
             Clock<ExceptionSet> conf = dotToConf.get(at);
 
-            // if not all deps are committed, give up
-            Dots missingDeps = conf.subtract(committed);
-            if (!missingDeps.isEmpty()) {
-
-                // update dotToChildren
-                for (Dot missingDep : missingDeps) {
-                    Dots children = dotToChildren.get(missingDep);
-                    if (children == null) {
-                        children = new Dots();
-                    }
-                    children.add(at);
-                    dotToChildren.put(missingDep, children);
+            // update dotToChildren
+            Dots missingNonDeliveredDeps = conf.subtract(delivered);
+            missingNonDeliveredDeps.remove(at);
+            for (Dot missingDep : missingNonDeliveredDeps) {
+                Dots children = dotToChildren.get(missingDep);
+                if (children == null) {
+                    children = new Dots();
                 }
+                children.add(at);
+                dotToChildren.put(missingDep, children);
+            }
 
+            // if not all deps are committed, give up
+            Dots missingNonCommittedDeps = conf.subtract(committed);
+            if (!missingNonCommittedDeps.isEmpty()) {
                 throw new Exception("Dependency missing");
             }
 
@@ -195,10 +196,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                 // if not visited, visit
                 boolean visited = ids.containsKey(to);
                 if (!visited) {
-                    Dots scc = dfs(to);
-                    if (scc != null) {
-                        System.out.println("Non-null depth > 1 SCC found!");
-                    }
+                    dfs(to);
                 }
 
                 // if visited neighbor is on stack, min lows

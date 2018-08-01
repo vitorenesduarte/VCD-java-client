@@ -61,7 +61,7 @@ public class Generator {
         return randomByteString(config.getPayloadSize());
     }
 
-    private static final int MAX_SEQ_PER_NODE = 10;
+    private static final int MAX_SEQ_PER_NODE = 5;
     private static final int MAX_DEPS = 5;
 
     public static Map<Dot, Clock<MaxInt>> dotToConf(Integer nodeNumber) {
