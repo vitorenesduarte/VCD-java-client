@@ -14,11 +14,11 @@ public class Permutations {
 
     public static <T> List<List<T>> of(final List<T> items) {
         List<List<T>> result = new ArrayList<>();
-        
+
         for (int i = 0; i < factorial(items.size()); i++) {
             result.add(permutation(i, items));
         }
-        
+
         return result;
     }
 

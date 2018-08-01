@@ -1,9 +1,17 @@
 package org.imdea.vcd;
 
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
+import org.imdea.vcd.queue.clock.Clock;
+import org.imdea.vcd.queue.clock.Dot;
+import org.imdea.vcd.queue.clock.MaxInt;
 
 /**
  *
@@ -51,6 +59,36 @@ public class Generator {
 
     public static ByteString messageSetData(Config config) {
         return randomByteString(config.getPayloadSize());
+    }
+
+    private static final int MAX_SEQ_PER_NODE = 10;
+    private static final int MAX_DEPS = 10;
+
+    public static Map<Dot, Clock<MaxInt>> dotToConf(Integer nodeNumber) {
+        Map<Dot, Clock<MaxInt>> result = new HashMap<>();
+
+        // create dots
+        List<Dot> dots = new ArrayList<>();
+        for (Integer id = 0; id < nodeNumber; id++) {
+            Long maxSeq = RANDOM().nextLong(MAX_SEQ_PER_NODE);
+            for (Long seq = 1L; seq <= maxSeq; seq++) {
+                dots.add(new Dot(id, seq));
+            }
+        }
+
+        List<Dot> deps = new ArrayList<>(dots);
+        for (Dot dot : dots) {
+            // for each dot, take a random subset of all dots as conf
+            Collections.shuffle(deps);
+            Integer numberOfDeps = RANDOM().nextInt(Math.min(MAX_DEPS, deps.size()));
+            Clock<MaxInt> conf = new Clock<>(nodeNumber, new MaxInt());
+            for (int i = 0; i < numberOfDeps; i++) {
+                conf.addDot(deps.get(i));
+            }
+            result.put(dot, conf);
+        }
+
+        return result;
     }
 
     /**

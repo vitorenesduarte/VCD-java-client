@@ -26,6 +26,13 @@ public class Clock<T extends IntSet> {
         }
     }
 
+    public Clock(Integer nodeNumber, T bottom) {
+        this.map = new HashMap<>();
+        for (Integer actor = 0; actor < nodeNumber; actor++) {
+            this.map.put(actor, bottom);
+        }
+    }
+
     public boolean contains(Dot dot) {
         return this.map.get(dot.getId()).contains(dot.getSeq());
     }

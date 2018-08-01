@@ -72,15 +72,13 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
 
         TarjanSCCFinder finder = new TarjanSCCFinder();
         try {
-            finder.dfs(dot);
-            for (Dots scc : finder.getSccs()) {
-                saveSCC(scc);
-                for (Dot del : scc) {
-                    Dots children = dotToChildren.remove(del);
-                    if (children != null) {
-                        for (Dot child : children) {
-                            findSCC(child);
-                        }
+            Dots scc = finder.dfs(dot);
+            saveSCC(scc);
+            for (Dot del : scc) {
+                Dots children = dotToChildren.remove(del);
+                if (children != null) {
+                    for (Dot child : children) {
+                        findSCC(child);
                     }
                 }
             }
@@ -146,7 +144,6 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         private final Map<Dot, Integer> ids;
         private final Map<Dot, Integer> low;
         private final Map<Dot, Boolean> onStack;
-        private final Deque<Dots> sccs;
         private Integer id;
 
         public TarjanSCCFinder() {
@@ -154,16 +151,11 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             this.ids = new HashMap<>();
             this.low = new HashMap<>();
             this.onStack = new HashMap<>();
-            this.sccs = new ArrayDeque<>();
             this.id = 0;
         }
 
-        public Deque<Dots> getSccs() {
-            return sccs;
-        }
-
         // TODO fix Exception
-        public void dfs(Dot at) throws Exception {
+        public Dots dfs(Dot at) throws Exception {
             // get conf
             Clock<ExceptionSet> conf = dotToConf.get(at);
 
@@ -203,7 +195,10 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                 // if not visited, visit
                 boolean visited = ids.containsKey(to);
                 if (!visited) {
-                    dfs(to);
+                    Dots scc = dfs(to);
+                    if (scc != null) {
+                        System.out.println("Non-null depth > 1 SCC found!");
+                    }
                 }
 
                 // if visited neighbor is on stack, min lows
@@ -235,8 +230,10 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                     }
                 }
 
-                sccs.add(scc);
+                return scc;
             }
+
+            return null;
         }
     }
 }

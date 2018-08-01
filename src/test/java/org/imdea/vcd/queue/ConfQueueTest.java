@@ -11,6 +11,7 @@ import org.imdea.vcd.queue.clock.MaxInt;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +25,24 @@ import static org.junit.Assert.assertTrue;
  * @author Vitor Enes
  */
 public class ConfQueueTest {
+
+    public static final int ITERATIONS = 10;
+
+    @Test
+    public void testRandom() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            Integer nodeNumber = 3;
+            Map<Dot, Clock<MaxInt>> dotToConf = Generator.dotToConf(nodeNumber);
+
+            List<QueueAddArgs> argsList = new ArrayList<>();
+            for (Map.Entry<Dot, Clock<MaxInt>> e : dotToConf.entrySet()) {
+                argsList.add(args(e.getKey(), e.getValue()));
+            }
+            Collections.shuffle(argsList);
+
+            checkTerminationRandomShuffles(nodeNumber, argsList);
+        }
+    }
 
     @Test
     public void testAdd1() {
@@ -269,8 +288,14 @@ public class ConfQueueTest {
         }
 
         // check queue is empty and all dots were delivered
-        assertTrue(queue.isEmpty() && queue.size() == 0 && queue.elements() == 0);
-        checkAllDotsDelivered(argsList, results);
+        boolean emptyQueue = queue.isEmpty() && queue.size() == 0 && queue.elements() == 0;
+        boolean allDots = checkAllDotsDelivered(argsList, results);
+        boolean termination = emptyQueue && allDots;
+
+        if (!termination) {
+            System.out.println(argsList);
+        }
+        assertTrue(termination);
 
         // return messages sorted
         List<Message> sorted = new ArrayList<>();
@@ -280,7 +305,7 @@ public class ConfQueueTest {
         return sorted;
     }
 
-    private void checkAllDotsDelivered(List<QueueAddArgs> argsList, List<CommittedQueueBox> results) {
+    private boolean checkAllDotsDelivered(List<QueueAddArgs> argsList, List<CommittedQueueBox> results) {
         List<CommittedQueueBox> boxes = new ArrayList<>();
         for (QueueAddArgs args : argsList) {
             boxes.add((CommittedQueueBox) args.getBox());
@@ -290,10 +315,7 @@ public class ConfQueueTest {
         List<Dot> resultsDots = boxListToDots(results);
 
         // all dots (and no more) were delivered
-        assertTrue(boxesDots.size() == resultsDots.size());
-        for (Dot dot : boxesDots) {
-            assertTrue(resultsDots.contains(dot));
-        }
+        return boxesDots.size() == resultsDots.size() && resultsDots.containsAll(boxesDots);
     }
 
     private List<Dot> boxListToDots(List<CommittedQueueBox> list) {
@@ -306,10 +328,12 @@ public class ConfQueueTest {
         return dots;
     }
 
-    private QueueAddArgs args(Dot dot, HashMap<Integer, ExceptionSet> depMap) {
-        // build random message
-        Message message = Generator.message();
+    private QueueAddArgs args(Dot dot, Clock<MaxInt> conf) {
+        // create dep, given conf
+        return args(dot, conf, Clock.eclock(conf));
+    }
 
+    private QueueAddArgs args(Dot dot, HashMap<Integer, ExceptionSet> depMap) {
         // create conf, given dep
         HashMap<Integer, MaxInt> confMap = new HashMap<>();
         for (Map.Entry<Integer, ExceptionSet> entry : depMap.entrySet()) {
@@ -317,7 +341,12 @@ public class ConfQueueTest {
         }
         Clock<MaxInt> conf = new Clock<>(confMap);
         Clock<ExceptionSet> dep = new Clock<>(depMap);
+        return args(dot, conf, dep);
+    }
 
+    private QueueAddArgs args(Dot dot, Clock<MaxInt> conf, Clock<ExceptionSet> dep) {
+        // build random message
+        Message message = Generator.message();
         CommittedQueueBox box = new CommittedQueueBox(dot, dep, message, conf);
         QueueAddArgs args = new QueueAddArgs(dot, conf, box);
         return args;

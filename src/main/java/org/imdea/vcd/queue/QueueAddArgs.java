@@ -53,6 +53,11 @@ public class QueueAddArgs<E extends QueueBox> {
     }
 
     @Override
+    public String toString() {
+        return dot + " " + conf;
+    }
+
+    @Override
     protected Object clone() {
         QueueAddArgs queueAddArgs = new QueueAddArgs(this);
         return queueAddArgs;
