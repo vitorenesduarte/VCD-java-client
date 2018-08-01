@@ -433,7 +433,7 @@ public class ConfQueueTest {
     }
 
     private void checkTotalOrderPerColor(Map<Dots, List<Message>> ma, Map<Dots, List<Message>> mb) {
-        for(Map.Entry<Dots, List<Message>> entry : ma.entrySet()) {
+        for (Map.Entry<Dots, List<Message>> entry : ma.entrySet()) {
             List<Message> a = entry.getValue();
             List<Message> b = mb.get(entry.getKey());
             checkTotalOrderPerColor(a, b);
