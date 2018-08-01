@@ -48,7 +48,7 @@ public class Config {
     @Parameter(names = "-zk", description = "zk server (host:port)")
     private String zk = "127.0.0.1:2181";
 
-    @Parameter(names = "-deliver_by_conf", description = "delivery is performed by conf if true; by dep otherwise")
+    @Parameter(names = "-deliver_by_conf", description = "delivery is performed by conf if true; by dep otherwise", arity = 1)
     private Boolean deliverByConf = false;
 
     private Config() {
