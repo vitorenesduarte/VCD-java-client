@@ -317,12 +317,17 @@ public class DataRW {
 
                     switch (reply.getReplyCase()) {
                         case INIT:
+                            // create committed clock
+                            Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
+
+                            // create delivery queue that delivers by conf or by dep
                             if (this.deliverByConf) {
-                                this.queue = new ConfQueue(Clock.eclock(reply.getInit().getCommittedMap()));
+                                this.queue = new ConfQueue(committed);
                             } else {
-                                this.queue = new DepQueue(Clock.eclock(reply.getInit().getCommittedMap()));
+                                this.queue = new DepQueue(committed);
                             }
                             break;
+
                         case COMMIT:
                             final Timer.Context createBoxContext = createBox.time();
                             QueueAddArgs args = createArgs(reply);

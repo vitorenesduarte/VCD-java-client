@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.queue.box.QueueBox;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -145,8 +144,9 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             stack.push(at);
             onStack.put(at, true);
             // set id and low
-            ids.put(at, id);
-            low.put(at, id);
+            Integer atId = id;
+            ids.put(at, atId);
+            low.put(at, atId);
             // update id
             id++;
 
@@ -173,11 +173,18 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             // if after visiting all neighbors, and SCC was found if
             // id[at] == low[at]
             // good news: the SCC members are in the stack
-            if (Objects.equals(ids.get(at), low.get(at))) {
+            if (Objects.equals(atId, low.get(at))) {
                 Dots scc = new Dots();
 
                 for (Dot member = stack.pop();; member = stack.pop()) {
+                    // remove from stack
+                    onStack.remove(member);
+                    // update low
+                    low.put(member, atId);
+                    // add to SCC
                     scc.add(member);
+
+                    // exit if done
                     if (member.equals(at)) {
                         break;
                     }

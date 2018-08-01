@@ -32,7 +32,7 @@ public class Dot implements Comparable<Dot> {
 
     @Override
     public String toString() {
-        return "{" + id + "," + seq + '}';
+        return "<" + id + "," + seq + ">";
     }
 
     public static Dot dot(Proto.Dot dot) {
