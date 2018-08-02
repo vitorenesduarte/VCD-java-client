@@ -9,6 +9,8 @@ import java.util.List;
  */
 public interface IntSet<T> {
 
+    boolean isBottom();
+
     boolean contains(Long seq);
 
     void add(Long seq);

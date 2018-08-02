@@ -10,6 +10,8 @@ import java.util.Objects;
  */
 public class MaxInt implements IntSet<MaxInt> {
 
+    private static final MaxInt BOTTOM = new MaxInt();
+
     private Long seq;
 
     public MaxInt() {
@@ -27,6 +29,11 @@ public class MaxInt implements IntSet<MaxInt> {
     public ExceptionSet toExceptionSet() {
         ExceptionSet exceptionSet = new ExceptionSet(this.seq);
         return exceptionSet;
+    }
+
+    @Override
+    public boolean isBottom() {
+        return this.equals(BOTTOM);
     }
 
     @Override

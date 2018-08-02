@@ -33,6 +33,16 @@ public class Clock<T extends IntSet> {
         }
     }
 
+    public boolean isBottom() {
+        for (T t : this.map.values()) {
+            if (!t.isBottom()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public boolean contains(Dot dot) {
         return this.map.get(dot.getId()).contains(dot.getSeq());
     }

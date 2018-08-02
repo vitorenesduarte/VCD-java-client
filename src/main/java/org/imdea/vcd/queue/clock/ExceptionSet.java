@@ -13,6 +13,8 @@ import org.imdea.vcd.pb.Proto;
  */
 public class ExceptionSet implements IntSet<ExceptionSet> {
 
+    private static final ExceptionSet BOTTOM = new ExceptionSet();
+
     private Long seq;
     private HashSet<Long> exceptions;
 
@@ -44,6 +46,11 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     public MaxInt toMaxInt() {
         MaxInt maxInt = new MaxInt(this.seq);
         return maxInt;
+    }
+
+    @Override
+    public boolean isBottom() {
+        return this.equals(BOTTOM);
     }
 
     @Override
