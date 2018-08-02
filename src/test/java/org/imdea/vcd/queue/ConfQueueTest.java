@@ -11,6 +11,7 @@ import org.imdea.vcd.queue.clock.MaxInt;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +41,31 @@ public class ConfQueueTest {
             }
 
             checkTerminationRandomShuffles(nodeNumber, argsList);
+        }
+    }
+
+    @Test
+    public void testFailures() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            Integer nodeNumber = 2;
+            Map<Dot, Clock<MaxInt>> dotToConf = Generator.dotToConf(nodeNumber);
+            while (dotToConf.isEmpty()) {
+                // make sure we don't generate an empty map
+                dotToConf = Generator.dotToConf(nodeNumber);
+            }
+
+            List<QueueAddArgs> argsList = new ArrayList<>();
+            for (Map.Entry<Dot, Clock<MaxInt>> e : dotToConf.entrySet()) {
+                argsList.add(args(e.getKey(), e.getValue()));
+            }
+
+            Collections.shuffle(argsList);
+
+            // create the commit clock after failure
+            QueueAddArgs committedArgs = argsList.remove(0);
+            Clock<ExceptionSet> committed = Clock.eclock(committedArgs.getConf());
+
+            checkTerminationRandomShuffles(committed, argsList);
         }
     }
 
@@ -348,18 +374,63 @@ public class ConfQueueTest {
         checkTerminationRandomShuffles(nodeNumber, argsList);
     }
 
-    private void checkTerminationRandomShuffles(Integer nodeNumber, List<QueueAddArgs> argsList) {
+    @Test
+    public void testFailure1() {
+        Integer nodeNumber = 2;
+
+        // {0, 1} [4, 0]
+        Dot dotA = new Dot(0, 1L);
+        HashMap<Integer, ExceptionSet> mapA = new HashMap<>();
+        mapA.put(0, new ExceptionSet(4L));
+        mapA.put(1, new ExceptionSet());
+
+        // {0, 3} [3, 0]
+        Dot dotB = new Dot(0, 3L);
+        HashMap<Integer, ExceptionSet> mapB = new HashMap<>();
+        mapB.put(0, new ExceptionSet(3L));
+        mapB.put(1, new ExceptionSet());
+
+        // {0, 4} [4, 0]
+        Dot dotC = new Dot(0, 4L);
+        HashMap<Integer, ExceptionSet> mapC = new HashMap<>();
+        mapC.put(0, new ExceptionSet(4L));
+        mapC.put(1, new ExceptionSet());
+
+        // [2, 0]
+        Clock<ExceptionSet> delivered = new Clock<>(nodeNumber, new ExceptionSet());
+        delivered.addDot(new Dot(0, 1L));
+        delivered.addDot(new Dot(0, 2L));
+
+        List<QueueAddArgs> argsList = new ArrayList<>();
+        argsList.add(args(dotA, mapA));
+        argsList.add(args(dotB, mapB));
+        argsList.add(args(dotC, mapC));
+
+        checkTerminationRandomShuffles(delivered, argsList);
+    }
+
+    private void checkTerminationRandomShuffles(Object queueArg, List<QueueAddArgs> argsList) {
         List<List<QueueAddArgs>> permutations = Permutations.of(argsList);
-        Map<Dots, List<Message>> totalOrder = checkTermination(nodeNumber, argsList);
+        Map<Dots, List<Message>> totalOrder = checkTermination(queueArg, argsList);
 
         for (int i = 0; i < permutations.size(); i++) {
-            Map<Dots, List<Message>> sorted = checkTermination(nodeNumber, permutations.get(i));
+            Map<Dots, List<Message>> sorted = checkTermination(queueArg, permutations.get(i));
             checkTotalOrderPerColor(totalOrder, sorted);
         }
     }
 
-    private Map<Dots, List<Message>> checkTermination(Integer nodeNumber, List<QueueAddArgs> argsList) {
-        ConfQueue<CommittedQueueBox> queue = new ConfQueue<>(nodeNumber);
+    private Map<Dots, List<Message>> checkTermination(Object queueArg, List<QueueAddArgs> argsList) {
+        ConfQueue<CommittedQueueBox> queue;
+        if (queueArg instanceof Integer) {
+            queue = new ConfQueue<>((Integer) queueArg);
+        } else {
+            queue = new ConfQueue<>((Clock<ExceptionSet>) queueArg);
+        }
+
+        return checkTermination(queue, argsList);
+    }
+
+    private Map<Dots, List<Message>> checkTermination(ConfQueue<CommittedQueueBox> queue, List<QueueAddArgs> argsList) {
         List<CommittedQueueBox> results = new ArrayList<>();
         for (QueueAddArgs args : argsList) {
             queue.add((QueueAddArgs) args.clone());

@@ -35,9 +35,9 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         this.delivered = Clock.eclock(nodeNumber);
     }
 
-    public ConfQueue(Clock<ExceptionSet> delivered) {
-        this.committed = (Clock<ExceptionSet>) delivered.clone();
-        this.delivered = (Clock<ExceptionSet>) delivered.clone();
+    public ConfQueue(Clock<ExceptionSet> committed) {
+        this.committed = (Clock<ExceptionSet>) committed.clone();
+        this.delivered = (Clock<ExceptionSet>) committed.clone();
     }
 
     @Override
@@ -60,13 +60,22 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         // save info
         this.dotToConf.put(dot, conf);
 
+        if (this.delivered.contains(dot)) {
+            // FOR THE CASE OF FAILURES: just deliver again?
+            // this probably shouldn't happen
+            Dots scc = new Dots();
+            scc.add(dot);
+            saveSCC(scc);
+            return;
+        }
+
         // try to find an SCC
         findSCC(dot);
     }
 
     private void findSCC(Dot dot) {
         // if already delivered, return
-        if (delivered.contains(dot)) {
+        if (this.delivered.contains(dot)) {
             return;
         }
 
@@ -86,7 +95,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                 // and try to deliver more, based on the
                 // children of the dots delivered
                 for (Dot del : toBeDelivered) {
-                    Dots children = dotToChildren.remove(del);
+                    Dots children = this.dotToChildren.remove(del);
                     if (children != null) {
                         for (Dot child : children) {
                             findSCC(child);
