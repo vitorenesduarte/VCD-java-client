@@ -21,4 +21,5 @@ CMD java -jar $JAR -ops=${OPS} \
                    -cluster=${CLUSTER} \
                    -timestamp=${TIMESTAMP} \
                    -redis=${REDIS} \
-                   -zk=${ZK}
+                   -zk=${ZK} \
+                   -deliver_by_conf=${DELIVER_BY_CONF}
