@@ -22,4 +22,4 @@ CMD java -jar $JAR -ops=${OPS} \
                    -timestamp=${TIMESTAMP} \
                    -redis=${REDIS} \
                    -zk=${ZK} \
-                   -deliver_by_conf=${DELIVER_BY_CONF}
+                   -queue_type=${QUEUE_TYPE}

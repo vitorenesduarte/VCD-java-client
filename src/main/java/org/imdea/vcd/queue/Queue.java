@@ -21,5 +21,4 @@ public interface Queue<E extends QueueBox> {
     int size();
 
     int elements();
-
 }

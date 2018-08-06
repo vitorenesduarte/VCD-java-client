@@ -4,6 +4,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import org.imdea.vcd.queue.QueueType;
 
 /**
  *
@@ -48,8 +49,8 @@ public class Config {
     @Parameter(names = "-zk", description = "zk server (host:port)")
     private String zk = "127.0.0.1:2181";
 
-    @Parameter(names = "-deliver_by_conf", description = "delivery is performed by conf if true; by dep otherwise", arity = 1)
-    private Boolean deliverByConf = false;
+    @Parameter(names = "-queue_type", description = "which queue to use; possible values: dep, conf, random")
+    private QueueType queueType = QueueType.DEP;
 
     private Config() {
     }
@@ -150,12 +151,12 @@ public class Config {
         this.zk = zk;
     }
 
-    public Boolean getDeliverByConf() {
-        return deliverByConf;
+    public QueueType getQueueType() {
+        return queueType;
     }
 
-    public void setDeliverByConf(Boolean deliverByConf) {
-        this.deliverByConf = deliverByConf;
+    public void setQueueType(QueueType queueType) {
+        this.queueType = queueType;
     }
 
     public static Config parseArgs(String[] args) {

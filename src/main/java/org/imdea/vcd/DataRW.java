@@ -30,6 +30,8 @@ import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.queue.ConfQueue;
 import org.imdea.vcd.queue.Queue;
 import org.imdea.vcd.queue.QueueAddArgs;
+import org.imdea.vcd.queue.QueueType;
+import org.imdea.vcd.queue.RandomQueue;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
@@ -277,7 +279,7 @@ public class DataRW {
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final LinkedBlockingQueue<List<CommittedQueueBox>> toSorter;
         private final Sorter sorter;
-        private final Boolean deliverByConf;
+        private final QueueType queueType;
         private Queue<CommittedQueueBox> queue;
 
         // metrics
@@ -299,7 +301,7 @@ public class DataRW {
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
             this.sorter = new Sorter(toClient, this.toSorter, config);
-            this.deliverByConf = config.getDeliverByConf();
+            this.queueType = config.getQueueType();
         }
 
         public void close() {
@@ -321,10 +323,16 @@ public class DataRW {
                             Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
 
                             // create delivery queue that delivers by conf or by dep
-                            if (this.deliverByConf) {
-                                this.queue = new ConfQueue(committed);
-                            } else {
-                                this.queue = new DepQueue(committed);
+                            switch (this.queueType) {
+                                case DEP:
+                                    this.queue = new DepQueue(committed);
+                                    break;
+                                case CONF:
+                                    this.queue = new ConfQueue(committed);
+                                    break;
+                                case RANDOM:
+                                    this.queue = new RandomQueue();
+                                    break;
                             }
                             break;
 
