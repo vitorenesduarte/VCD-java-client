@@ -322,7 +322,7 @@ public class DataRW {
                             // create committed clock
                             Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
 
-                            // create delivery queue that delivers by conf or by dep
+                            // create delivery queue that delivers by dep, conf or randomly
                             switch (this.queueType) {
                                 case DEP:
                                     this.queue = new DepQueue(committed);
@@ -342,7 +342,7 @@ public class DataRW {
                             createBoxContext.stop();
 
                             final Timer.Context toAddContext = toAdd.time();
-                            // hack: pass commit so that ConfQueue has all info
+                            // hack: pass all info, and each queue will use the information it needs
                             queue.add(args);
                             toAddContext.stop();
 

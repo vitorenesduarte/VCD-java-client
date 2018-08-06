@@ -49,6 +49,13 @@ public class RandomQueue<E extends QueueBox> implements Queue<E> {
         int bucket = randomBucket();
         List<E> boxes = resetBucket(bucket);
 
+        if (size > 0 && boxes.isEmpty()) {
+            // if there's something to deliver,
+            // and we picked and empty bucket,
+            // pick a new one
+            return tryDeliver();
+        }
+
         // update size
         size -= boxes.size();
 
