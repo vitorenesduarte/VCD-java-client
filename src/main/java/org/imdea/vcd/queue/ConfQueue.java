@@ -86,25 +86,25 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         switch (res) {
             case FOUND:
                 List<Dots> sccs = finder.getSCCs();
-                Dots toBeDelivered = new Dots();
 
                 // deliver all sccs by the order they were found
                 for (Dots scc : sccs) {
                     saveSCC(scc);
-                    toBeDelivered.merge(scc);
                 }
 
                 // and try to deliver more, based on the
                 // children of the dots delivered
-                for (Dot del : toBeDelivered) {
-                    this.childrenIsSet.remove(del);
-                    Dots children = this.dotToChildren.remove(del);
-                    if (children != null) {
-                        for (Dot child : children) {
-                            findSCC(child);
+                for (Dots scc : sccs) {
+                    for (Dot del : scc) {
+                        Dots children = this.dotToChildren.remove(del);
+                        if (children != null) {
+                            for (Dot child : children) {
+                                findSCC(child);
+                            }
                         }
                     }
                 }
+
             default:
                 break;
         }
@@ -119,16 +119,21 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         Iterator<Dot> it = scc.iterator();
         Dot member = it.next();
         E box = this.dotToBox.remove(member);
-        this.dotToConf.remove(member);
+        resetMember(member);
 
         while (it.hasNext()) {
             member = it.next();
             box.merge(this.dotToBox.remove(member));
-            this.dotToConf.remove(member);
+            resetMember(member);
         }
 
         // add to toDeliver list
         this.toDeliver.add(box);
+    }
+
+    private void resetMember(Dot member) {
+        this.dotToConf.remove(member);
+        this.childrenIsSet.remove(member);
     }
 
     @Override
