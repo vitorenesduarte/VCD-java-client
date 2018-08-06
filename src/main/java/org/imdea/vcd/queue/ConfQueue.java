@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
     // these two should always have the same size
     private final HashMap<Dot, E> dotToBox = new HashMap<>();
     private final HashMap<Dot, Clock<ExceptionSet>> dotToConf = new HashMap<>();
+    private final HashSet<Dot> childrenIsSet = new HashSet<>();
     private final HashMap<Dot, Dots> dotToChildren = new HashMap<>();
     private List<E> toDeliver = new ArrayList<>();
 
@@ -95,6 +97,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                 // and try to deliver more, based on the
                 // children of the dots delivered
                 for (Dot del : toBeDelivered) {
+                    this.childrenIsSet.remove(del);
                     Dots children = this.dotToChildren.remove(del);
                     if (children != null) {
                         for (Dot child : children) {
@@ -190,14 +193,19 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             Dots deps = conf.subtract(delivered);
             deps.remove(at);
 
-            // update dotToChildren
-            for (Dot missingDep : deps) {
-                Dots children = dotToChildren.get(missingDep);
-                if (children == null) {
-                    children = new Dots();
+            // check if children is already set
+            if (!childrenIsSet.contains(at)) {
+
+                for (Dot missingDep : deps) {
+                    Dots children = dotToChildren.get(missingDep);
+                    if (children == null) {
+                        children = new Dots();
+                    }
+                    children.add(at);
+                    dotToChildren.put(missingDep, children);
                 }
-                children.add(at);
-                dotToChildren.put(missingDep, children);
+
+                childrenIsSet.add(at);
             }
 
             // if not all deps are committed, give up

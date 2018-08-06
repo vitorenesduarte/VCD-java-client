@@ -6,7 +6,6 @@ import org.imdea.vcd.queue.clock.ExceptionSet;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.imdea.vcd.pb.Proto.Commit;
 
 /**
  *
