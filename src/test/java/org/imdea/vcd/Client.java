@@ -74,15 +74,12 @@ public class Client {
                             // try to find operations from clients
                             while (it.hasNext()) {
                                 data = it.next().getData();
-                                perData = MAP.get(data);
+                                perData = MAP.remove(data);
 
                                 // if it belongs to a client
                                 if (perData != null) {
                                     int client = perData.getClient();
                                     Long startTime = perData.getStartTime();
-
-                                    // delete from the map
-                                    MAP.remove(data);
 
                                     // record delivery time
                                     METRICS.end(status, startTime);

@@ -1,8 +1,6 @@
 package org.imdea.vcd;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import org.imdea.vcd.pb.Proto.MessageSet;
 
@@ -12,37 +10,15 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  */
 public class Metrics {
 
-    private class ChainMetric {
+    private final Averager durableAvg = new Averager();
+    private final Averager deliveredAvg = new Averager();
+    private final Averager chainsAvg = new Averager();
 
-        private final Long time;
-        private final Long size;
-
-        public ChainMetric(Long time, Long size) {
-            this.time = time;
-            this.size = size;
-        }
-
-        public Long getTime() {
-            return time;
-        }
-
-        public Long getSize() {
-            return size;
-        }
-    }
-
-    private final List<ChainMetric> chainLengths;
-    private final List<Long> durableTimes;
-    private final List<Long> deliveredTimes;
+    private final StringBuilder durableTimes = new StringBuilder();
+    private final StringBuilder deliveredTimes = new StringBuilder();
+    private final StringBuilder chains = new StringBuilder();
 
     public Metrics() {
-        this.chainLengths = new LinkedList<>();
-        this.durableTimes = new LinkedList<>();
-        this.deliveredTimes = new LinkedList<>();
-    }
-
-    public void chain(Integer size) {
-        chainLengths.add(new ChainMetric(time(), new Long(size)));
     }
 
     public Long start() {
@@ -54,26 +30,35 @@ public class Metrics {
 
         switch (status) {
             case DURABLE:
-                durableTimes.add(time);
+                durableAvg.add(time);
+                durableTimes.append(time).append("\n");
                 break;
             case DELIVERED:
-                deliveredTimes.add(time);
+                deliveredAvg.add(time);
+                deliveredTimes.append(time).append("\n");
                 break;
         }
     }
 
+    public void chain(Integer size) {
+        chainsAvg.add(size.longValue());
+        chains.append(time())
+                .append("-")
+                .append(size)
+                .append("\n");
+    }
+
     public String show() {
-        assert durableTimes.isEmpty() || durableTimes.size() == deliveredTimes.size();
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append("CHAINS: ")
-                .append(averageChains(chainLengths))
+                .append(chainsAvg.getAverage())
                 .append("\n");
         sb.append("DURABLE: ")
-                .append(average(durableTimes))
+                .append(durableAvg.getAverage())
                 .append(" (ms)\n");
         sb.append("DELIVERED: ")
-                .append(average(deliveredTimes))
+                .append(deliveredAvg.getAverage())
                 .append(" (ms)\n");
         return sb.toString();
     }
@@ -82,15 +67,15 @@ public class Metrics {
         Map<String, String> m = new HashMap<>();
         m.put(
                 key(config, "chains"),
-                serializeChains(chainLengths)
+                serialize(chains)
         );
         m.put(
                 key(config, "log", "Durable"),
-                serializeTimes(durableTimes)
+                serialize(durableTimes)
         );
         m.put(
                 key(config, "log"),
-                serializeTimes(deliveredTimes)
+                serialize(deliveredTimes)
         );
 
         return m;
@@ -115,52 +100,33 @@ public class Metrics {
         return "VCD" + "f" + maxFaults + protocolSuffix;
     }
 
-    private String serializeTimes(List<Long> metrics) {
-        StringBuilder sb = new StringBuilder();
-        for (Long metric : metrics) {
-            sb.append(metric).append("\n");
-        }
-        if (metrics.size() > 0) {
-            sb.deleteCharAt(sb.length() - 1);
+    private String serialize(StringBuilder sb) {
+        int len = sb.length();
+        if (len > 0 && sb.charAt(len - 1) == '\n') {
+            sb.deleteCharAt(len - 1);
         }
         return sb.toString();
-    }
-
-    private String serializeChains(List<ChainMetric> metrics) {
-        StringBuilder sb = new StringBuilder();
-        for (ChainMetric metric : metrics) {
-            sb.append(metric.getTime())
-                    .append("-")
-                    .append(metric.getSize())
-                    .append("\n");
-        }
-        if (metrics.size() > 0) {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-        return sb.toString();
-    }
-
-    private Long average(List<Long> list) {
-        int size = list.size();
-        if (size == 0) {
-            return 0L;
-        }
-        Long sum = 0L;
-        for (Long elem : list) {
-            sum += elem;
-        }
-        return sum / list.size();
-    }
-
-    private Long averageChains(List<ChainMetric> metrics) {
-        List<Long> sizes = new LinkedList<>();
-        for (ChainMetric metric : metrics) {
-            sizes.add(metric.getSize());
-        }
-        return average(sizes);
     }
 
     private Long time() {
         return System.currentTimeMillis();
+    }
+
+    private class Averager {
+        private Long elements;
+        private Long average;
+
+        public Averager() {
+            this.elements = 0L;
+            this.average = 0L;
+        }
+
+        public void add(Long value) {
+            this.average = (this.average * this.elements + value) / ++this.elements;
+        }
+
+        public Long getAverage() {
+            return average;
+        }
     }
 }
