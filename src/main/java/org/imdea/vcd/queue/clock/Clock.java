@@ -1,5 +1,6 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,23 @@ public class Clock<T extends IntSet> {
         return dots;
     }
 
+    public boolean subtractIsBottom(Clock<T> clock) {
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            // get actor
+            Integer actor = entry.getKey();
+
+            // subtract b from a
+            T a = entry.getValue();
+            T b = clock.map.get(actor);
+
+            if (!a.subtractIsBottom(b)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public void addDot(Dot dot) {
         this.map.get(dot.getId()).add(dot.getSeq());
     }
@@ -100,6 +118,17 @@ public class Clock<T extends IntSet> {
 
     public int size() {
         return this.map.size();
+    }
+
+    public Dots nextDots() {
+        Dots dots = new Dots();
+
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            Dot dot = new Dot(entry.getKey(), entry.getValue().next());
+            dots.add(dot);
+        }
+
+        return dots;
     }
 
     @Override

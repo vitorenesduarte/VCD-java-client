@@ -64,6 +64,16 @@ public class MaxInt implements IntSet<MaxInt> {
     }
 
     @Override
+    public boolean subtractIsBottom(MaxInt b) {
+        return b.seq >= this.seq;
+    }
+
+    @Override
+    public Long next() {
+        return this.seq + 1;
+    }
+
+    @Override
     public boolean equals(Object o) {
         // self check
         if (this == o) {

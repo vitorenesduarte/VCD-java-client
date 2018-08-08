@@ -25,8 +25,6 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
     // these two should always have the same size
     private final HashMap<Dot, E> dotToBox = new HashMap<>();
     private final HashMap<Dot, Clock<ExceptionSet>> dotToConf = new HashMap<>();
-    private final HashSet<Dot> childrenIsSet = new HashSet<>();
-    private final HashMap<Dot, Dots> dotToChildren = new HashMap<>();
     private List<E> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> committed;
@@ -76,8 +74,8 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
     }
 
     private void findSCC(Dot dot) {
-        // if already delivered, return
-        if (this.delivered.contains(dot)) {
+        // if not committed or already delivered, return
+        if (!this.committed.contains(dot) || this.delivered.contains(dot)) {
             return;
         }
 
@@ -92,17 +90,9 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                     saveSCC(scc);
                 }
 
-                // and try to deliver more, based on the
-                // children of the dots delivered
-                for (Dots scc : sccs) {
-                    for (Dot del : scc) {
-                        Dots children = this.dotToChildren.remove(del);
-                        if (children != null) {
-                            for (Dot child : children) {
-                                findSCC(child);
-                            }
-                        }
-                    }
+                // try to deliver the next dots after delivered
+                for (Dot next : this.delivered.nextDots()) {
+                    findSCC(next);
                 }
 
             default:
@@ -133,7 +123,6 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
 
     private void resetMember(Dot member) {
         this.dotToConf.remove(member);
-        this.childrenIsSet.remove(member);
     }
 
     @Override
@@ -194,28 +183,9 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             // get conf
             Clock<ExceptionSet> conf = dotToConf.get(at);
 
-            // get neighbors: subtract delivered and self
-            Dots deps = conf.subtract(delivered);
-            deps.remove(at);
-
-            // check if children is already set
-            if (!childrenIsSet.contains(at)) {
-
-                for (Dot missingDep : deps) {
-                    Dots children = dotToChildren.get(missingDep);
-                    if (children == null) {
-                        children = new Dots();
-                    }
-                    children.add(at);
-                    dotToChildren.put(missingDep, children);
-                }
-
-                childrenIsSet.add(at);
-            }
-
             // if not all deps are committed, give up
-            Dots missingDeps = conf.subtract(committed);
-            if (!missingDeps.isEmpty()) {
+            boolean allDepsCommitted = conf.subtractIsBottom(committed);
+            if (!allDepsCommitted) {
                 return FinderResult.MISSING_DEP;
             }
 
@@ -228,6 +198,10 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             low.put(at, atId);
             // update id
             id++;
+
+            // get neighbors: subtract delivered and self
+            Dots deps = conf.subtract(delivered);
+            deps.remove(at);
 
             // for all neighbors
             for (Dot to : deps) {

@@ -19,5 +19,9 @@ public interface IntSet<T> {
 
     List<Long> subtract(T o);
 
+    boolean subtractIsBottom(T o);
+
+    Long next();
+
     Object clone();
 }

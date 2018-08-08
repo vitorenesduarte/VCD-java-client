@@ -127,6 +127,17 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     }
 
     @Override
+    public boolean subtractIsBottom(ExceptionSet b) {
+        List<Long> seqs = this.subtract(b);
+        return seqs.isEmpty();
+    }
+
+    @Override
+    public Long next() {
+        return this.seq + 1;
+    }
+
+    @Override
     public boolean equals(Object o) {
         // self check
         if (this == o) {
