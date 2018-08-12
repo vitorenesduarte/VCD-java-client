@@ -13,6 +13,8 @@ import org.imdea.vcd.queue.QueueType;
 @Parameters(separators = "=") // http://jcommander.org/#_parameter_separators
 public class Config {
 
+    private static final int CLOSED_LOOP = 42;
+
     @Parameter(names = "-batch_wait")
     private Integer batchWait = 0; // if 0, batching is disabled
 
@@ -51,6 +53,9 @@ public class Config {
 
     @Parameter(names = "-queue_type", description = "which queue to use; possible values: dep, conf, random")
     private QueueType queueType = QueueType.DEP;
+
+    @Parameter(names = "-sleep", description = "sleep time between ops for open loop clients; set this to 42 for close loop client behaviour")
+    private Integer sleep = CLOSED_LOOP;
 
     private Config() {
     }
@@ -157,6 +162,18 @@ public class Config {
 
     public void setQueueType(QueueType queueType) {
         this.queueType = queueType;
+    }
+
+    public Integer getSleep() {
+        return sleep;
+    }
+
+    public void setSleep(Integer sleep) {
+        this.sleep = sleep;
+    }
+
+    public boolean getClosedLoop() {
+        return this.sleep == CLOSED_LOOP;
     }
 
     public static Config parseArgs(String[] args) {
