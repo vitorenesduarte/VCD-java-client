@@ -20,10 +20,6 @@ import org.imdea.vcd.queue.clock.MaxInt;
 public class Generator {
 
     private static final Integer KEY_SIZE = 8;
-    private static final Integer MIN_ASCII = 33;
-    private static final Integer MAX_ASCII = 126;
-    private static final byte[] CHARACTERS = chars(MIN_ASCII, MAX_ASCII);
-
     private static final ByteString BLACK = repeat((byte) 1, 1);
 
     public static Message message() {
@@ -145,31 +141,21 @@ public class Generator {
         return hash;
     }
 
-    private static ByteString repeat(byte b, Integer payloadSize) {
-        byte[] ba = new byte[payloadSize];
-        for (int i = 0; i < payloadSize; i++) {
+    private static ByteString repeat(byte b, Integer size) {
+        byte[] ba = new byte[size];
+        for (int i = 0; i < size; i++) {
             ba[i] = b;
         }
         return bs(ba);
     }
 
-    private static ByteString randomByteString(Integer payloadSize) {
-        byte[] ba = new byte[payloadSize];
-        for (int i = 0; i < payloadSize; i++) {
-            ba[i] = CHARACTERS[RANDOM().nextInt(CHARACTERS.length)];
-        }
+    private static ByteString randomByteString(Integer size) {
+        byte[] ba = new byte[size];
+        RANDOM().nextBytes(ba);
         return bs(ba);
     }
 
     private static ByteString bs(byte[] ba) {
         return ByteString.copyFrom(ba);
-    }
-
-    private static byte[] chars(Integer min, Integer max) {
-        byte[] ba = new byte[max - min + 1];
-        for (int i = min; i <= max; i++) {
-            ba[i - min] = (byte) i;
-        }
-        return ba;
     }
 }
