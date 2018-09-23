@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.imdea.vcd.queue.box.QueueBox;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -80,7 +81,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         }
 
         TarjanSCCFinder finder = new TarjanSCCFinder();
-        FinderResult res = finder.dfs(dot);
+        FinderResult res = finder.strongConnect(dot);
         switch (res) {
             case FOUND:
                 List<Dots> sccs = finder.getSCCs();
@@ -165,8 +166,8 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         private final Deque<Dot> stack;
         private final Map<Dot, Integer> ids;
         private final Map<Dot, Integer> low;
-        private final Map<Dot, Boolean> onStack;
-        private Integer id;
+        private final Set<Dot> onStack;
+        private Integer index;
 
         private final List<Dots> sccs;
 
@@ -174,14 +175,14 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             this.stack = new ArrayDeque<>();
             this.ids = new HashMap<>();
             this.low = new HashMap<>();
-            this.onStack = new HashMap<>();
-            this.id = 0;
+            this.onStack = new HashSet<>();
+            this.index = 0;
             this.sccs = new ArrayList();
         }
 
-        public FinderResult dfs(Dot at) {
+        public FinderResult strongConnect(Dot v) {
             // get conf
-            Clock<ExceptionSet> conf = dotToConf.get(at);
+            Clock<ExceptionSet> conf = dotToConf.get(v);
 
             // if not all deps are committed, give up
             boolean allDepsCommitted = conf.subtractIsBottom(committed);
@@ -190,25 +191,25 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             }
 
             // add to the stack
-            stack.push(at);
-            onStack.put(at, true);
+            stack.push(v);
+            onStack.add(v);
             // set id and low
-            Integer atId = id;
-            ids.put(at, atId);
-            low.put(at, atId);
+            Integer vIndex = index;
+            ids.put(v, vIndex);
+            low.put(v, vIndex);
             // update id
-            id++;
+            index++;
 
             // get neighbors: subtract delivered and self
             Dots deps = conf.subtract(delivered);
-            deps.remove(at);
+            deps.remove(v);
 
             // for all neighbors
-            for (Dot to : deps) {
+            for (Dot w : deps) {
                 // if not visited, visit
-                boolean visited = ids.containsKey(to);
+                boolean visited = ids.containsKey(w);
                 if (!visited) {
-                    FinderResult result = dfs(to);
+                    FinderResult result = strongConnect(w);
 
                     switch (result) {
                         case MISSING_DEP:
@@ -217,33 +218,27 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                         default:
                             break;
                     }
-                }
+                    low.put(v, Math.min(low.get(v), low.get(w)));
 
-                // if visited neighbor is on stack, min lows
-                Boolean stacked = onStack.get(to);
-                if (stacked != null && stacked) {
-                    // low[at] = min(low[at], low[to])
-                    Integer newLow = Math.min(low.get(at), low.get(to));
-                    low.put(at, newLow);
+                } // if visited neighbor is on stack, min lows
+                else if (onStack.contains(w)) {
+                    low.put(v, Math.min(low.get(v), ids.get(w)));
                 }
             }
 
             // if after visiting all neighbors, an SCC was found if
-            // id[at] == low[at]
             // good news: the SCC members are in the stack
-            if (Objects.equals(atId, low.get(at))) {
+            if (Objects.equals(vIndex, low.get(v))) {
                 Dots scc = new Dots();
 
-                for (Dot member = stack.pop();; member = stack.pop()) {
+                for (Dot w = stack.pop();; w = stack.pop()) {
                     // remove from stack
-                    onStack.remove(member);
-                    // update low
-                    low.put(member, atId);
+                    onStack.remove(w);
                     // add to SCC
-                    scc.add(member);
+                    scc.add(w);
 
                     // exit if done
-                    if (member.equals(at)) {
+                    if (w.equals(v)) {
                         break;
                     }
                 }
