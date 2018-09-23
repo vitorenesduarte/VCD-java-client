@@ -27,6 +27,7 @@ public class Client {
     private static Socket SOCKET;
     private static Map<ByteString, PerData> MAP;
     private static int[] OPS_PER_CLIENT;
+    private static ByteString[] CLIENT_KEY;
     private static int CLIENTS_DONE;
 
     public static void main(String[] args) {
@@ -36,7 +37,13 @@ public class Client {
             SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
             MAP = new HashMap<>();
             OPS_PER_CLIENT = new int[CONFIG.getClients()];
+            CLIENT_KEY = new ByteString[CONFIG.getClients()];
             CLIENTS_DONE = 0;
+
+            // create a unique key for each client
+            for (int i = 0; i < CONFIG.getClients(); i++) {
+                CLIENT_KEY[i] = Generator.randomClientKey();
+            }
 
             LOGGER.log(Level.INFO, "Connect OK!");
 
@@ -138,7 +145,7 @@ public class Client {
     }
 
     private static void sendOp(int client) throws IOException, InterruptedException {
-        MessageSet messageSet = Generator.messageSet(CONFIG);
+        MessageSet messageSet = Generator.messageSet(CLIENT_KEY[client], CONFIG);
         ByteString data = messageSet.getMessagesList().get(0).getData();
         if (MAP.containsKey(data)) {
             // if this key already exists, try again

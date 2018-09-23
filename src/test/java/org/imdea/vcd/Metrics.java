@@ -113,6 +113,7 @@ public class Metrics {
     }
 
     private class Averager {
+
         private Long elements;
         private Long average;
 
