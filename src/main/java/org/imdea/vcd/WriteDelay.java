@@ -1,7 +1,5 @@
 package org.imdea.vcd;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.imdea.vcd.pb.Proto.Init;
 import org.imdea.vcd.queue.clock.Clock;
@@ -12,12 +10,14 @@ import org.imdea.vcd.queue.clock.MaxInt;
 /**
  *
  * @author Vitor Enes
+ *
+ * - wait until non-delivered commands have non-committed deps from my site
  */
 public class WriteDelay {
 
     private Integer site;
     private ExceptionSet committed;
-    private ConcurrentHashMap<Dot, Long> ndd; // non-delivered deps
+    private ConcurrentHashMap<Dot, Long> dond; // deps (from my site) of non-delivered cmds
 
     private final Object monitor = new Object();
 
@@ -25,7 +25,7 @@ public class WriteDelay {
         this.site = init.getSite();
         Clock<ExceptionSet> committedClock = Clock.eclock(init.getCommittedMap());
         this.committed = (ExceptionSet) committedClock.get(this.site);
-        this.ndd = new ConcurrentHashMap<>();
+        this.dond = new ConcurrentHashMap<>();
         monitorNotify();
     }
 
@@ -33,23 +33,23 @@ public class WriteDelay {
         if (dot.getId().equals(this.site)) {
             this.committed.add(dot.getSeq());
         }
-        this.ndd.put(dot, conf.get(this.site).current());
+        this.dond.put(dot, conf.get(this.site).current());
     }
 
     public void deliver(Dot dot) {
-        this.ndd.remove(dot);
+        this.dond.remove(dot);
         monitorNotify();
     }
 
     public void waitDepsCommitted() throws InterruptedException {
         // wait until it's initialized
-        if (this.ndd == null) {
+        if (this.dond == null) {
             monitorWait();
             waitDepsCommitted();
         }
         // wait all deps are committed
         boolean allCommitted = true;
-        for (Long dep : this.ndd.values()) {
+        for (Long dep : this.dond.values()) {
             allCommitted = allCommitted && this.committed.containsAll(dep);
         }
         if (!allCommitted) {
