@@ -5,7 +5,6 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricAttribute;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.google.protobuf.ByteString;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
@@ -64,35 +63,31 @@ public class DataRW {
 
     private final DataInputStream in;
     private final DataOutputStream out;
-    private final Integer batchWait;
 
     private final LinkedBlockingQueue<MessageSet> toWriter;
     private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
+    private final WriteDelay writeDelay;
+
     private final Writer writer;
     private final SocketReader socketReader;
 
     public DataRW(DataInputStream in, DataOutputStream out, Config config) {
         this.in = in;
         this.out = out;
-        this.batchWait = config.getBatchWait();
         this.toWriter = new LinkedBlockingQueue<>();
         this.toClient = new LinkedBlockingQueue<>();
-        this.writer = new Writer(this.out, this.toWriter, this.batchWait);
-        this.socketReader = new SocketReader(this.in, this.toClient, config);
+        this.writeDelay = new WriteDelay();
+        this.writer = new Writer(this.out, this.toWriter, this.writeDelay);
+        this.socketReader = new SocketReader(this.in, this.toClient, this.writeDelay, config);
     }
 
     public void start() {
-        // start writer, if batching enabled
-        if (this.batchWait > 0) {
-            this.writer.start();
-        }
+        this.writer.start();
         this.socketReader.start();
     }
 
     public void close() throws IOException {
-        if (this.batchWait > 0) {
-            this.writer.interrupt();
-        }
+        this.writer.interrupt();
         this.socketReader.close();
         this.socketReader.interrupt();
         this.in.close();
@@ -108,11 +103,7 @@ public class DataRW {
     }
 
     public void write(MessageSet messageSet) throws IOException, InterruptedException {
-        if (this.batchWait > 0) {
-            toWriter.put(messageSet);
-        } else {
-            doWrite(messageSet, this.out);
-        }
+        toWriter.put(messageSet);
     }
 
     private void doWrite(MessageSet messageSet, DataOutputStream o) throws IOException {
@@ -132,13 +123,13 @@ public class DataRW {
 
         private final LinkedBlockingQueue<MessageSet> toWriter;
         private final DataOutputStream out;
-        private final Integer batchWait;
         private final Histogram batchSize;
+        private final WriteDelay writeDelay;
 
-        public Writer(DataOutputStream out, LinkedBlockingQueue<MessageSet> toWriter, Integer batchWait) {
+        public Writer(DataOutputStream out, LinkedBlockingQueue<MessageSet> toWriter, WriteDelay writeDelay) {
             this.out = out;
             this.toWriter = toWriter;
-            this.batchWait = batchWait;
+            this.writeDelay = writeDelay;
             this.batchSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "batchSize"));
         }
 
@@ -148,42 +139,21 @@ public class DataRW {
                 try {
                     while (true) {
                         MessageSet first = toWriter.take();
-                        List<MessageSet> rest = new ArrayList<>();
+                        List<MessageSet> set = new ArrayList<>();
 
                         // wait, and drain the queue
-                        Thread.sleep(this.batchWait);
-                        toWriter.drainTo(rest);
+                        writeDelay.waitDepsCommitted();
 
-                        rest.add(first);
+                        toWriter.drainTo(set);
 
-                        // create a message set with all messages in the batch
-                        // also compute the set of all hashes
-                        MessageSet.Builder builder = MessageSet.newBuilder();
-                        HashSet<ByteString> hashes = new HashSet<>();
-                        for (MessageSet ms : rest) {
-                            for (Message m : ms.getMessagesList()) {
-                                builder.addMessages(m);
-                                hashes.addAll(m.getHashesList());
-                            }
-                        }
-                        MessageSet allMessages = builder.build();
+                        set.add(first);
 
                         // batch size metrics
-                        batchSize.update(allMessages.getMessagesCount());
+                        batchSize.update(set.size());
 
-                        // create a message that has as data
-                        // a protobuf with the previous message set
-                        Message theMessage = Message.newBuilder()
-                                .addAllHashes(hashes)
-                                .setData(allMessages.toByteString())
-                                .build();
-
-                        // create a message set to be pushed to the server
-                        MessageSet theMessageSet = MessageSet.newBuilder()
-                                .addMessages(theMessage)
-                                .setStatus(MessageSet.Status.START)
-                                .build();
-                        doWrite(theMessageSet, this.out);
+                        for (MessageSet m : set) {
+                            doWrite(m, this.out);
+                        }
                     }
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -204,16 +174,14 @@ public class DataRW {
 
         private final DataInputStream in;
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
-        private final Integer batchWait;
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final Deliverer deliverer;
 
-        public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Config config) {
+        public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, WriteDelay writeDelay, Config config) {
             this.in = in;
             this.toClient = toClient;
-            this.batchWait = config.getBatchWait();
             this.toDeliverer = new LinkedBlockingQueue<>();
-            this.deliverer = new Deliverer(this.toClient, this.toDeliverer, config);
+            this.deliverer = new Deliverer(this.toClient, this.toDeliverer, writeDelay, config);
         }
 
         public void close() {
@@ -243,19 +211,7 @@ public class DataRW {
                                     LOGGER.log(Level.INFO, "Invalid durable notification");
                                 }
 
-                                if (this.batchWait > 0) {
-                                    MessageSet batch = MessageSet.parseFrom(durable.getMessages(0).getData());
-
-                                    for (Message m : batch.getMessagesList()) {
-                                        MessageSet singleDurable = MessageSet.newBuilder().
-                                                addMessages(m)
-                                                .setStatus(MessageSet.Status.DURABLE)
-                                                .build();
-                                        toClient.put(Optional.of(singleDurable));
-                                    }
-                                } else {
-                                    toClient.put(Optional.of(durable));
-                                }
+                                toClient.put(Optional.of(durable));
                                 break;
                             default:
                                 toDeliverer.put(reply);
@@ -278,6 +234,8 @@ public class DataRW {
 
         private final LinkedBlockingQueue<Reply> toDeliverer;
         private final LinkedBlockingQueue<List<CommittedQueueBox>> toSorter;
+        private final WriteDelay writeDelay;
+
         private final Sorter sorter;
         private final QueueType queueType;
         private Queue<CommittedQueueBox> queue;
@@ -289,7 +247,7 @@ public class DataRW {
         private final Histogram queueSize;
         private final Histogram queueElements;
 
-        public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer, Config config) {
+        public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer, WriteDelay writeDelay, Config config) {
 
             createBox = METRICS.timer(MetricRegistry.name(DataRW.class, "createBox"));
             toAdd = METRICS.timer(MetricRegistry.name(DataRW.class, "toAdd"));
@@ -300,6 +258,7 @@ public class DataRW {
 
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
+            this.writeDelay = writeDelay;
             this.sorter = new Sorter(toClient, this.toSorter, config);
             this.queueType = config.getQueueType();
         }
@@ -321,6 +280,7 @@ public class DataRW {
                         case INIT:
                             // create committed clock
                             Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
+                            this.writeDelay.init(reply.getInit());
 
                             // create delivery queue that delivers by dep, conf or randomly
                             switch (this.queueType) {
@@ -339,6 +299,8 @@ public class DataRW {
                         case COMMIT:
                             final Timer.Context createBoxContext = createBox.time();
                             QueueAddArgs args = createArgs(reply);
+                            // update write delay
+                            this.writeDelay.commit(args.getDot(), args.getConf());
                             createBoxContext.stop();
 
                             final Timer.Context toAddContext = toAdd.time();
@@ -354,6 +316,12 @@ public class DataRW {
                             queueElements.update(queue.elements());
 
                             if (!toDeliver.isEmpty()) {
+                                // update write delay
+                                for (CommittedQueueBox b : toDeliver) {
+                                    for (Dot d : b.getDots()) {
+                                        this.writeDelay.deliver(d);
+                                    }
+                                }
                                 toSorter.put(toDeliver);
                             }
                             break;

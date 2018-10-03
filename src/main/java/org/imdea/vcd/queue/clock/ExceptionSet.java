@@ -59,6 +59,22 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     }
 
     @Override
+    public boolean containsAll(Long seq) {
+        // if contains seq, and all smaller than seq
+        if (seq <= this.seq) {
+            // if any exception is <= seq, then false
+            for (Long ex : this.exceptions) {
+                if (ex <= seq) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public void add(Long seq) {
         Long current = this.seq;
         if (seq >= current + 1) {
@@ -135,6 +151,11 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     @Override
     public Long next() {
         return this.seq + 1;
+    }
+
+    @Override
+    public Long current() {
+        return this.seq;
     }
 
     @Override

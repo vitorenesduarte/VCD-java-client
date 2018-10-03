@@ -1,6 +1,5 @@
 package org.imdea.vcd.queue.clock;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,10 @@ public class Clock<T extends IntSet> {
         for (Integer actor = 0; actor < nodeNumber; actor++) {
             this.map.put(actor, (T) bottom.clone());
         }
+    }
+
+    public IntSet get(Integer id) {
+        return this.map.get(id);
     }
 
     public boolean isBottom() {
