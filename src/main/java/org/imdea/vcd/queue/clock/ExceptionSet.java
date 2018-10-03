@@ -2,9 +2,11 @@ package org.imdea.vcd.queue.clock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import org.imdea.vcd.pb.Proto;
 
 /**
@@ -16,21 +18,21 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     private static final ExceptionSet BOTTOM = new ExceptionSet();
 
     private Long seq;
-    private HashSet<Long> exceptions;
+    private ConcurrentHashMap.KeySetView<Long, Boolean> exceptions;
 
     public ExceptionSet() {
         this.seq = 0L;
-        this.exceptions = new HashSet<>();
+        this.exceptions = ConcurrentHashMap.newKeySet();
     }
 
     public ExceptionSet(Long seq, HashSet<Long> exceptions) {
         this.seq = seq;
-        this.exceptions = exceptions;
+        this.exceptions = newKeySet(exceptions);
     }
 
     public ExceptionSet(Long seq, Long... exceptions) {
         this.seq = seq;
-        this.exceptions = new HashSet<>(Arrays.asList(exceptions));
+        this.exceptions = newKeySet(Arrays.asList(exceptions));
     }
 
     public ExceptionSet(Proto.ExceptionSet ex) {
@@ -39,8 +41,7 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
 
     public ExceptionSet(ExceptionSet exceptionSet) {
         this.seq = exceptionSet.seq;
-        this.exceptions = new HashSet<>();
-        this.exceptions.addAll(exceptionSet.exceptions);
+        this.exceptions = newKeySet(exceptionSet.exceptions);
     }
 
     public MaxInt toMaxInt() {
@@ -190,5 +191,21 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     public Object clone() {
         ExceptionSet exceptionSet = new ExceptionSet(this);
         return exceptionSet;
+    }
+
+    private ConcurrentHashMap.KeySetView<Long, Boolean> newKeySet(Collection<Long> exceptions) {
+        ConcurrentHashMap.KeySetView<Long, Boolean> result = ConcurrentHashMap.newKeySet();
+        for (Long ex : exceptions) {
+            result.add(ex);
+        }
+        return result;
+    }
+
+    private ConcurrentHashMap.KeySetView<Long, Boolean> newKeySet(ConcurrentHashMap.KeySetView<Long, Boolean> exceptions) {
+        ConcurrentHashMap.KeySetView<Long, Boolean> result = ConcurrentHashMap.newKeySet();
+        for (Long ex : exceptions) {
+            result.add(ex);
+        }
+        return result;
     }
 }

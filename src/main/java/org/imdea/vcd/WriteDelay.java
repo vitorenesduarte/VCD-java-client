@@ -1,5 +1,7 @@
 package org.imdea.vcd;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.imdea.vcd.pb.Proto.Init;
 import org.imdea.vcd.queue.clock.Clock;
@@ -64,7 +66,7 @@ public class WriteDelay {
 
     private void monitorWait() throws InterruptedException {
         synchronized (this.monitor) {
-            this.monitor.wait();
+            this.monitor.wait(1);
         }
     }
 }
