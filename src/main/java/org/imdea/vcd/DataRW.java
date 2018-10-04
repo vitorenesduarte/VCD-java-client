@@ -218,6 +218,9 @@ public class DataRW {
                                 toClient.put(Optional.of(durable));
                                 break;
                             default:
+                                if (reply.hasCommit()) {
+                                    Metrics.startExecution(Dot.dot(reply.getCommit().getDot()));
+                                }
                                 toDeliverer.put(reply);
                                 break;
                         }
@@ -250,6 +253,7 @@ public class DataRW {
         private final Timer tryDeliver;
         private final Histogram queueSize;
         private final Histogram queueElements;
+        private final Histogram execution;
 
         public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toDeliverer, WriteDelay writeDelay, Config config) {
 
@@ -259,11 +263,12 @@ public class DataRW {
 
             queueSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueSize"));
             queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
+            execution = METRICS.histogram(MetricRegistry.name(DataRW.class, "execution"));
 
             this.toDeliverer = toDeliverer;
             this.toSorter = new LinkedBlockingQueue<>();
             this.writeDelay = writeDelay;
-            this.sorter = new Sorter(toClient, this.toSorter, config);
+            this.sorter = new Sorter(toClient, this.toSorter);
             this.queueType = config.getQueueType();
         }
 
@@ -324,6 +329,7 @@ public class DataRW {
                                 for (CommittedQueueBox b : toDeliver) {
                                     for (Dot d : b.getDots()) {
                                         this.writeDelay.deliver(d);
+                                        execution.update(Metrics.endExecution(d));
                                     }
                                 }
                                 toSorter.put(toDeliver);
@@ -361,18 +367,17 @@ public class DataRW {
         private final Logger LOGGER = VCDLogger.init(Sorter.class);
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<List<CommittedQueueBox>> toSorter;
-        private final Integer batchWait;
 
         private final Timer sorting;
         private final Histogram toSort;
+        private final Histogram components;
 
-        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommittedQueueBox>> toSorter, Config config) {
+        public Sorter(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<CommittedQueueBox>> toSorter) {
             this.toClient = toClient;
             this.toSorter = toSorter;
-            this.batchWait = config.getBatchWait();
-
             this.sorting = METRICS.timer(MetricRegistry.name(DataRW.class, "sorting"));
             this.toSort = METRICS.histogram(MetricRegistry.name(DataRW.class, "toSort"));
+            this.components = METRICS.histogram(MetricRegistry.name(DataRW.class, "components"));
         }
 
         @Override
@@ -380,18 +385,14 @@ public class DataRW {
             try {
                 while (true) {
                     List<CommittedQueueBox> toDeliver = toSorter.take();
-                    toSort.update(toDeliver.size());
+                    components.update(toDeliver.size());
 
                     final Timer.Context sortingContext = sorting.time();
                     MessageSet.Builder builder = MessageSet.newBuilder();
                     for (CommittedQueueBox boxToDeliver : toDeliver) {
+                        toSort.update(boxToDeliver.size());
                         for (Message message : boxToDeliver.sortMessages()) {
-                            if (this.batchWait > 0) {
-                                MessageSet batch = MessageSet.parseFrom(message.getData());
-                                builder.addAllMessages(batch.getMessagesList());
-                            } else {
-                                builder.addMessages(message);
-                            }
+                            builder.addMessages(message);
                         }
                     }
                     builder.setStatus(MessageSet.Status.DELIVERED);
@@ -400,7 +401,7 @@ public class DataRW {
 
                     toClient.put(Optional.of(messageSet));
                 }
-            } catch (InterruptedException | IOException e) {
+            } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
