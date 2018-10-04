@@ -15,6 +15,8 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class WriteDelay {
 
+    private static final boolean ENABLED = false;
+
     private Integer site;
     private ExceptionSet committed;
     private ConcurrentHashMap<Dot, Long> dond; // deps (from my site) of non-delivered cmds
@@ -22,39 +24,47 @@ public class WriteDelay {
     private final Object monitor = new Object();
 
     public void init(Init init) {
-        this.site = init.getSite();
-        Clock<ExceptionSet> committedClock = Clock.eclock(init.getCommittedMap());
-        this.committed = (ExceptionSet) committedClock.get(this.site);
-        this.dond = new ConcurrentHashMap<>();
-        monitorNotify();
+        if (ENABLED) {
+            this.site = init.getSite();
+            Clock<ExceptionSet> committedClock = Clock.eclock(init.getCommittedMap());
+            this.committed = (ExceptionSet) committedClock.get(this.site);
+            this.dond = new ConcurrentHashMap<>();
+            monitorNotify();
+        }
     }
 
     public void commit(Dot dot, Clock<MaxInt> conf) {
-        if (dot.getId().equals(this.site)) {
-            this.committed.add(dot.getSeq());
+        if (ENABLED) {
+            if (dot.getId().equals(this.site)) {
+                this.committed.add(dot.getSeq());
+            }
+            this.dond.put(dot, conf.get(this.site).current());
         }
-        this.dond.put(dot, conf.get(this.site).current());
     }
 
     public void deliver(Dot dot) {
-        this.dond.remove(dot);
-        monitorNotify();
+        if (ENABLED) {
+            this.dond.remove(dot);
+            monitorNotify();
+        }
     }
 
     public void waitDepsCommitted() throws InterruptedException {
-        // wait until it's initialized
-        if (this.dond == null) {
-            monitorWait();
-            waitDepsCommitted();
-        }
-        // wait all deps are committed
-        boolean allCommitted = true;
-        for (Long dep : this.dond.values()) {
-            allCommitted = allCommitted && this.committed.containsAll(dep);
-        }
-        if (!allCommitted) {
-            monitorWait();
-            waitDepsCommitted();
+        if (ENABLED) {
+            // wait until it's initialized
+            if (this.dond == null) {
+                monitorWait();
+                waitDepsCommitted();
+            }
+            // wait all deps are committed
+            boolean allCommitted = true;
+            for (Long dep : this.dond.values()) {
+                allCommitted = allCommitted && this.committed.containsAll(dep);
+            }
+            if (!allCommitted) {
+                monitorWait();
+                waitDepsCommitted();
+            }
         }
     }
 
