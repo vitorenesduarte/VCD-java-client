@@ -5,12 +5,21 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricAttribute;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
-import org.imdea.vcd.queue.box.CommittedQueueBox;
+import org.imdea.vcd.queue.ConfQueue;
 import org.imdea.vcd.queue.DepQueue;
+import org.imdea.vcd.queue.Queue;
+import org.imdea.vcd.queue.QueueAddArgs;
+import org.imdea.vcd.queue.QueueType;
+import org.imdea.vcd.queue.RandomQueue;
+import org.imdea.vcd.queue.box.CommittedQueueBox;
 import org.imdea.vcd.queue.clock.Clock;
+import org.imdea.vcd.queue.clock.Dot;
+import org.imdea.vcd.queue.clock.ExceptionSet;
+import org.imdea.vcd.queue.clock.MaxInt;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -25,15 +34,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.imdea.vcd.pb.Proto.Commit;
-import org.imdea.vcd.queue.ConfQueue;
-import org.imdea.vcd.queue.Queue;
-import org.imdea.vcd.queue.QueueAddArgs;
-import org.imdea.vcd.queue.QueueType;
-import org.imdea.vcd.queue.RandomQueue;
-import org.imdea.vcd.queue.clock.Dot;
-import org.imdea.vcd.queue.clock.ExceptionSet;
-import org.imdea.vcd.queue.clock.MaxInt;
 
 /**
  *
@@ -124,6 +124,7 @@ public class DataRW {
         private final LinkedBlockingQueue<MessageSet> toWriter;
         private final DataOutputStream out;
         private final Histogram batchSize;
+        private final Timer delayWrite;
         private final WriteDelay writeDelay;
 
         public Writer(DataOutputStream out, LinkedBlockingQueue<MessageSet> toWriter, WriteDelay writeDelay) {
@@ -131,6 +132,7 @@ public class DataRW {
             this.toWriter = toWriter;
             this.writeDelay = writeDelay;
             this.batchSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "batchSize"));
+            this.delayWrite = METRICS.timer(MetricRegistry.name(DataRW.class, "delayWrite"));
         }
 
         @Override
@@ -142,7 +144,9 @@ public class DataRW {
                         List<MessageSet> set = new ArrayList<>();
 
                         // wait, and drain the queue
+                        final Timer.Context delayWriteTimer = delayWrite.time();
                         writeDelay.waitDepsCommitted();
+                        delayWriteTimer.stop();
 
                         toWriter.drainTo(set);
 
