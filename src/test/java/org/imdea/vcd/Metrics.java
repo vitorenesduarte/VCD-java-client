@@ -2,6 +2,7 @@ package org.imdea.vcd;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.queue.clock.Dot;
 
@@ -23,7 +24,7 @@ public class Metrics {
     private static final StringBuilder MID_EXECUTION_TIMES = new StringBuilder();
     private static final StringBuilder CHAINS = new StringBuilder();
 
-    private static final HashMap<Dot, Long> DOT_TO_START = new HashMap<>();
+    private static final ConcurrentHashMap<Dot, Long> DOT_TO_START = new ConcurrentHashMap<>();
 
     public static Long start() {
         return time();
