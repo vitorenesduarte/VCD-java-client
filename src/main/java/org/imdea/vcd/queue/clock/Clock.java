@@ -47,6 +47,14 @@ public class Clock<T extends IntSet> {
         return true;
     }
 
+    public Dots frontier() {
+        Dots dots = new Dots();
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            Dot dot = new Dot(entry.getKey(), entry.getValue().current());
+        }
+        return dots;
+    }
+
     public boolean contains(Dot dot) {
         return this.map.get(dot.getId()).contains(dot.getSeq());
     }

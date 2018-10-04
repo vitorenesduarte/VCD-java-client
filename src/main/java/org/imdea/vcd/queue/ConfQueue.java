@@ -15,6 +15,7 @@ import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
 import org.imdea.vcd.queue.clock.ExceptionSet;
+import org.imdea.vcd.queue.clock.MaxInt;
 
 /**
  *
@@ -25,7 +26,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
 
     // these two should always have the same size
     private final HashMap<Dot, E> dotToBox = new HashMap<>();
-    private final HashMap<Dot, Clock<ExceptionSet>> dotToConf = new HashMap<>();
+    private final HashMap<Dot, Clock<MaxInt>> dotToConf = new HashMap<>();
     private List<E> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> committed;
@@ -51,7 +52,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         // fetch box, dot and conf
         E e = args.getBox();
         Dot dot = args.getDot();
-        Clock<ExceptionSet> conf = Clock.eclock(args.getConf());
+        Clock<MaxInt> conf = args.getConf();
 
         // update committed
         this.committed.addDot(dot);
@@ -95,7 +96,6 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                 for (Dot next : this.delivered.nextDots()) {
                     findSCC(next);
                 }
-
             default:
                 break;
         }
@@ -182,13 +182,22 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
 
         public FinderResult strongConnect(Dot v) {
             // get conf
-            Clock<ExceptionSet> conf = dotToConf.get(v);
+            Clock<MaxInt> conf = dotToConf.get(v);
+
+            // get neighbors: subtract delivered
+            Dots deps = new Dots();
 
             // if not all deps are committed, give up
-            boolean allDepsCommitted = conf.subtractIsBottom(committed);
-            if (!allDepsCommitted) {
-                return FinderResult.MISSING_DEP;
+            for (Dot dep : conf.frontier()) {
+                if (!committed.contains(dep)) {
+                    return FinderResult.MISSING_DEP;
+                }
+                if (!delivered.contains(dep)) {
+                    deps.add(dep);
+                }
             }
+            // subtract self
+            deps.remove(v);
 
             // add to the stack
             stack.push(v);
@@ -199,10 +208,6 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             low.put(v, vIndex);
             // update id
             index++;
-
-            // get neighbors: subtract delivered and self
-            Dots deps = conf.subtract(delivered);
-            deps.remove(v);
 
             // for all neighbors
             for (Dot w : deps) {
