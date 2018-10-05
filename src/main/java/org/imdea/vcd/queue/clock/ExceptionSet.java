@@ -3,6 +3,7 @@ package org.imdea.vcd.queue.clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -151,7 +152,11 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
 
     @Override
     public Long next() {
-        return this.seq + 1;
+        if (this.exceptions.isEmpty()) {
+            return this.seq + 1;
+        } else {
+            return Collections.min(this.exceptions);
+        }
     }
 
     @Override

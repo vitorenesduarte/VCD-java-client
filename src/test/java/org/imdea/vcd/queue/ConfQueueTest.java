@@ -19,6 +19,7 @@ import org.imdea.vcd.queue.clock.Dots;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -28,6 +29,30 @@ import static org.junit.Assert.assertTrue;
 public class ConfQueueTest {
 
     public static final int ITERATIONS = 100;
+
+    @Test
+    public void testSimple() {
+        Integer nodeNumber = 2;
+
+        // op1
+        Dot dot1 = new Dot(0, 1L);
+        Clock<MaxInt> conf1 = vclock(0L, 1L);
+
+        Dot dot2 = new Dot(1, 1L);
+        Clock<MaxInt> conf2 = vclock(1L, 0L);
+
+        ConfQueue<CommittedQueueBox> queue = new ConfQueue<>(nodeNumber);
+
+        queue.add(args(dot1, conf1));
+        assertFalse(queue.isEmpty());
+        assertTrue(queue.tryDeliver().isEmpty());
+
+        queue.add(args(dot2, conf2));
+        assertTrue(queue.isEmpty());
+        List<CommittedQueueBox> list = queue.tryDeliver();
+        assertTrue(list.size() == 1);
+        assertTrue(list.get(0).size() == 2);
+    }
 
     @Test
     public void testRandom() {
@@ -185,7 +210,7 @@ public class ConfQueueTest {
 
         // {{0, 1}, [1, 0, 0]
         Dot dotD = new Dot(0, 1L);
-        Clock<MaxInt> confD = vclock(1L , 0L, 0L);
+        Clock<MaxInt> confD = vclock(1L, 0L, 0L);
 
         // {{1, 1}, [1, 1, 2]
         Dot dotE = new Dot(1, 1L);
@@ -399,8 +424,8 @@ public class ConfQueueTest {
     }
 
     private QueueAddArgs args(Dot dot, Clock<MaxInt> conf) {
-        // build random message
-        Message message = Generator.message();
+        // build black message
+        Message message = Generator.message("black");
         return args(dot, message, conf);
     }
 

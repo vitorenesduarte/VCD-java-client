@@ -56,7 +56,9 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
     @Override
     public void merge(CommittedQueueBox o) {
         this.dots.merge(o.dots);
-        this.dep.merge(o.dep);
+        if (this.dep != null) {
+            this.dep.merge(o.dep);
+        }
         this.messageMap.merge(o.messageMap);
     }
 
