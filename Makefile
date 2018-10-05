@@ -12,8 +12,7 @@ run: rel $(JAR)
 		-clients=3 \
 		-ops=10000 \
 		-conflicts=100 \
-		-zk=127.0.0.1:2181 \
-		-queue_type=conf
+		-zk=127.0.0.1:2181
 
 clean:
 	mvn clean

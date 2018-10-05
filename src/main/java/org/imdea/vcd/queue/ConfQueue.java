@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import org.imdea.vcd.queue.box.QueueBox;
+import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
@@ -20,14 +20,13 @@ import org.imdea.vcd.queue.clock.MaxInt;
 /**
  *
  * @author Vitor Enes
- * @param <E>
  */
-public class ConfQueue<E extends QueueBox> implements Queue<E> {
+public class ConfQueue {
 
     // these two should always have the same size
-    private final HashMap<Dot, E> dotToBox = new HashMap<>();
+    private final HashMap<Dot, ConfQueueBox> dotToBox = new HashMap<>();
     private final HashMap<Dot, Clock<MaxInt>> dotToConf = new HashMap<>();
-    private List<E> toDeliver = new ArrayList<>();
+    private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> committed;
     private final Clock<ExceptionSet> delivered;
@@ -42,23 +41,19 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
         this.delivered = (Clock<ExceptionSet>) committed.clone();
     }
 
-    @Override
     public boolean isEmpty() {
         return this.dotToConf.isEmpty();
     }
 
-    @Override
-    public void add(QueueAddArgs<E> args) {
-        // fetch box, dot and conf
-        E e = args.getBox();
-        Dot dot = args.getDot();
-        Clock<MaxInt> conf = args.getConf();
+    public void add(Dot dot, Message message, Clock<MaxInt> conf) {
+        // create box
+        ConfQueueBox box = new ConfQueueBox(dot, message, conf);
 
         // update committed
         this.committed.addDot(dot);
 
         // save box
-        this.dotToBox.put(dot, e);
+        this.dotToBox.put(dot, box);
         // save info
         this.dotToConf.put(dot, conf);
 
@@ -107,47 +102,33 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
 
         // merge boxes of dots in SCC
         // - remove dot's box and conf along the way
+        ConfQueueBox merged = new ConfQueueBox(this.committed.size());
         Iterator<Dot> it = scc.iterator();
-        Dot member = it.next();
-        E box = this.dotToBox.remove(member);
-        resetMember(member);
-
-        while (it.hasNext()) {
-            member = it.next();
-            box.merge(this.dotToBox.remove(member));
-            resetMember(member);
-        }
+        do {
+            Dot member = it.next();
+            ConfQueueBox box = resetMember(member);
+            merged.merge(box);
+        } while (it.hasNext());
 
         // add to toDeliver list
-        this.toDeliver.add(box);
+        this.toDeliver.add(merged);
     }
 
-    private void resetMember(Dot member) {
+    private ConfQueueBox resetMember(Dot member) {
         this.dotToConf.remove(member);
+        return this.dotToBox.remove(member);
     }
 
-    @Override
-    public List<E> tryDeliver() {
+    public List<ConfQueueBox> tryDeliver() {
         // return current list to be delivered,
         // and create a new one
-        List<E> result = this.toDeliver;
+        List<ConfQueueBox> result = this.toDeliver;
         this.toDeliver = new ArrayList<>();
         return result;
     }
 
-    @Override
-    public List<E> toList() {
-        throw new UnsupportedOperationException("Method not supported.");
-    }
-
-    @Override
-    public int size() {
-        return this.dotToConf.size();
-    }
-
-    @Override
     public int elements() {
-        return size();
+        return this.dotToConf.size();
     }
 
     private enum FinderResult {
@@ -188,7 +169,7 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
             Dots deps = new Dots();
 
             // if not all deps are committed, give up
-            for (Dot dep : conf.frontier()) {
+            for (Dot dep : conf.frontier(v)) {
                 if (!committed.contains(dep)) {
                     return FinderResult.MISSING_DEP;
                 }
@@ -196,8 +177,6 @@ public class ConfQueue<E extends QueueBox> implements Queue<E> {
                     deps.add(dep);
                 }
             }
-            // subtract self
-            deps.remove(v);
 
             // add to the stack
             stack.push(v);
