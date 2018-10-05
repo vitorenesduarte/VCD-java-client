@@ -22,7 +22,6 @@ public class Client {
 
     private static final int CONNECT_RETRIES = 100;
 
-    private static Metrics METRICS;
     private static Config CONFIG;
     private static Socket SOCKET;
     private static Map<ByteString, PerData> MAP;
@@ -32,7 +31,6 @@ public class Client {
 
     public static void main(String[] args) {
         try {
-            METRICS = new Metrics();
             CONFIG = Config.parseArgs(args);
             SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
             MAP = new HashMap<>();
@@ -68,13 +66,13 @@ public class Client {
                             //   in another node
                             // - or on recovery?
                             if (perData != null) {
-                                METRICS.end(status, perData.getStartTime());
+                                Metrics.end(status, perData.getStartTime());
                             }
                             // keep waiting
                             break;
                         case DELIVERED:
                             // record chain size
-                            METRICS.chain(messages.size());
+                            Metrics.chain(messages.size());
 
                             Iterator<Message> it = messages.iterator();
 
@@ -89,7 +87,7 @@ public class Client {
                                     Long startTime = perData.getStartTime();
 
                                     // record delivery time
-                                    METRICS.end(status, startTime);
+                                    Metrics.end(status, startTime);
                                     // increment number of ops of this client
                                     OPS_PER_CLIENT[client]++;
 
@@ -127,7 +125,7 @@ public class Client {
 
             // after all operations from all clients
             // show metrics
-            LOGGER.log(Level.INFO, METRICS.show());
+            LOGGER.log(Level.INFO, Metrics.show());
 
             // and push them to redis
             redisPush();
@@ -152,7 +150,7 @@ public class Client {
             sendOp(client);
         } else {
             // if it doesn't, send it and update map
-            PerData perData = new PerData(client, METRICS.start());
+            PerData perData = new PerData(client, Metrics.start());
             MAP.put(data, perData);
             SOCKET.send(messageSet);
         }
@@ -163,7 +161,7 @@ public class Client {
 
         if (redis != null) {
             try (Jedis jedis = new Jedis(redis)) {
-                Map<String, String> push = METRICS.serialize(CONFIG);
+                Map<String, String> push = Metrics.serialize(CONFIG);
                 for (String key : push.keySet()) {
                     jedis.sadd(key, push.get(key));
                 }

@@ -35,7 +35,11 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
 
     public CommittedQueueBox(CommittedQueueBox commitDepBox) {
         this.dots = new Dots(commitDepBox.dots);
-        this.dep = new Clock<>(commitDepBox.dep);
+        if (commitDepBox.dep != null) {
+            this.dep = new Clock<>(commitDepBox.dep);
+        } else {
+            this.dep = null;
+        }
         this.messageMap = new MessageMap(commitDepBox.messageMap);
     }
 
@@ -52,7 +56,9 @@ public class CommittedQueueBox implements QueueBox<CommittedQueueBox> {
     @Override
     public void merge(CommittedQueueBox o) {
         this.dots.merge(o.dots);
-        this.dep.merge(o.dep);
+        if (this.dep != null) {
+            this.dep.merge(o.dep);
+        }
         this.messageMap.merge(o.messageMap);
     }
 

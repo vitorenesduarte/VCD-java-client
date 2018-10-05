@@ -42,6 +42,11 @@ public class MaxInt implements IntSet<MaxInt> {
     }
 
     @Override
+    public boolean containsAll(Long seq) {
+        return contains(seq);
+    }
+
+    @Override
     public void add(Long seq) {
         this.seq = Long.max(this.seq, seq);
     }
@@ -71,6 +76,11 @@ public class MaxInt implements IntSet<MaxInt> {
     @Override
     public Long next() {
         return this.seq + 1;
+    }
+
+    @Override
+    public Long current() {
+        return this.seq;
     }
 
     @Override

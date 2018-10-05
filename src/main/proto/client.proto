@@ -5,6 +5,7 @@ option java_outer_classname = "Proto";
 
 message Init {
   map<int32, ExceptionSet> committed = 1;
+  int32 site = 2;
 }
 
 message Message {

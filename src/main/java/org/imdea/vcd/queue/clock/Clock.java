@@ -1,6 +1,5 @@
 package org.imdea.vcd.queue.clock;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +33,10 @@ public class Clock<T extends IntSet> {
         }
     }
 
+    public IntSet get(Integer id) {
+        return this.map.get(id);
+    }
+
     public boolean isBottom() {
         for (T t : this.map.values()) {
             if (!t.isBottom()) {
@@ -42,6 +45,15 @@ public class Clock<T extends IntSet> {
         }
 
         return true;
+    }
+
+    public Dots frontier() {
+        Dots dots = new Dots();
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            Dot dot = new Dot(entry.getKey(), entry.getValue().current());
+            dots.add(dot);
+        }
+        return dots;
     }
 
     public boolean contains(Dot dot) {

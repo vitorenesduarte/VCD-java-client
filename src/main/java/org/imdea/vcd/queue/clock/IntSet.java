@@ -13,6 +13,8 @@ public interface IntSet<T> {
 
     boolean contains(Long seq);
 
+    boolean containsAll(Long seq);
+
     void add(Long seq);
 
     void merge(T o);
@@ -20,6 +22,8 @@ public interface IntSet<T> {
     List<Long> subtract(T o);
 
     boolean subtractIsBottom(T o);
+
+    Long current();
 
     Long next();
 

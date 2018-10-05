@@ -2,7 +2,9 @@ package org.imdea.vcd;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.imdea.vcd.pb.Proto.MessageSet;
+import org.imdea.vcd.queue.clock.Dot;
 
 /**
  *
@@ -10,82 +12,117 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  */
 public class Metrics {
 
-    private final Averager durableAvg = new Averager();
-    private final Averager deliveredAvg = new Averager();
-    private final Averager chainsAvg = new Averager();
+    private static final Averager DURABLE_AVG = new Averager();
+    private static final Averager DELIVERED_AVG = new Averager();
+    private static final Averager EXECUTION_AVG = new Averager();
+    private static final Averager MID_EXECUTION_AVG = new Averager();
+    private static final Averager CHAINS_AVG = new Averager();
 
-    private final StringBuilder durableTimes = new StringBuilder();
-    private final StringBuilder deliveredTimes = new StringBuilder();
-    private final StringBuilder chains = new StringBuilder();
+    private static final StringBuilder DURABLE_TIMES = new StringBuilder();
+    private static final StringBuilder DELIVERED_TIMES = new StringBuilder();
+    private static final StringBuilder EXECUTION_TIMES = new StringBuilder();
+    private static final StringBuilder MID_EXECUTION_TIMES = new StringBuilder();
+    private static final StringBuilder CHAINS = new StringBuilder();
 
-    public Metrics() {
-    }
+    private static final ConcurrentHashMap<Dot, Long> DOT_TO_START = new ConcurrentHashMap<>();
 
-    public Long start() {
+    public static Long start() {
         return time();
     }
 
-    public void end(MessageSet.Status status, Long start) {
+    public static void end(MessageSet.Status status, Long start) {
         Long time = time() - start;
 
         switch (status) {
             case DURABLE:
-                durableAvg.add(time);
-                durableTimes.append(time).append("\n");
+                DURABLE_AVG.add(time);
+                DURABLE_TIMES.append(time).append("\n");
                 break;
             case DELIVERED:
-                deliveredAvg.add(time);
-                deliveredTimes.append(time).append("\n");
+                DELIVERED_AVG.add(time);
+                DELIVERED_TIMES.append(time).append("\n");
                 break;
         }
     }
 
-    public void chain(Integer size) {
-        chainsAvg.add(size.longValue());
-        chains.append(time())
+    public static void startExecution(Dot dot) {
+        DOT_TO_START.put(dot, start());
+    }
+
+    public static Long midExecution(Dot dot) {
+        Long time = time() - DOT_TO_START.get(dot);
+        MID_EXECUTION_AVG.add(time);
+        MID_EXECUTION_TIMES.append(time).append("\n");
+        return time;
+    }
+
+    public static Long endExecution(Dot dot) {
+        Long time = time() - DOT_TO_START.remove(dot);
+        EXECUTION_AVG.add(time);
+        EXECUTION_TIMES.append(time).append("\n");
+        return time;
+    }
+
+    public static void chain(Integer size) {
+        CHAINS_AVG.add(size.longValue());
+        CHAINS.append(time())
                 .append("-")
                 .append(size)
                 .append("\n");
     }
 
-    public String show() {
+    public static String show() {
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append("CHAINS: ")
-                .append(chainsAvg.getAverage())
+                .append(CHAINS_AVG.getAverage())
                 .append("\n");
         sb.append("DURABLE: ")
-                .append(durableAvg.getAverage())
+                .append(DURABLE_AVG.getAverage())
                 .append(" (ms)\n");
         sb.append("DELIVERED: ")
-                .append(deliveredAvg.getAverage())
+                .append(DELIVERED_AVG.getAverage())
+                .append(" (ms)\n");
+        sb.append("MID EXECUTION: ")
+                .append(MID_EXECUTION_AVG.getAverage())
+                .append(" (ms)\n");
+        sb.append("EXECUTION: ")
+                .append(EXECUTION_AVG.getAverage())
                 .append(" (ms)\n");
         return sb.toString();
     }
 
-    public Map<String, String> serialize(Config config) {
+    public static Map<String, String> serialize(Config config) {
         Map<String, String> m = new HashMap<>();
         m.put(
                 key(config, "chains"),
-                serialize(chains)
+                serialize(CHAINS)
         );
         m.put(
                 key(config, "log", "Durable"),
-                serialize(durableTimes)
+                serialize(DURABLE_TIMES)
         );
         m.put(
                 key(config, "log"),
-                serialize(deliveredTimes)
+                serialize(DELIVERED_TIMES)
+        );
+        m.put(
+                key(config, "log", "MidExecution"),
+                serialize(MID_EXECUTION_TIMES)
+        );
+        m.put(
+                key(config, "log", "Execution"),
+                serialize(EXECUTION_TIMES)
         );
 
         return m;
     }
 
-    private String key(Config config, String prefix) {
+    private static String key(Config config, String prefix) {
         return key(config, prefix, "");
     }
 
-    private String key(Config config, String prefix, String protocolSuffix) {
+    private static String key(Config config, String prefix, String protocolSuffix) {
         return "" + config.getNodeNumber() + "/"
                 + prefix + "-"
                 + protocol(config.getMaxFaults(), protocolSuffix) + "-"
@@ -96,11 +133,11 @@ public class Metrics {
                 + config.getOp();
     }
 
-    private String protocol(Integer maxFaults, String protocolSuffix) {
+    private static String protocol(Integer maxFaults, String protocolSuffix) {
         return "VCD" + "f" + maxFaults + protocolSuffix;
     }
 
-    private String serialize(StringBuilder sb) {
+    private static String serialize(StringBuilder sb) {
         int len = sb.length();
         if (len > 0 && sb.charAt(len - 1) == '\n') {
             sb.deleteCharAt(len - 1);
@@ -108,11 +145,11 @@ public class Metrics {
         return sb.toString();
     }
 
-    private Long time() {
+    private static Long time() {
         return System.currentTimeMillis();
     }
 
-    private class Averager {
+    private static class Averager {
 
         private Long elements;
         private Long average;
