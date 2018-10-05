@@ -51,6 +51,7 @@ public class Clock<T extends IntSet> {
         Dots dots = new Dots();
         for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
             Dot dot = new Dot(entry.getKey(), entry.getValue().current());
+            dots.add(dot);
         }
         return dots;
     }
