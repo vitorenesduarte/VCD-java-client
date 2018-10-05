@@ -93,8 +93,11 @@ public class Client {
 
                                     // log every 100 ops
                                     if (OPS_PER_CLIENT[client] % 100 == 0) {
-                                        LOGGER.log(Level.INFO, "{0} of {1}",
-                                                new String[]{String.valueOf(OPS_PER_CLIENT[client]), String.valueOf(CONFIG.getOps())});
+                                        LOGGER.log(Level.INFO, "({0}) {1} of {2}", new String[]{
+                                            String.valueOf(client),
+                                            String.valueOf(OPS_PER_CLIENT[client]),
+                                            String.valueOf(CONFIG.getOps())
+                                        });
                                     }
 
                                     if (OPS_PER_CLIENT[client] == CONFIG.getOps()) {

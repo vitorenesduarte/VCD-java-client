@@ -13,8 +13,10 @@ import org.imdea.vcd.queue.QueueType;
 @Parameters(separators = "=") // http://jcommander.org/#_parameter_separators
 public class Config {
 
-    @Parameter(names = "-batch_wait")
-    private Integer batchWait = 0; // if 0, batching is disabled
+    private final int CLOSED_LOOP = 42;
+
+    @Parameter(names = "-sleep")
+    private Integer sleep = 340;// if 42, closed loop
 
     @Parameter(names = "-ops")
     private Integer ops = 1000;
@@ -55,12 +57,12 @@ public class Config {
     private Config() {
     }
 
-    public Integer getBatchWait() {
-        return batchWait;
+    public Integer getSleep() {
+        return this.sleep;
     }
 
-    public void setBatchWait(Integer batchWait) {
-        this.batchWait = batchWait;
+    public boolean getClosedLoop() {
+        return this.sleep == CLOSED_LOOP;
     }
 
     public Integer getOps() {
