@@ -1,8 +1,6 @@
-FROM openjdk:8-slim
+FROM vitorenesduarte/vcd-java-client-base
 
 MAINTAINER Vitor Enes <vitorenesduarte@gmail.com>
-
-RUN apt-get update && apt-get install -y iputils-ping
 
 ENV NAME=vcd-java-client
 ENV JAR=$NAME-0.1.jar
@@ -21,4 +19,6 @@ CMD java -jar $JAR -ops=${OPS} \
                    -cluster=${CLUSTER} \
                    -timestamp=${TIMESTAMP} \
                    -redis=${REDIS} \
-                   -zk=${ZK}
+                   -zk=${ZK} \
+                   -sleep=${SLEEP} \
+                   -write_delay=${WRITE_DELAY}

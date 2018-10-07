@@ -22,21 +22,26 @@ public class Client {
 
     private static final int CONNECT_RETRIES = 100;
 
-    private static Metrics METRICS;
     private static Config CONFIG;
     private static Socket SOCKET;
     private static Map<ByteString, PerData> MAP;
     private static int[] OPS_PER_CLIENT;
+    private static ByteString[] CLIENT_KEY;
     private static int CLIENTS_DONE;
 
     public static void main(String[] args) {
         try {
-            METRICS = new Metrics();
             CONFIG = Config.parseArgs(args);
             SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
             MAP = new HashMap<>();
             OPS_PER_CLIENT = new int[CONFIG.getClients()];
+            CLIENT_KEY = new ByteString[CONFIG.getClients()];
             CLIENTS_DONE = 0;
+
+            // create a unique key for each client
+            for (int i = 0; i < CONFIG.getClients(); i++) {
+                CLIENT_KEY[i] = Generator.randomClientKey();
+            }
 
             LOGGER.log(Level.INFO, "Connect OK!");
 
@@ -61,38 +66,38 @@ public class Client {
                             //   in another node
                             // - or on recovery?
                             if (perData != null) {
-                                METRICS.end(status, perData.getStartTime());
+                                Metrics.end(status, perData.getStartTime());
                             }
                             // keep waiting
                             break;
                         case DELIVERED:
                             // record chain size
-                            METRICS.chain(messages.size());
+                            Metrics.chain(messages.size());
 
                             Iterator<Message> it = messages.iterator();
 
                             // try to find operations from clients
                             while (it.hasNext()) {
                                 data = it.next().getData();
-                                perData = MAP.get(data);
+                                perData = MAP.remove(data);
 
                                 // if it belongs to a client
                                 if (perData != null) {
                                     int client = perData.getClient();
                                     Long startTime = perData.getStartTime();
 
-                                    // delete from the map
-                                    MAP.remove(data);
-
                                     // record delivery time
-                                    METRICS.end(status, startTime);
+                                    Metrics.end(status, startTime);
                                     // increment number of ops of this client
                                     OPS_PER_CLIENT[client]++;
 
                                     // log every 100 ops
                                     if (OPS_PER_CLIENT[client] % 100 == 0) {
-                                        LOGGER.log(Level.INFO, "{0} of {1}",
-                                                new String[]{String.valueOf(OPS_PER_CLIENT[client]), String.valueOf(CONFIG.getOps())});
+                                        LOGGER.log(Level.INFO, "({0}) {1} of {2}", new String[]{
+                                            String.valueOf(client),
+                                            String.valueOf(OPS_PER_CLIENT[client]),
+                                            String.valueOf(CONFIG.getOps())
+                                        });
                                     }
 
                                     if (OPS_PER_CLIENT[client] == CONFIG.getOps()) {
@@ -123,7 +128,7 @@ public class Client {
 
             // after all operations from all clients
             // show metrics
-            LOGGER.log(Level.INFO, METRICS.show());
+            LOGGER.log(Level.INFO, Metrics.show());
 
             // and push them to redis
             redisPush();
@@ -141,14 +146,14 @@ public class Client {
     }
 
     private static void sendOp(int client) throws IOException, InterruptedException {
-        MessageSet messageSet = Generator.messageSet(CONFIG);
+        MessageSet messageSet = Generator.messageSet(CLIENT_KEY[client], CONFIG);
         ByteString data = messageSet.getMessagesList().get(0).getData();
         if (MAP.containsKey(data)) {
             // if this key already exists, try again
             sendOp(client);
         } else {
             // if it doesn't, send it and update map
-            PerData perData = new PerData(client, METRICS.start());
+            PerData perData = new PerData(client, Metrics.start());
             MAP.put(data, perData);
             SOCKET.send(messageSet);
         }
@@ -159,7 +164,7 @@ public class Client {
 
         if (redis != null) {
             try (Jedis jedis = new Jedis(redis)) {
-                Map<String, String> push = METRICS.serialize(CONFIG);
+                Map<String, String> push = Metrics.serialize(CONFIG);
                 for (String key : push.keySet()) {
                     jedis.sadd(key, push.get(key));
                 }

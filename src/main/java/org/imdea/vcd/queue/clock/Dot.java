@@ -32,7 +32,7 @@ public class Dot implements Comparable<Dot> {
 
     @Override
     public String toString() {
-        return "{" + id + "," + seq + '}';
+        return "<" + id + "," + seq + ">";
     }
 
     public static Dot dot(Proto.Dot dot) {
@@ -62,6 +62,14 @@ public class Dot implements Comparable<Dot> {
         }
         Dot t = (Dot) o;
         return Objects.equals(this.id, t.id) && Objects.equals(this.seq, t.seq);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 89 * hash + Objects.hashCode(this.id);
+        hash = 89 * hash + Objects.hashCode(this.seq);
+        return hash;
     }
 
     @Override

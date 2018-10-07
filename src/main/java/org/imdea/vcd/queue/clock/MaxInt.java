@@ -1,5 +1,7 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -7,6 +9,8 @@ import java.util.Objects;
  * @author Vitor Enes
  */
 public class MaxInt implements IntSet<MaxInt> {
+
+    private static final MaxInt BOTTOM = new MaxInt();
 
     private Long seq;
 
@@ -28,8 +32,18 @@ public class MaxInt implements IntSet<MaxInt> {
     }
 
     @Override
+    public boolean isBottom() {
+        return this.equals(BOTTOM);
+    }
+
+    @Override
     public boolean contains(Long seq) {
         return seq <= this.seq;
+    }
+
+    @Override
+    public boolean containsAll(Long seq) {
+        return contains(seq);
     }
 
     @Override
@@ -40,6 +54,33 @@ public class MaxInt implements IntSet<MaxInt> {
     @Override
     public void merge(MaxInt o) {
         this.seq = Long.max(this.seq, o.seq);
+    }
+
+    @Override
+    public List<Long> subtract(MaxInt b) {
+        List<Long> result = new ArrayList<>();
+
+        // returns [b.seq + 1 .. this.seq]
+        for (Long i = b.seq + 1; i <= this.seq; i++) {
+            result.add(i);
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean subtractIsBottom(MaxInt b) {
+        return b.seq >= this.seq;
+    }
+
+    @Override
+    public Long next() {
+        return this.seq + 1;
+    }
+
+    @Override
+    public Long current() {
+        return this.seq;
     }
 
     @Override

@@ -5,6 +5,7 @@ option java_outer_classname = "Proto";
 
 message Init {
   map<int32, ExceptionSet> committed = 1;
+  int32 site = 2;
 }
 
 message Message {
@@ -47,8 +48,13 @@ message Commit {
 
 message Reply {
   oneof reply {
+    // initialize queue with dots of committed messages
     Init init = 1;
+
+    // durable notification
     MessageSet set = 2;
+
+    // commit notification
     Commit commit = 3;
   }
 }

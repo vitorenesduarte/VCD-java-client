@@ -12,8 +12,7 @@ import com.beust.jcommander.ParameterException;
 @Parameters(separators = "=") // http://jcommander.org/#_parameter_separators
 public class Config {
 
-    @Parameter(names = "-batch_wait")
-    private Integer batchWait = 0; // if 0, batching is disabled
+    private final int CLOSED_LOOP = 42;
 
     @Parameter(names = "-ops")
     private Integer ops = 1000;
@@ -48,15 +47,13 @@ public class Config {
     @Parameter(names = "-zk", description = "zk server (host:port)")
     private String zk = "127.0.0.1:2181";
 
+    @Parameter(names = "-sleep")
+    private Integer sleep = 340;// if 42, closed loop
+
+    @Parameter(names = "-write_delay", arity = 1)
+    private Boolean writeDelay = false;
+
     private Config() {
-    }
-
-    public Integer getBatchWait() {
-        return batchWait;
-    }
-
-    public void setBatchWait(Integer batchWait) {
-        this.batchWait = batchWait;
     }
 
     public Integer getOps() {
@@ -145,6 +142,22 @@ public class Config {
 
     public void setZk(String zk) {
         this.zk = zk;
+    }
+
+    public Integer getSleep() {
+        return this.sleep;
+    }
+
+    public boolean getClosedLoop() {
+        return this.sleep == CLOSED_LOOP;
+    }
+
+    public Boolean getWriteDelay() {
+        return writeDelay;
+    }
+
+    public void setWriteDelay(String writeDelay) {
+        this.writeDelay = Boolean.parseBoolean(writeDelay);
     }
 
     public static Config parseArgs(String[] args) {

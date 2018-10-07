@@ -1,6 +1,7 @@
 package org.imdea.vcd.queue.clock;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.imdea.vcd.pb.Proto;
@@ -23,6 +24,39 @@ public class Clock<T extends IntSet> {
         for (Map.Entry<Integer, T> entry : clock.map.entrySet()) {
             this.map.put(entry.getKey(), (T) entry.getValue().clone());
         }
+    }
+
+    public Clock(Integer nodeNumber, T bottom) {
+        this.map = new HashMap<>();
+        for (Integer actor = 0; actor < nodeNumber; actor++) {
+            this.map.put(actor, (T) bottom.clone());
+        }
+    }
+
+    public IntSet get(Integer id) {
+        return this.map.get(id);
+    }
+
+    public boolean isBottom() {
+        for (T t : this.map.values()) {
+            if (!t.isBottom()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public Dots frontier(Dot toExclude) {
+        Dots dots = new Dots();
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            Dot dot = new Dot(entry.getKey(), entry.getValue().current());
+            if (dot.equals(toExclude)) {
+                dot = new Dot(dot.getId(), dot.getSeq() - 1);
+            }
+            dots.add(dot);
+        }
+        return dots;
     }
 
     public boolean contains(Dot dot) {
@@ -48,14 +82,68 @@ public class Clock<T extends IntSet> {
         return false;
     }
 
+    public Dots subtract(Clock<T> clock) {
+        Dots dots = new Dots();
+
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            // get actor
+            Integer actor = entry.getKey();
+
+            // subtract b from a
+            T a = entry.getValue();
+            T b = clock.map.get(actor);
+            List<Long> seqs = a.subtract(b);
+
+            // create dots from subtract result
+            for (Long seq : seqs) {
+                Dot dot = new Dot(actor, seq);
+                dots.add(dot);
+            }
+        }
+
+        return dots;
+    }
+
+    public boolean subtractIsBottom(Clock<T> clock) {
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            // get actor
+            Integer actor = entry.getKey();
+
+            // subtract b from a
+            T a = entry.getValue();
+            T b = clock.map.get(actor);
+
+            if (!a.subtractIsBottom(b)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void addDot(Dot dot) {
+        this.map.get(dot.getId()).add(dot.getSeq());
+    }
+
     public void addDots(Dots dots) {
         for (Dot dot : dots) {
-            this.map.get(dot.getId()).add(dot.getSeq());
+            addDot(dot);
         }
     }
 
     public int size() {
         return this.map.size();
+    }
+
+    public Dots nextDots() {
+        Dots dots = new Dots();
+
+        for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
+            Dot dot = new Dot(entry.getKey(), entry.getValue().next());
+            dots.add(dot);
+        }
+
+        return dots;
     }
 
     @Override
@@ -79,12 +167,12 @@ public class Clock<T extends IntSet> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        sb.append("(");
         for (T t : this.map.values()) {
             sb.append(t).append(",");
         }
         sb.deleteCharAt(sb.length() - 1);
-        sb.append("}");
+        sb.append(")");
         return sb.toString();
     }
 

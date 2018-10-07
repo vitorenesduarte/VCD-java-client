@@ -1,8 +1,13 @@
 package org.imdea.vcd.queue.clock;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import org.imdea.vcd.pb.Proto;
 
 /**
@@ -11,22 +16,29 @@ import org.imdea.vcd.pb.Proto;
  */
 public class ExceptionSet implements IntSet<ExceptionSet> {
 
+    private static final ExceptionSet BOTTOM = new ExceptionSet();
+
     private Long seq;
     private HashSet<Long> exceptions;
+    // thread safe version:
+    // private ConcurrentHashMap.KeySetView<Long, Boolean> exceptions;
 
     public ExceptionSet() {
         this.seq = 0L;
         this.exceptions = new HashSet<>();
+        // this.exceptions = ConcurrentHashMap.newKeySet();
     }
 
     public ExceptionSet(Long seq, HashSet<Long> exceptions) {
         this.seq = seq;
-        this.exceptions = exceptions;
+        this.exceptions = new HashSet(exceptions);
+        // this.exceptions = newKeySet(exceptions);
     }
 
     public ExceptionSet(Long seq, Long... exceptions) {
         this.seq = seq;
-        this.exceptions = new HashSet<>(Arrays.asList(exceptions));
+        this.exceptions = new HashSet(Arrays.asList(exceptions));
+        // this.exceptions = newKeySet(Arrays.asList(exceptions));
     }
 
     public ExceptionSet(Proto.ExceptionSet ex) {
@@ -35,8 +47,7 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
 
     public ExceptionSet(ExceptionSet exceptionSet) {
         this.seq = exceptionSet.seq;
-        this.exceptions = new HashSet<>();
-        this.exceptions.addAll(exceptionSet.exceptions);
+        this.exceptions = new HashSet(exceptionSet.exceptions);
     }
 
     public MaxInt toMaxInt() {
@@ -45,8 +56,29 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     }
 
     @Override
+    public boolean isBottom() {
+        return this.equals(BOTTOM);
+    }
+
+    @Override
     public boolean contains(Long seq) {
         return seq <= this.seq && !this.exceptions.contains(seq);
+    }
+
+    @Override
+    public boolean containsAll(Long seq) {
+        // if contains seq, and all smaller than seq
+        if (seq <= this.seq) {
+            // if any exception is <= seq, then false
+            for (Long ex : this.exceptions) {
+                if (ex <= seq) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -96,6 +128,48 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     }
 
     @Override
+    public List<Long> subtract(ExceptionSet b) {
+        List<Long> result = new ArrayList<>();
+
+        // returns
+        // [b.seq + 1 .. this.seq] \minus this.exceptions
+        for (Long i = b.seq + 1; i <= this.seq; i++) {
+            if (!this.exceptions.contains(i)) {
+                result.add(i);
+            }
+        }
+        // ++
+        // [e =< this.seq || e \in b.exceptions] \minus this.exceptions
+        for (Long i : b.exceptions) {
+            if (i <= this.seq && !this.exceptions.contains(i)) {
+                result.add(i);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean subtractIsBottom(ExceptionSet b) {
+        List<Long> seqs = this.subtract(b);
+        return seqs.isEmpty();
+    }
+
+    @Override
+    public Long next() {
+        if (this.exceptions.isEmpty()) {
+            return this.seq + 1;
+        } else {
+            return Collections.min(this.exceptions);
+        }
+    }
+
+    @Override
+    public Long current() {
+        return this.seq;
+    }
+
+    @Override
     public boolean equals(Object o) {
         // self check
         if (this == o) {
@@ -127,5 +201,21 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     public Object clone() {
         ExceptionSet exceptionSet = new ExceptionSet(this);
         return exceptionSet;
+    }
+
+    private ConcurrentHashMap.KeySetView<Long, Boolean> newKeySet(Collection<Long> exceptions) {
+        ConcurrentHashMap.KeySetView<Long, Boolean> result = ConcurrentHashMap.newKeySet();
+        for (Long ex : exceptions) {
+            result.add(ex);
+        }
+        return result;
+    }
+
+    private ConcurrentHashMap.KeySetView<Long, Boolean> newKeySet(ConcurrentHashMap.KeySetView<Long, Boolean> exceptions) {
+        ConcurrentHashMap.KeySetView<Long, Boolean> result = ConcurrentHashMap.newKeySet();
+        for (Long ex : exceptions) {
+            result.add(ex);
+        }
+        return result;
     }
 }

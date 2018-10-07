@@ -1,9 +1,17 @@
 package org.imdea.vcd;
 
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
+import org.imdea.vcd.queue.clock.Clock;
+import org.imdea.vcd.queue.clock.Dot;
+import org.imdea.vcd.queue.clock.MaxInt;
 
 /**
  *
@@ -12,34 +20,39 @@ import org.imdea.vcd.pb.Proto.MessageSet;
 public class Generator {
 
     private static final Integer KEY_SIZE = 8;
-    private static final Integer MIN_ASCII = 33;
-    private static final Integer MAX_ASCII = 126;
-    private static final byte[] CHARACTERS = chars(MIN_ASCII, MAX_ASCII);
-
-    private static final ByteString BLACK = repeat((byte) 1, 1);
+    public static final ByteString BLACK = repeat((byte) 1, 1);
 
     public static Message message() {
         Integer conflicts = RANDOM().nextInt(100);
+        ByteString key = hash(randomByteString(KEY_SIZE), conflicts);
+        return message(key);
+    }
+
+    public static Message message(String key) {
+        return message(bs(key.getBytes()));
+    }
+
+    public static Message message(ByteString key) {
         ByteString data = randomByteString(RANDOM().nextInt(100));
         return Message.newBuilder()
-                .addHashes(hash(conflicts))
+                .addHashes(key)
                 .setData(data)
                 .build();
     }
 
     public static MessageSet messageSet() {
-        return messageSet(RANDOM().nextInt(100), randomByteString(RANDOM().nextInt(100)));
+        return messageSet(randomByteString(KEY_SIZE), RANDOM().nextInt(100), randomByteString(RANDOM().nextInt(100)));
     }
 
-    public static MessageSet messageSet(Config config) {
-        return messageSet(config.getConflicts(), randomByteString(config.getPayloadSize()));
+    public static MessageSet messageSet(ByteString key, Config config) {
+        return messageSet(key, config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
-    public static MessageSet messageSet(Integer conflicts, ByteString data) {
+    public static MessageSet messageSet(ByteString key, Integer conflicts, ByteString data) {
         MessageSet.Builder builder = MessageSet.newBuilder();
 
         Message m = Message.newBuilder()
-                .addHashes(hash(conflicts))
+                .addHashes(hash(key, conflicts))
                 .setData(data)
                 .build();
         builder.addMessages(m);
@@ -51,6 +64,37 @@ public class Generator {
 
     public static ByteString messageSetData(Config config) {
         return randomByteString(config.getPayloadSize());
+    }
+
+    private static final int MAX_SEQ_PER_NODE = 5;
+    private static final int MAX_DEPS = 5;
+
+    public static Map<Dot, Clock<MaxInt>> dotToConf(Integer nodeNumber) {
+        Map<Dot, Clock<MaxInt>> result = new HashMap<>();
+
+        // create dots
+        List<Dot> dots = new ArrayList<>();
+        for (Integer id = 0; id < nodeNumber; id++) {
+            Long maxSeq = RANDOM().nextLong(MAX_SEQ_PER_NODE);
+            for (Long seq = 1L; seq <= maxSeq; seq++) {
+                dots.add(new Dot(id, seq));
+            }
+        }
+
+        List<Dot> deps = new ArrayList<>(dots);
+        for (Dot dot : dots) {
+            // for each dot, take a random subset of all dots as conf
+            Collections.shuffle(deps);
+            Integer numberOfDeps = RANDOM().nextInt(Math.min(MAX_DEPS, deps.size()));
+            Clock<MaxInt> conf = new Clock<>(nodeNumber, new MaxInt());
+            for (int i = 0; i < numberOfDeps; i++) {
+                conf.addDot(deps.get(i));
+            }
+            conf.addDot(dot);
+            result.put(dot, conf);
+        }
+
+        return result;
     }
 
     /**
@@ -91,46 +135,38 @@ public class Generator {
         return ranges;
     }
 
+    public static ByteString randomClientKey() {
+        return randomByteString(KEY_SIZE);
+    }
+
     private static ThreadLocalRandom RANDOM() {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteString hash(Integer conflicts) {
-        ByteString hash;
+    private static ByteString hash(ByteString key, Integer conflicts) {
         if (RANDOM().nextInt(100) < conflicts) {
-            hash = BLACK;
+            return BLACK;
         } else {
-            // try to avoid conflicts with random string
-            hash = randomByteString(KEY_SIZE);
+            // try to avoid conflicts with client random key
+            return key;
         }
-        return hash;
     }
 
-    private static ByteString repeat(byte b, Integer payloadSize) {
-        byte[] ba = new byte[payloadSize];
-        for (int i = 0; i < payloadSize; i++) {
+    private static ByteString repeat(byte b, Integer size) {
+        byte[] ba = new byte[size];
+        for (int i = 0; i < size; i++) {
             ba[i] = b;
         }
         return bs(ba);
     }
 
-    private static ByteString randomByteString(Integer payloadSize) {
-        byte[] ba = new byte[payloadSize];
-        for (int i = 0; i < payloadSize; i++) {
-            ba[i] = CHARACTERS[RANDOM().nextInt(CHARACTERS.length)];
-        }
+    private static ByteString randomByteString(Integer size) {
+        byte[] ba = new byte[size];
+        RANDOM().nextBytes(ba);
         return bs(ba);
     }
 
     private static ByteString bs(byte[] ba) {
         return ByteString.copyFrom(ba);
-    }
-
-    private static byte[] chars(Integer min, Integer max) {
-        byte[] ba = new byte[max - min + 1];
-        for (int i = min; i <= max; i++) {
-            ba[i - min] = (byte) i;
-        }
-        return ba;
     }
 }
