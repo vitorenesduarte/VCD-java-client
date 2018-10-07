@@ -20,7 +20,7 @@ import org.imdea.vcd.queue.clock.MaxInt;
 public class Generator {
 
     private static final Integer KEY_SIZE = 8;
-    private static final ByteString BLACK = repeat((byte) 1, 1);
+    public static final ByteString BLACK = repeat((byte) 1, 1);
 
     public static Message message() {
         Integer conflicts = RANDOM().nextInt(100);

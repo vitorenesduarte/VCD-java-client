@@ -15,7 +15,7 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class WriteDelay {
 
-    private static final boolean ENABLED = false;
+    private final Boolean enabled;
 
     private Integer site;
     private ExceptionSet committed;
@@ -23,8 +23,12 @@ public class WriteDelay {
 
     private final Object monitor = new Object();
 
+    public WriteDelay(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public void init(Init init) {
-        if (ENABLED) {
+        if (enabled) {
             this.site = init.getSite();
             Clock<ExceptionSet> committedClock = Clock.eclock(init.getCommittedMap());
             this.committed = (ExceptionSet) committedClock.get(this.site);
@@ -34,7 +38,7 @@ public class WriteDelay {
     }
 
     public void commit(Dot dot, Clock<MaxInt> conf) {
-        if (ENABLED) {
+        if (enabled) {
             if (dot.getId().equals(this.site)) {
                 this.committed.add(dot.getSeq());
             }
@@ -43,14 +47,14 @@ public class WriteDelay {
     }
 
     public void deliver(Dot dot) {
-        if (ENABLED) {
+        if (enabled) {
             this.dond.remove(dot);
             monitorNotify();
         }
     }
 
     public void waitDepsCommitted() throws InterruptedException {
-        if (ENABLED) {
+        if (enabled) {
             // wait until it's initialized
             if (this.dond == null) {
                 monitorWait();

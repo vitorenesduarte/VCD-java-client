@@ -19,21 +19,26 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     private static final ExceptionSet BOTTOM = new ExceptionSet();
 
     private Long seq;
-    private ConcurrentHashMap.KeySetView<Long, Boolean> exceptions;
+    private HashSet<Long> exceptions;
+    // thread safe version:
+    // private ConcurrentHashMap.KeySetView<Long, Boolean> exceptions;
 
     public ExceptionSet() {
         this.seq = 0L;
-        this.exceptions = ConcurrentHashMap.newKeySet();
+        this.exceptions = new HashSet<>();
+        // this.exceptions = ConcurrentHashMap.newKeySet();
     }
 
     public ExceptionSet(Long seq, HashSet<Long> exceptions) {
         this.seq = seq;
-        this.exceptions = newKeySet(exceptions);
+        this.exceptions = new HashSet(exceptions);
+        // this.exceptions = newKeySet(exceptions);
     }
 
     public ExceptionSet(Long seq, Long... exceptions) {
         this.seq = seq;
-        this.exceptions = newKeySet(Arrays.asList(exceptions));
+        this.exceptions = new HashSet(Arrays.asList(exceptions));
+        // this.exceptions = newKeySet(Arrays.asList(exceptions));
     }
 
     public ExceptionSet(Proto.ExceptionSet ex) {
@@ -42,7 +47,7 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
 
     public ExceptionSet(ExceptionSet exceptionSet) {
         this.seq = exceptionSet.seq;
-        this.exceptions = newKeySet(exceptionSet.exceptions);
+        this.exceptions = new HashSet(exceptionSet.exceptions);
     }
 
     public MaxInt toMaxInt() {

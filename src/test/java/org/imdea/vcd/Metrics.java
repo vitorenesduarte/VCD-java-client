@@ -151,19 +151,19 @@ public class Metrics {
 
     private static class Averager {
 
-        private Long elements;
-        private Long average;
+        private Float elements;
+        private Float average;
 
         public Averager() {
-            this.elements = 0L;
-            this.average = 0L;
+            this.elements = 0F;
+            this.average = 0F;
         }
 
         public void add(Long value) {
             this.average = (this.average * this.elements + value) / ++this.elements;
         }
 
-        public Long getAverage() {
+        public Float getAverage() {
             return average;
         }
     }

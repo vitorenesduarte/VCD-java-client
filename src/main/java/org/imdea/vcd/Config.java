@@ -4,7 +4,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import org.imdea.vcd.queue.QueueType;
 
 /**
  *
@@ -14,9 +13,6 @@ import org.imdea.vcd.queue.QueueType;
 public class Config {
 
     private final int CLOSED_LOOP = 42;
-
-    @Parameter(names = "-sleep")
-    private Integer sleep = 340;// if 42, closed loop
 
     @Parameter(names = "-ops")
     private Integer ops = 1000;
@@ -51,18 +47,13 @@ public class Config {
     @Parameter(names = "-zk", description = "zk server (host:port)")
     private String zk = "127.0.0.1:2181";
 
-    @Parameter(names = "-queue_type", description = "which queue to use; possible values: dep, conf, random")
-    private QueueType queueType = QueueType.DEP;
+    @Parameter(names = "-sleep")
+    private Integer sleep = 340;// if 42, closed loop
+
+    @Parameter(names = "-write_delay", arity = 1)
+    private Boolean writeDelay = false;
 
     private Config() {
-    }
-
-    public Integer getSleep() {
-        return this.sleep;
-    }
-
-    public boolean getClosedLoop() {
-        return this.sleep == CLOSED_LOOP;
     }
 
     public Integer getOps() {
@@ -153,12 +144,20 @@ public class Config {
         this.zk = zk;
     }
 
-    public QueueType getQueueType() {
-        return queueType;
+    public Integer getSleep() {
+        return this.sleep;
     }
 
-    public void setQueueType(QueueType queueType) {
-        this.queueType = queueType;
+    public boolean getClosedLoop() {
+        return this.sleep == CLOSED_LOOP;
+    }
+
+    public Boolean getWriteDelay() {
+        return writeDelay;
+    }
+
+    public void setWriteDelay(String writeDelay) {
+        this.writeDelay = Boolean.parseBoolean(writeDelay);
     }
 
     public static Config parseArgs(String[] args) {

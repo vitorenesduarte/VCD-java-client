@@ -1,6 +1,5 @@
 package org.imdea.vcd.queue;
 
-import org.imdea.vcd.queue.box.CommittedQueueBox;
 import com.google.protobuf.ByteString;
 import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
@@ -28,7 +27,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class ConfQueueTest {
 
-    public static final int ITERATIONS = 100;
+    public static final int ITERATIONS = 200;
 
     @Test
     public void testSimple() {
@@ -36,20 +35,22 @@ public class ConfQueueTest {
 
         // op1
         Dot dot1 = new Dot(0, 1L);
+        Message m1 = Generator.message("red");
         Clock<MaxInt> conf1 = vclock(0L, 1L);
 
         Dot dot2 = new Dot(1, 1L);
+        Message m2 = Generator.message("red");
         Clock<MaxInt> conf2 = vclock(1L, 0L);
 
-        ConfQueue<CommittedQueueBox> queue = new ConfQueue<>(nodeNumber);
+        WhiteBlackConfQueue queue = new WhiteBlackConfQueue(nodeNumber);
 
-        queue.add(args(dot1, conf1));
+        queue.add(dot1, m1, conf1);
         assertFalse(queue.isEmpty());
         assertTrue(queue.tryDeliver().isEmpty());
 
-        queue.add(args(dot2, conf2));
+        queue.add(dot2, m2, conf2);
         assertTrue(queue.isEmpty());
-        List<CommittedQueueBox> list = queue.tryDeliver();
+        List<ConfQueueBox> list = queue.tryDeliver();
         assertTrue(list.size() == 1);
         assertTrue(list.get(0).size() == 2);
     }
@@ -88,7 +89,7 @@ public class ConfQueueTest {
 
             // create the commit clock after failure
             QueueAddArgs committedArgs = argsList.remove(0);
-            Clock<MaxInt> committed = Clock.eclock(committedArgs.getConf());
+            Clock<ExceptionSet> committed = Clock.eclock(committedArgs.getConf());
 
             checkTerminationRandomShuffles(committed, argsList);
         }
@@ -364,26 +365,30 @@ public class ConfQueueTest {
     }
 
     private Map<Dots, List<Message>> checkTermination(Object queueArg, List<QueueAddArgs> argsList) {
-        ConfQueue<CommittedQueueBox> queue;
+        WhiteBlackConfQueue queue;
         if (queueArg instanceof Integer) {
-            queue = new ConfQueue<>((Integer) queueArg);
+            queue = new WhiteBlackConfQueue((Integer) queueArg);
         } else {
-            queue = new ConfQueue<>((Clock<ExceptionSet>) queueArg);
+            queue = new WhiteBlackConfQueue((Clock<ExceptionSet>) queueArg);
         }
 
         return checkTermination(queue, argsList);
     }
 
-    private Map<Dots, List<Message>> checkTermination(ConfQueue<CommittedQueueBox> queue, List<QueueAddArgs> argsList) {
-        List<CommittedQueueBox> results = new ArrayList<>();
+    private Map<Dots, List<Message>> checkTermination(WhiteBlackConfQueue queue, List<QueueAddArgs> argsList) {
+        // results
+        List<ConfQueueBox> results = new ArrayList<>();
+
+        // add all to queue
         for (QueueAddArgs args : argsList) {
-            queue.add((QueueAddArgs) args.clone());
-            List<CommittedQueueBox> result = queue.tryDeliver();
+            QueueAddArgs copy = (QueueAddArgs) args.clone();
+            queue.add(copy.getDot(), copy.getMessage(), copy.getConf());
+            List<ConfQueueBox> result = queue.tryDeliver();
             results.addAll(result);
         }
 
         // check queue is empty and all dots were delivered
-        boolean emptyQueue = queue.isEmpty() && queue.size() == 0 && queue.elements() == 0;
+        boolean emptyQueue = queue.isEmpty() && queue.elements() == 0;
         boolean allDots = checkAllDotsDelivered(argsList, results);
         boolean termination = emptyQueue && allDots;
 
@@ -394,28 +399,27 @@ public class ConfQueueTest {
 
         // return messages sorted
         Map<Dots, List<Message>> sorted = new HashMap<>();
-        for (CommittedQueueBox box : results) {
+        for (ConfQueueBox box : results) {
             sorted.put(box.getDots(), box.sortMessages());
         }
         return sorted;
     }
 
-    private boolean checkAllDotsDelivered(List<QueueAddArgs> argsList, List<CommittedQueueBox> results) {
-        List<CommittedQueueBox> boxes = new ArrayList<>();
+    private boolean checkAllDotsDelivered(List<QueueAddArgs> argsList, List<ConfQueueBox> results) {
+        List<Dot> dots = new ArrayList<>();
         for (QueueAddArgs args : argsList) {
-            boxes.add((CommittedQueueBox) args.getBox());
+            dots.add(args.getDot());
         }
 
-        List<Dot> boxesDots = boxListToDots(boxes);
         List<Dot> resultsDots = boxListToDots(results);
 
         // all dots (and no more) were delivered
-        return boxesDots.size() == resultsDots.size() && resultsDots.containsAll(boxesDots);
+        return dots.size() == resultsDots.size() && resultsDots.containsAll(dots);
     }
 
-    private List<Dot> boxListToDots(List<CommittedQueueBox> list) {
+    private List<Dot> boxListToDots(List<ConfQueueBox> list) {
         List<Dot> dots = new ArrayList<>();
-        for (CommittedQueueBox e : list) {
+        for (ConfQueueBox e : list) {
             for (Dot dot : e.getDots()) {
                 dots.add(dot);
             }
@@ -424,14 +428,7 @@ public class ConfQueueTest {
     }
 
     private QueueAddArgs args(Dot dot, Clock<MaxInt> conf) {
-        // build black message
-        Message message = Generator.message("black");
-        return args(dot, message, conf);
-    }
-
-    private QueueAddArgs args(Dot dot, Message message, Clock<MaxInt> conf) {
-        CommittedQueueBox box = new CommittedQueueBox(dot, null, message, conf);
-        QueueAddArgs args = new QueueAddArgs(dot, conf, box);
+        QueueAddArgs args = new QueueAddArgs(dot, conf);
         return args;
     }
 
@@ -483,4 +480,49 @@ public class ConfQueueTest {
         return new Clock<>(map);
     }
 
+    private class QueueAddArgs {
+
+        private final Dot dot;
+        // build black message
+        private final Message message;
+        private final Clock<MaxInt> conf;
+
+        public QueueAddArgs(Dot dot, Clock<MaxInt> conf) {
+            this.dot = dot;
+            this.message = Generator.message("black");
+            this.conf = conf;
+        }
+
+        public QueueAddArgs(QueueAddArgs o) {
+            this.dot = new Dot(o.dot);
+            this.message = Message.newBuilder()
+                    .addAllHashes(o.message.getHashesList())
+                    .setData(o.message.getData())
+                    .build();
+            this.conf = new Clock(o.conf);
+        }
+
+        public Dot getDot() {
+            return dot;
+        }
+
+        public Message getMessage() {
+            return message;
+        }
+
+        public Clock<MaxInt> getConf() {
+            return conf;
+        }
+
+        @Override
+        public String toString() {
+            return dot + " " + conf;
+        }
+
+        @Override
+        public QueueAddArgs clone() {
+            QueueAddArgs args = new QueueAddArgs(this);
+            return args;
+        }
+    }
 }

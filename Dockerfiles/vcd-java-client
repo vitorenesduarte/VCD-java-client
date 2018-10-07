@@ -20,5 +20,5 @@ CMD java -jar $JAR -ops=${OPS} \
                    -timestamp=${TIMESTAMP} \
                    -redis=${REDIS} \
                    -zk=${ZK} \
-                   -batch_wait=${BATCH_WAIT} \
-                   -queue_type=${QUEUE_TYPE}
+                   -sleep=${SLEEP} \
+                   -write_delay=${WRITE_DELAY}
