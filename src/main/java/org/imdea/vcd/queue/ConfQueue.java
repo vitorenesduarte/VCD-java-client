@@ -23,41 +23,35 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class ConfQueue {
 
-    // these two should always have the same size
-    private final HashMap<Dot, ConfQueueBox> dotToBox = new HashMap<>();
-    private final HashMap<Dot, Clock<MaxInt>> dotToConf = new HashMap<>();
+    private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
-    private final Clock<ExceptionSet> committed;
     private final Clock<ExceptionSet> delivered;
 
     public ConfQueue(Integer nodeNumber) {
-        this.committed = Clock.eclock(nodeNumber);
         this.delivered = Clock.eclock(nodeNumber);
     }
 
     public ConfQueue(Clock<ExceptionSet> committed) {
-        this.committed = (Clock<ExceptionSet>) committed.clone();
         this.delivered = (Clock<ExceptionSet>) committed.clone();
     }
 
     public boolean isEmpty() {
-        return this.dotToConf.isEmpty();
+        return vertexIndex.isEmpty();
     }
 
     public void add(Dot dot, Message message, Clock<MaxInt> conf) {
         // create box
-        ConfQueueBox box = new ConfQueueBox(dot, message, conf);
+        ConfQueueBox box = new ConfQueueBox(dot, message, null);
+        // get deps
+        Dots deps = conf.frontier(dot);
 
-        // update committed
-        this.committed.addDot(dot);
+        // create vertex
+        Vertex v = new Vertex(deps, box);
+        // update index
+        vertexIndex.put(dot, v);
 
-        // save box
-        this.dotToBox.put(dot, box);
-        // save info
-        this.dotToConf.put(dot, conf);
-
-        if (this.delivered.contains(dot)) {
+        if (delivered.contains(dot)) {
             // FOR THE CASE OF FAILURES: just deliver again?
             // this probably shouldn't happen
             Dots scc = new Dots();
@@ -71,11 +65,6 @@ public class ConfQueue {
     }
 
     private void findSCC(Dot dot) {
-        // if not committed or already delivered, return
-        if (!this.committed.contains(dot) || this.delivered.contains(dot)) {
-            return;
-        }
-
         TarjanSCCFinder finder = new TarjanSCCFinder();
         FinderResult res = finder.strongConnect(dot);
         switch (res) {
@@ -88,7 +77,7 @@ public class ConfQueue {
                 }
 
                 // try to deliver the next dots after delivered
-                for (Dot next : this.delivered.nextDots()) {
+                for (Dot next : delivered.nextDots()) {
                     findSCC(next);
                 }
             default:
@@ -98,85 +87,79 @@ public class ConfQueue {
 
     private void saveSCC(Dots scc) {
         // update delivered
-        this.delivered.addDots(scc);
+        delivered.addDots(scc);
 
         // merge boxes of dots in SCC
         // - remove dot's box and conf along the way
-        ConfQueueBox merged = new ConfQueueBox(this.committed.size());
         Iterator<Dot> it = scc.iterator();
-        do {
-            Dot member = it.next();
-            ConfQueueBox box = resetMember(member);
+        Dot member = it.next();
+        ConfQueueBox merged = deleteMember(member);
+
+        while (it.hasNext()) {
+            member = it.next();
+            ConfQueueBox box = deleteMember(member);
             merged.merge(box);
-        } while (it.hasNext());
+        }
 
         // add to toDeliver list
-        this.toDeliver.add(merged);
+        toDeliver.add(merged);
     }
 
-    private ConfQueueBox resetMember(Dot member) {
-        this.dotToConf.remove(member);
-        return this.dotToBox.remove(member);
+    private ConfQueueBox deleteMember(Dot member) {
+        Vertex v = vertexIndex.remove(member);
+        return v.box;
     }
 
     public List<ConfQueueBox> tryDeliver() {
         // return current list to be delivered,
         // and create a new one
-        List<ConfQueueBox> result = this.toDeliver;
-        this.toDeliver = new ArrayList<>();
+        List<ConfQueueBox> result = toDeliver;
+        toDeliver = new ArrayList<>();
         return result;
     }
 
     public int elements() {
-        return this.dotToConf.size();
+        return vertexIndex.size();
     }
 
     private enum FinderResult {
         FOUND, NOT_FOUND, MISSING_DEP
     }
 
+    private class Vertex {
+
+        private final Dots deps;
+        private final ConfQueueBox box;
+
+        public Vertex(Dots deps, ConfQueueBox box) {
+            this.deps = deps;
+            this.box = box;
+        }
+    }
+
     /**
      * Find a SCC using Tarjan's algorithm.
      *
-     * Based on
-     * https://github.com/williamfiset/Algorithms/blob/master/com/williamfiset/algorithms/graphtheory/TarjanSccSolverAdjacencyList.java
+     * https://github.com/NYU-NEWS/janus/blob/09372bd1de206f9e0f15712a9a171a349bdcf3c0/src/deptran/rococo/graph.h#L274-L314
      *
      */
     private class TarjanSCCFinder {
 
-        private final Deque<Dot> stack;
-        private final Map<Dot, Integer> ids;
-        private final Map<Dot, Integer> low;
-        private final Set<Dot> onStack;
-        private Integer index;
+        private final Deque<Dot> stack = new ArrayDeque<>();
+        private final Map<Dot, Integer> ids = new HashMap<>();
+        private final Map<Dot, Integer> low = new HashMap<>();
+        private final Set<Dot> onStack = new HashSet<>();
+        private Integer index = 0;
 
-        private final List<Dots> sccs;
-
-        public TarjanSCCFinder() {
-            this.stack = new ArrayDeque<>();
-            this.ids = new HashMap<>();
-            this.low = new HashMap<>();
-            this.onStack = new HashSet<>();
-            this.index = 0;
-            this.sccs = new ArrayList();
-        }
+        private final List<Dots> sccs = new ArrayList<>();
 
         public FinderResult strongConnect(Dot v) {
-            // get conf
-            Clock<MaxInt> conf = dotToConf.get(v);
-
-            // get neighbors: subtract delivered
-            Dots deps = new Dots();
-
-            // if not all deps are committed, give up
-            for (Dot dep : conf.frontier(v)) {
-                if (!committed.contains(dep)) {
-                    return FinderResult.MISSING_DEP;
-                }
-                if (!delivered.contains(dep)) {
-                    deps.add(dep);
-                }
+            // find vertex
+            Vertex vertex = vertexIndex.get(v);
+            if (vertex == null) {
+                return FinderResult.MISSING_DEP;
             }
+            Dots deps = vertex.deps;
 
             // add to the stack
             stack.push(v);
@@ -190,6 +173,9 @@ public class ConfQueue {
 
             // for all neighbors
             for (Dot w : deps) {
+                if (delivered.contains(w)) {
+                    continue;
+                }
                 // if not visited, visit
                 boolean visited = ids.containsKey(w);
                 if (!visited) {

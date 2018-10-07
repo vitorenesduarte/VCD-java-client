@@ -20,25 +20,25 @@ import org.imdea.vcd.queue.clock.MaxInt;
 public class ConfQueueBox {
 
     private final Dots dots;
-    private final Clock<MaxInt> conf;
+    // private final Clock<MaxInt> conf;
     private final MessageMap messageMap;
 
     public ConfQueueBox(Integer nodeNumber) {
         this.dots = new Dots();
-        MaxInt bottom = new MaxInt();
-        this.conf = new Clock<>(nodeNumber, bottom);
+        // MaxInt bottom = new MaxInt();
+        // this.conf = new Clock<>(nodeNumber, bottom);
         this.messageMap = new MessageMap();
     }
-    
+
     public ConfQueueBox(Dot dot, Message message, Clock<MaxInt> dep) {
         this.dots = new Dots(dot);
-        this.conf = new Clock(dep);
+        // this.conf = new Clock(dep);
         this.messageMap = new MessageMap(dot, message);
     }
 
     public ConfQueueBox(ConfQueueBox box) {
         this.dots = new Dots(box.dots);
-        this.conf = new Clock(box.conf);
+        // this.conf = new Clock(box.conf);
         this.messageMap = new MessageMap(box.messageMap);
     }
 
@@ -47,20 +47,22 @@ public class ConfQueueBox {
     }
 
     public boolean before(ConfQueueBox o) {
-        return o.conf.intersects(this.dots);
+        // return o.conf.intersects(this.dots);
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public void merge(ConfQueueBox o) {
         this.dots.merge(o.dots);
-        this.conf.merge(o.conf);
+        // this.conf.merge(o.conf);
         this.messageMap.merge(o.messageMap);
     }
 
     public boolean canDeliver(Clock<ExceptionSet> delivered) {
         // delivered will be mutated, adding the dots from this box
         // - in case it can deliver, delivered will be the next queue clock
-        delivered.addDots(this.dots);
-        return delivered.equals(this.conf);
+        // delivered.addDots(this.dots);
+        // return delivered.equals(this.conf);
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public List<Message> sortMessages() {
