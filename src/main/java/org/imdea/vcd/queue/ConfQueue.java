@@ -33,7 +33,15 @@ public class ConfQueue {
     }
 
     public ConfQueue(Clock<ExceptionSet> committed) {
-        this.delivered = (Clock<ExceptionSet>) committed.clone();
+        this(committed, true);
+    }
+
+    public ConfQueue(Clock<ExceptionSet> committed, boolean clone) {
+        if (clone) {
+            this.delivered = (Clock<ExceptionSet>) committed.clone();
+        } else {
+            this.delivered = committed;
+        }
     }
 
     public boolean isEmpty() {

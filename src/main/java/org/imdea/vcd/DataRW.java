@@ -29,6 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.imdea.vcd.queue.WhiteBlackConfQueue;
 
 /**
  *
@@ -239,7 +240,7 @@ public class DataRW {
         private final WriteDelay writeDelay;
         private final Deliverer deliverer;
 
-        private ConfQueue queue;
+        private WhiteBlackConfQueue queue;
 
         // metrics
         private final Timer add;
@@ -283,7 +284,7 @@ public class DataRW {
                             this.writeDelay.init(reply.getInit());
 
                             // create delivery queue
-                            this.queue = new ConfQueue(committed);
+                            this.queue = new WhiteBlackConfQueue(committed);
                             break;
 
                         case COMMIT:
