@@ -52,7 +52,8 @@ public class ConfQueue {
         // create box
         ConfQueueBox box = new ConfQueueBox(dot, message, null);
         // get deps
-        Dots deps = conf.frontier(dot);
+        Clock<ExceptionSet> confEClock = Clock.eclock(conf);
+        Dots deps = confEClock.subtract(delivered);
 
         // create vertex
         Vertex v = new Vertex(deps, box);
@@ -85,7 +86,8 @@ public class ConfQueue {
                 }
 
                 // try to deliver the next dots after delivered
-                for (Dot next : delivered.nextDots()) {
+                Set<Dot> pending = new HashSet<>(vertexIndex.keySet());
+                for (Dot next : pending) {
                     findSCC(next);
                 }
             default:
