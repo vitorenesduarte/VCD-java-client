@@ -183,7 +183,7 @@ public class ConfQueue {
             for (Integer i = 0; i < N; i++) {
                 for (Long s = delivered.get(i).next(); s <= conf.get(i).current(); s++) {
                     Dot w = new Dot(i, s);
-                    if (delivered.contains(w)) {
+                    if (w.equals(v) || delivered.contains(w)) {
                         continue;
                     }
                     // if not visited, visit
