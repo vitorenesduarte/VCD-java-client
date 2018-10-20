@@ -51,12 +51,9 @@ public class ConfQueue {
     public void add(Dot dot, Message message, Clock<MaxInt> conf) {
         // create box
         ConfQueueBox box = new ConfQueueBox(dot, message, null);
-        // get deps
-        Clock<ExceptionSet> confEClock = Clock.eclock(conf);
-        Dots deps = confEClock.subtract(delivered);
 
         // create vertex
-        Vertex v = new Vertex(deps, box);
+        Vertex v = new Vertex(conf, box);
         // update index
         vertexIndex.put(dot, v);
 
@@ -138,11 +135,11 @@ public class ConfQueue {
 
     private class Vertex {
 
-        private final Dots deps;
+        private final Clock<MaxInt> conf;
         private final ConfQueueBox box;
 
-        public Vertex(Dots deps, ConfQueueBox box) {
-            this.deps = deps;
+        public Vertex(Clock<MaxInt> conf, ConfQueueBox box) {
+            this.conf = conf;
             this.box = box;
         }
     }
@@ -169,7 +166,8 @@ public class ConfQueue {
             if (vertex == null) {
                 return FinderResult.MISSING_DEP;
             }
-            Dots deps = vertex.deps;
+            Clock<MaxInt> conf = vertex.conf;
+            Integer N = conf.size();
 
             // add to the stack
             stack.push(v);
@@ -181,28 +179,31 @@ public class ConfQueue {
             // update id
             index++;
 
-            // for all neighbors
-            for (Dot w : deps) {
-                if (delivered.contains(w)) {
-                    continue;
-                }
-                // if not visited, visit
-                boolean visited = ids.containsKey(w);
-                if (!visited) {
-                    FinderResult result = strongConnect(w);
-
-                    switch (result) {
-                        case MISSING_DEP:
-                            // propagate missing dep
-                            return result;
-                        default:
-                            break;
+            // for all deps
+            for (Integer i = 0; i < N; i++) {
+                for (Long s = delivered.get(i).next(); s <= conf.get(i).current(); s++) {
+                    Dot w = new Dot(i, s);
+                    if (delivered.contains(w)) {
+                        continue;
                     }
-                    low.put(v, Math.min(low.get(v), low.get(w)));
+                    // if not visited, visit
+                    boolean visited = ids.containsKey(w);
+                    if (!visited) {
+                        FinderResult result = strongConnect(w);
 
-                } // if visited neighbor is on stack, min lows
-                else if (onStack.contains(w)) {
-                    low.put(v, Math.min(low.get(v), ids.get(w)));
+                        switch (result) {
+                            case MISSING_DEP:
+                                // propagate missing dep
+                                return result;
+                            default:
+                                break;
+                        }
+                        low.put(v, Math.min(low.get(v), low.get(w)));
+
+                    } // if visited neighbor is on stack, min lows
+                    else if (onStack.contains(w)) {
+                        low.put(v, Math.min(low.get(v), ids.get(w)));
+                    }
                 }
             }
 
