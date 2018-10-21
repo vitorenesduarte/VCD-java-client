@@ -46,11 +46,11 @@ public class ConfQueueTest {
 
         queue.add(dot1, m1, conf1);
         assertFalse(queue.isEmpty());
-        assertTrue(queue.tryDeliver().isEmpty());
+        assertTrue(queue.getToDeliver().isEmpty());
 
         queue.add(dot2, m2, conf2);
         assertTrue(queue.isEmpty());
-        List<ConfQueueBox> list = queue.tryDeliver();
+        List<ConfQueueBox> list = queue.getToDeliver();
         assertTrue(list.size() == 1);
         assertTrue(list.get(0).size() == 2);
     }
@@ -383,7 +383,7 @@ public class ConfQueueTest {
         for (QueueAddArgs args : argsList) {
             QueueAddArgs copy = (QueueAddArgs) args.clone();
             queue.add(copy.getDot(), copy.getMessage(), copy.getConf());
-            List<ConfQueueBox> result = queue.tryDeliver();
+            List<ConfQueueBox> result = queue.getToDeliver();
             results.addAll(result);
         }
 

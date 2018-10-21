@@ -24,13 +24,15 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class ConfQueue {
 
+    private static final boolean TRANSITIVE = true;
+
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
 
-    private Set<Dot> visited;
+    private Set<Dot> visited = new HashSet<>();
 
     public ConfQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
@@ -68,29 +70,11 @@ public class ConfQueue {
             saveSCC(scc);
         } else {
             // try to find a SCC
-            visited = new HashSet<>();
             if (findSCC(dot, v)) {
-                // if found something,
-                // try to deliver pending commands
+                // if found something, try to deliver pending commands
                 tryPending();
             }
         }
-    }
-
-    private void tryPending() {
-        HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
-        for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
-            Dot dot = e.getKey();
-            Vertex vertex = e.getValue();
-            // only try to find SCC if not visited since the last dot was committed
-            if (!visited.contains(dot)) {
-                findSCC(dot, vertex);
-            }
-        }
-    }
-
-    public Clock<ExceptionSet> getDelivered() {
-        return delivered;
     }
 
     private boolean findSCC(Dot dot, Vertex vertex) {
@@ -133,7 +117,21 @@ public class ConfQueue {
         return v.box;
     }
 
-    public List<ConfQueueBox> tryDeliver() {
+    private void tryPending() {
+        HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
+        visited = new HashSet<>();
+        for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
+            Dot dot = e.getKey();
+            Vertex vertex = e.getValue();
+            // only try to find SCC if not visited since the last dot was committed
+            if (!visited.contains(dot)) {
+                findSCC(dot, vertex);
+            }
+        }
+        visited = new HashSet<>();
+    }
+
+    public List<ConfQueueBox> getToDeliver() {
         // return current list to be delivered,
         // and create a new one
         List<ConfQueueBox> result = toDeliver;
@@ -202,11 +200,16 @@ public class ConfQueue {
 
             // for all deps
             for (Integer q = 0; q < N; q++) {
-                Long dep = conf.get(q).current();
-                Long nextDel = delivered.get(q).next();
+                Long to = conf.get(q).current();
+                Long from;
+                if (TRANSITIVE) {
+                    from = to;
+                } else {
+                    from = delivered.get(q).next();
+                }
                 // start from dep to del (assuming we would give up, we give up faster this way)
-                for (; dep >= nextDel; dep--) {
-                    Dot w = new Dot(q, dep);
+                for (; to >= from; to--) {
+                    Dot w = new Dot(q, to);
 
                     // ignore self and delivered
                     // - we need to check delivered since the clock has exceptions
@@ -223,7 +226,7 @@ public class ConfQueue {
                     }
 
                     // ignore non-conflicting
-                    if (!vVertex.conflict(wVertex)) {
+                    if (!TRANSITIVE && !vVertex.conflict(wVertex)) {
                         continue;
                     }
 

@@ -244,7 +244,7 @@ public class DataRW {
         // metrics
         private final Timer add;
         private final Timer parse;
-        private final Timer tryDeliver;
+        private final Timer getToDeliver;
         private final Histogram queueElements;
         private final Histogram midExecution;
 
@@ -252,7 +252,7 @@ public class DataRW {
 
             parse = METRICS.timer(MetricRegistry.name(DataRW.class, "parse"));
             add = METRICS.timer(MetricRegistry.name(DataRW.class, "add"));
-            tryDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
+            getToDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "getToDeliver"));
 
             queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
             midExecution = METRICS.histogram(MetricRegistry.name(DataRW.class, "midExecution"));
@@ -304,13 +304,13 @@ public class DataRW {
                             queue.add(dot, message, conf);
                             addContext.stop();
 
-                            final Timer.Context tryDeliverContext = tryDeliver.time();
-                            List<ConfQueueBox> toDeliver = queue.tryDeliver();
+                            final Timer.Context getToDeliverContext = getToDeliver.time();
+                            List<ConfQueueBox> toDeliver = queue.getToDeliver();
                             if (!toDeliver.isEmpty()) {
                                 toDeliverer.put(toDeliver);
                             }
                             queueElements.update(queue.elements());
-                            tryDeliverContext.stop();
+                            getToDeliverContext.stop();
                             break;
 
                         default:
