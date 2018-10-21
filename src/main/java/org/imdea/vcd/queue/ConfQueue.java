@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Logger;
-import org.imdea.vcd.VCDLogger;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -26,13 +24,13 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class ConfQueue {
 
-    private static final Logger LOGGER = VCDLogger.init(ConfQueue.class);
-
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
+
+    private Set<Dot> visited;
 
     public ConfQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
@@ -70,24 +68,23 @@ public class ConfQueue {
             saveSCC(scc);
         } else {
             // try to find an SCC
+            visited = new HashSet<>();
             if (findSCC(dot, v)) {
                 tryPending();
             }
         }
     }
 
-    private boolean tryPending() {
+    private void tryPending() {
         HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
-        // this can be optimized
-        // - if two pending messages can't be delivered (missing dep)
-        // and are part of the same SCC, both will be traversed twice,
-        // one for each pending message
         for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
-            if (findSCC(e.getKey(), e.getValue())) {
-                return tryPending();
+            Dot dot = e.getKey();
+            Vertex vertex = e.getValue();
+            // try to find SCC if not visited since the last dot was committed
+            if (!visited.contains(dot)) {
+                findSCC(dot, vertex);
             }
         }
-        return true;
     }
 
     public Clock<ExceptionSet> getDelivered() {
@@ -97,6 +94,7 @@ public class ConfQueue {
     private boolean findSCC(Dot dot, Vertex vertex) {
         TarjanSCCFinder finder = new TarjanSCCFinder();
         FinderResult res = finder.strongConnect(dot, vertex);
+        visited.addAll(finder.getVisited());
         switch (res) {
             case FOUND:
                 for (Dots scc : finder.getSCCs()) {
@@ -279,6 +277,10 @@ public class ConfQueue {
 
         private List<Dots> getSCCs() {
             return this.sccs;
+        }
+
+        private Set<Dot> getVisited() {
+            return this.ids.keySet();
         }
     }
 }
