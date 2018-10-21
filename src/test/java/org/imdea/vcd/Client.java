@@ -134,7 +134,7 @@ public class Client {
             redisPush();
 
             SOCKET.close();
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             LOGGER.log(Level.SEVERE, e.toString(), e);
         }
     }

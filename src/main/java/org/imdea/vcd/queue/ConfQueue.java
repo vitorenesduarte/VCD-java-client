@@ -1,5 +1,6 @@
 package org.imdea.vcd.queue;
 
+import com.google.protobuf.ByteString;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
+import org.imdea.vcd.VCDLogger;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -23,13 +26,17 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class ConfQueue {
 
+    private static final Logger LOGGER = VCDLogger.init(ConfQueue.class);
+
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
+    private final Integer N;
 
     public ConfQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
+        this.N = nodeNumber;
     }
 
     public ConfQueue(Clock<ExceptionSet> committed) {
@@ -42,6 +49,7 @@ public class ConfQueue {
         } else {
             this.delivered = committed;
         }
+        this.N = this.delivered.size();
     }
 
     public boolean isEmpty() {
@@ -49,46 +57,54 @@ public class ConfQueue {
     }
 
     public void add(Dot dot, Message message, Clock<MaxInt> conf) {
-        // create box
-        ConfQueueBox box = new ConfQueueBox(dot, message, null);
-
         // create vertex
-        Vertex v = new Vertex(conf, box);
+        Vertex v = new Vertex(dot, message, conf);
         // update index
         vertexIndex.put(dot, v);
 
         if (delivered.contains(dot)) {
             // FOR THE CASE OF FAILURES: just deliver again?
-            // this probably shouldn't happen
+            // this shouldn't happen
             Dots scc = new Dots();
             scc.add(dot);
             saveSCC(scc);
-            return;
+        } else {
+            // try to find an SCC
+            if (findSCC(dot, v)) {
+                tryPending();
+            }
         }
-
-        // try to find an SCC
-        findSCC(dot);
     }
 
-    private void findSCC(Dot dot) {
+    private boolean tryPending() {
+        HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
+        // this can be optimized
+        // - if two pending messages can't be delivered (missing dep)
+        // and are part of the same SCC, both will be traversed twice,
+        // one for each pending message
+        for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
+            if (findSCC(e.getKey(), e.getValue())) {
+                return tryPending();
+            }
+        }
+        return true;
+    }
+
+    public Clock<ExceptionSet> getDelivered() {
+        return delivered;
+    }
+
+    private boolean findSCC(Dot dot, Vertex vertex) {
         TarjanSCCFinder finder = new TarjanSCCFinder();
-        FinderResult res = finder.strongConnect(dot);
+        FinderResult res = finder.strongConnect(dot, vertex);
         switch (res) {
             case FOUND:
-                List<Dots> sccs = finder.getSCCs();
-
-                // deliver all sccs by the order they were found
-                for (Dots scc : sccs) {
+                for (Dots scc : finder.getSCCs()) {
                     saveSCC(scc);
                 }
-
-                // try to deliver the next dots after delivered
-                Set<Dot> pending = new HashSet<>(vertexIndex.keySet());
-                for (Dot next : pending) {
-                    findSCC(next);
-                }
+                return true;
             default:
-                break;
+                return false;
         }
     }
 
@@ -137,10 +153,21 @@ public class ConfQueue {
 
         private final Clock<MaxInt> conf;
         private final ConfQueueBox box;
+        private final HashSet<ByteString> colors;
 
-        public Vertex(Clock<MaxInt> conf, ConfQueueBox box) {
+        public Vertex(Dot dot, Message message, Clock<MaxInt> conf) {
             this.conf = conf;
-            this.box = box;
+            this.colors = new HashSet<>(message.getHashesList());
+            this.box = new ConfQueueBox(dot, message, null);
+        }
+
+        public boolean conflict(Vertex v) {
+            for (ByteString s : colors) {
+                if (v.colors.contains(s)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -160,14 +187,8 @@ public class ConfQueue {
 
         private final List<Dots> sccs = new ArrayList<>();
 
-        public FinderResult strongConnect(Dot v) {
-            // find vertex
-            Vertex vertex = vertexIndex.get(v);
-            if (vertex == null) {
-                return FinderResult.MISSING_DEP;
-            }
-            Clock<MaxInt> conf = vertex.conf;
-            Integer N = conf.size();
+        public FinderResult strongConnect(Dot v, Vertex vVertex) {
+            Clock<MaxInt> conf = vVertex.conf;
 
             // add to the stack
             stack.push(v);
@@ -180,16 +201,35 @@ public class ConfQueue {
             index++;
 
             // for all deps
-            for (Integer i = 0; i < N; i++) {
-                for (Long s = delivered.get(i).next(); s <= conf.get(i).current(); s++) {
-                    Dot w = new Dot(i, s);
+            for (Integer q = 0; q < N; q++) {
+                Long dep = conf.get(q).current();
+                Long nextDel = delivered.get(q).next();
+                // start from dep to del (assuming we would give up, we give up faster this way)
+                for (; dep >= nextDel; dep--) {
+                    Dot w = new Dot(q, dep);
+
+                    // ignore self and delivered
+                    // - we need to check delivered singe it has exceptions
                     if (w.equals(v) || delivered.contains(w)) {
                         continue;
                     }
+
+                    // find vertex
+                    Vertex wVertex = vertexIndex.get(w);
+                    if (wVertex == null) {
+                        // NOT NECESSARILY BUT WE CAN'T KNOW UNTIL WE SEE IT
+                        return FinderResult.MISSING_DEP;
+                    }
+
+                    // ignore non-conflicting
+                    if (!vVertex.conflict(wVertex)) {
+                        continue;
+                    }
+
                     // if not visited, visit
                     boolean visited = ids.containsKey(w);
                     if (!visited) {
-                        FinderResult result = strongConnect(w);
+                        FinderResult result = strongConnect(w, wVertex);
 
                         switch (result) {
                             case MISSING_DEP:
@@ -211,7 +251,6 @@ public class ConfQueue {
             // good news: the SCC members are in the stack
             if (Objects.equals(vIndex, low.get(v))) {
                 Dots scc = new Dots();
-
                 for (Dot w = stack.pop();; w = stack.pop()) {
                     // remove from stack
                     onStack.remove(w);
@@ -226,6 +265,11 @@ public class ConfQueue {
 
                 // add scc to the set of sccs
                 sccs.add(scc);
+
+                if (!stack.isEmpty()) {
+                    // this occurs several times
+                    // and epaxos takes the whole stack, which is wrong
+                }
 
                 return FinderResult.FOUND;
             }
