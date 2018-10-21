@@ -67,9 +67,11 @@ public class ConfQueue {
             scc.add(dot);
             saveSCC(scc);
         } else {
-            // try to find an SCC
+            // try to find a SCC
             visited = new HashSet<>();
             if (findSCC(dot, v)) {
+                // if found something,
+                // try to deliver pending commands
                 tryPending();
             }
         }
@@ -80,7 +82,7 @@ public class ConfQueue {
         for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
             Dot dot = e.getKey();
             Vertex vertex = e.getValue();
-            // try to find SCC if not visited since the last dot was committed
+            // only try to find SCC if not visited since the last dot was committed
             if (!visited.contains(dot)) {
                 findSCC(dot, vertex);
             }
@@ -110,8 +112,8 @@ public class ConfQueue {
         // update delivered
         delivered.addDots(scc);
 
-        // merge boxes of dots in SCC
-        // - remove dot's box and conf along the way
+        // merge all boxes in SCC
+        // - remove from index along the way
         Iterator<Dot> it = scc.iterator();
         Dot member = it.next();
         ConfQueueBox merged = deleteMember(member);
@@ -207,7 +209,7 @@ public class ConfQueue {
                     Dot w = new Dot(q, dep);
 
                     // ignore self and delivered
-                    // - we need to check delivered singe it has exceptions
+                    // - we need to check delivered since the clock has exceptions
                     if (w.equals(v) || delivered.contains(w)) {
                         continue;
                     }
@@ -215,7 +217,8 @@ public class ConfQueue {
                     // find vertex
                     Vertex wVertex = vertexIndex.get(w);
                     if (wVertex == null) {
-                        // NOT NECESSARILY BUT WE CAN'T KNOW UNTIL WE SEE IT
+                        // NOT NECESSARILY A MISSING DEP (SINCE IT MIGHT NOT CONFLICT)
+                        // BUT WE CAN'T KNOW UNTIL WE SEE IT
                         return FinderResult.MISSING_DEP;
                     }
 
@@ -266,7 +269,9 @@ public class ConfQueue {
 
                 if (!stack.isEmpty()) {
                     // this occurs several times
-                    // and epaxos takes the whole stack, which is wrong
+                    // and epaxos takes the whole stack
+                    // (doesn't have a take until w.equals(v))
+                    // which seems wrong
                 }
 
                 return FinderResult.FOUND;
