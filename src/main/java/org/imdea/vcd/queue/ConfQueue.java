@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -32,7 +31,7 @@ public class ConfQueue {
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
 
-    private Set<Dot> visited = new HashSet<>();
+    private Dots visited = new Dots();
 
     public ConfQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
@@ -80,10 +79,20 @@ public class ConfQueue {
     private boolean findSCC(Dot dot, Vertex vertex) {
         TarjanSCCFinder finder = new TarjanSCCFinder();
         FinderResult res = finder.strongConnect(dot, vertex);
-        visited.addAll(finder.getVisited());
+
+        // reset ids of stack
+        Dots stack = finder.getStack();
+        for (Dot d : stack) {
+            vertexIndex.get(d).id = 0;
+        }
+        // update visited
+        visited.addAll(stack);
+
+        // check if SCCs were found
         switch (res) {
             case FOUND:
                 for (Dots scc : finder.getSCCs()) {
+                    visited.addAll(scc);
                     saveSCC(scc);
                 }
                 return true;
@@ -119,7 +128,7 @@ public class ConfQueue {
 
     private void tryPending() {
         HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
-        visited = new HashSet<>();
+        visited = new Dots();
         for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
             Dot dot = e.getKey();
             Vertex vertex = e.getValue();
@@ -128,7 +137,7 @@ public class ConfQueue {
                 findSCC(dot, vertex);
             }
         }
-        visited = new HashSet<>();
+        visited = new Dots();
     }
 
     public List<ConfQueueBox> getToDeliver() {
@@ -152,6 +161,8 @@ public class ConfQueue {
         private final Clock<MaxInt> conf;
         private final ConfQueueBox box;
         private final HashSet<ByteString> colors;
+        private Integer id;
+        private Integer low;
 
         public Vertex(Dot dot, Message message, Clock<MaxInt> conf) {
             this.conf = conf;
@@ -178,25 +189,23 @@ public class ConfQueue {
     private class TarjanSCCFinder {
 
         private final Deque<Dot> stack = new ArrayDeque<>();
-        private final Map<Dot, Integer> ids = new HashMap<>();
-        private final Map<Dot, Integer> low = new HashMap<>();
-        private final Set<Dot> onStack = new HashSet<>();
-        private Integer index = 0;
+        private final Dots onStack = new Dots();
+        private Integer id = 0;
 
         private final List<Dots> sccs = new ArrayList<>();
 
-        public FinderResult strongConnect(Dot v, Vertex vVertex) {
-            Clock<MaxInt> conf = vVertex.conf;
+        public FinderResult strongConnect(Dot vd, Vertex v) {
+            // get conf
+            Clock<MaxInt> conf = v.conf;
 
             // add to the stack
-            stack.push(v);
-            onStack.add(v);
-            // set id and low
-            Integer vIndex = index;
-            ids.put(v, vIndex);
-            low.put(v, vIndex);
+            stack.push(vd);
+            onStack.add(vd);
             // update id
-            index++;
+            id++;
+            // set id and low
+            v.id = id;
+            v.low = id;
 
             // for all deps
             for (Integer q = 0; q < N; q++) {
@@ -209,31 +218,30 @@ public class ConfQueue {
                 }
                 // start from dep to del (assuming we would give up, we give up faster this way)
                 for (; to >= from; to--) {
-                    Dot w = new Dot(q, to);
+                    Dot wd = new Dot(q, to);
 
-                    // ignore self and delivered
+                    // ignore delivered
                     // - we need to check delivered since the clock has exceptions
-                    if (w.equals(v) || delivered.contains(w)) {
+                    if (delivered.contains(wd)) {
                         continue;
                     }
 
                     // find vertex
-                    Vertex wVertex = vertexIndex.get(w);
-                    if (wVertex == null) {
+                    Vertex w = vertexIndex.get(wd);
+                    if (w == null) {
                         // NOT NECESSARILY A MISSING DEP (SINCE IT MIGHT NOT CONFLICT)
                         // BUT WE CAN'T KNOW UNTIL WE SEE IT
                         return FinderResult.MISSING_DEP;
                     }
 
                     // ignore non-conflicting
-                    if (!TRANSITIVE && !vVertex.conflict(wVertex)) {
+                    if (!TRANSITIVE && !v.conflict(w)) {
                         continue;
                     }
 
                     // if not visited, visit
-                    boolean visited = ids.containsKey(w);
-                    if (!visited) {
-                        FinderResult result = strongConnect(w, wVertex);
+                    if (w.id == 0) {
+                        FinderResult result = strongConnect(wd, w);
 
                         switch (result) {
                             case MISSING_DEP:
@@ -242,40 +250,33 @@ public class ConfQueue {
                             default:
                                 break;
                         }
-                        low.put(v, Math.min(low.get(v), low.get(w)));
+                        v.low = Math.min(v.low, w.low);
 
                     } // if visited neighbor is on stack, min lows
-                    else if (onStack.contains(w)) {
-                        low.put(v, Math.min(low.get(v), ids.get(w)));
+                    else if (onStack.contains(wd)) {
+                        v.low = Math.min(v.low, w.id);
                     }
                 }
             }
 
             // if after visiting all neighbors, an SCC was found if
             // good news: the SCC members are in the stack
-            if (Objects.equals(vIndex, low.get(v))) {
+            if (Objects.equals(v.id, v.low)) {
                 Dots scc = new Dots();
-                for (Dot w = stack.pop();; w = stack.pop()) {
+                for (Dot d = stack.pop();; d = stack.pop()) {
                     // remove from stack
-                    onStack.remove(w);
+                    onStack.remove(d);
                     // add to SCC
-                    scc.add(w);
+                    scc.add(d);
 
                     // exit if done
-                    if (w.equals(v)) {
+                    if (d.equals(vd)) {
                         break;
                     }
                 }
 
                 // add scc to the set of sccs
                 sccs.add(scc);
-
-                if (!stack.isEmpty()) {
-                    // this occurs several times
-                    // and epaxos takes the whole stack
-                    // (doesn't have a take until w.equals(v))
-                    // which seems wrong
-                }
 
                 return FinderResult.FOUND;
             }
@@ -287,8 +288,8 @@ public class ConfQueue {
             return this.sccs;
         }
 
-        private Set<Dot> getVisited() {
-            return this.ids.keySet();
+        private Dots getStack() {
+            return this.onStack;
         }
     }
 }

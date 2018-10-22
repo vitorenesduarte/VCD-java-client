@@ -125,6 +125,10 @@ public class Clock<T extends IntSet> {
         this.map.get(dot.getId()).add(dot.getSeq());
     }
 
+    public void removeDot(Dot dot) {
+        this.map.get(dot.getId()).remove(dot.getSeq());
+    }
+
     public void addDots(Dots dots) {
         for (Dot dot : dots) {
             addDot(dot);
