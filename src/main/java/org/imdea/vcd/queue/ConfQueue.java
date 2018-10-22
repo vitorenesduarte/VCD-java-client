@@ -26,12 +26,11 @@ public class ConfQueue {
     private static final boolean TRANSITIVE = true;
 
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
+    private final HashMap<Dot, Dots> childrenIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
-
-    private Dots visited = new Dots();
 
     public ConfQueue(Integer nodeNumber) {
         this.delivered = Clock.eclock(nodeNumber);
@@ -57,9 +56,9 @@ public class ConfQueue {
 
     public void add(Dot dot, Message message, Clock<MaxInt> conf) {
         // create vertex
-        Vertex v = new Vertex(dot, message, conf);
-        // update index
-        vertexIndex.put(dot, v);
+        Vertex vertex = new Vertex(dot, message, conf);
+        // update indexes
+        updateIndexes(dot, vertex, conf);
 
         if (delivered.contains(dot)) {
             // FOR THE CASE OF FAILURES: just deliver again?
@@ -69,14 +68,32 @@ public class ConfQueue {
             saveSCC(scc);
         } else {
             // try to find a SCC
-            if (findSCC(dot, v)) {
-                // if found something, try to deliver pending commands
-                tryPending();
+            findSCC(dot, vertex);
+        }
+    }
+
+    private void updateIndexes(Dot dot, Vertex vertex, Clock<MaxInt> conf) {
+        // update vertex index
+        vertexIndex.put(dot, vertex);
+
+        // update children index
+        Dots highestDeps = conf.frontier();
+        for (Dot dep : highestDeps) {
+            Dots children = childrenIndex.get(dep);
+
+            // if this dep already has children, simply add a new one
+            // otherwise, create children, add, and update index
+            if (children != null) {
+                children.add(dot);
+            } else {
+                children = new Dots();
+                children.add(dot);
+                childrenIndex.put(dep, children);
             }
         }
     }
 
-    private boolean findSCC(Dot dot, Vertex vertex) {
+    private void findSCC(Dot dot, Vertex vertex) {
         TarjanSCCFinder finder = new TarjanSCCFinder();
         FinderResult res = finder.strongConnect(dot, vertex);
 
@@ -85,19 +102,17 @@ public class ConfQueue {
         for (Dot d : stack) {
             vertexIndex.get(d).id = 0;
         }
-        // update visited
-        visited.addAll(stack);
 
         // check if SCCs were found
         switch (res) {
             case FOUND:
-                for (Dots scc : finder.getSCCs()) {
-                    visited.addAll(scc);
+                List<Dots> sccs = finder.getSCCs();
+                for (Dots scc : sccs) {
                     saveSCC(scc);
                 }
-                return true;
+                tryPendingChildren(sccs);
             default:
-                return false;
+                break;
         }
     }
 
@@ -126,18 +141,22 @@ public class ConfQueue {
         return v.box;
     }
 
-    private void tryPending() {
-        HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
-        visited = new Dots();
-        for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
-            Dot dot = e.getKey();
-            Vertex vertex = e.getValue();
-            // only try to find SCC if not visited since the last dot was committed
-            if (!visited.contains(dot)) {
-                findSCC(dot, vertex);
+    private void tryPendingChildren(List<Dots> sccs) {
+        Dots visited = new Dots();
+        for (Dots scc : sccs) {
+            for (Dot dot : scc) {
+                Dots children = childrenIndex.remove(dot);
+                if (children != null) {
+                    for (Dot child : children) {
+                        Vertex vertex = vertexIndex.get(child);
+                        if (vertex != null && !visited.contains(child)) {
+                            visited.add(child);
+                            findSCC(child, vertex);
+                        }
+                    }
+                }
             }
         }
-        visited = new Dots();
     }
 
     public List<ConfQueueBox> getToDeliver() {
@@ -150,6 +169,7 @@ public class ConfQueue {
 
     public int elements() {
         return vertexIndex.size();
+
     }
 
     private enum FinderResult {
