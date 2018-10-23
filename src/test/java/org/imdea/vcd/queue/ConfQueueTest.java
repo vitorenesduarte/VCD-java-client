@@ -26,6 +26,31 @@ import static org.junit.Assert.assertTrue;
  * @author Vitor Enes
  */
 public class ConfQueueTest {
+    
+    
+//    public static final String TRACE_FILE = "/Users/user/IMDEA/bin/logs/5/trace-northamerica-northeast1-b";
+//
+//    @Test
+//    public void testTrace() throws IOException {
+//        Clock<ExceptionSet> committed = null;
+//        List<QueueAddArgs> argsList = new ArrayList<>();
+//        try (BufferedReader br = new BufferedReader(new FileReader(TRACE_FILE))) {
+//            for (String line; (line = br.readLine()) != null;) {
+//                Trace trace = Trace.decode(line);
+//                switch (trace.getType()) {
+//                    case COMMITTED:
+//                        committed = trace.getCommitted();
+//                        System.out.println(committed);
+//                        break;
+//                    case COMMIT:
+//                        argsList.add(args(trace.getDot(), trace.getConf()));
+//                        System.out.println(trace.getDot() + " " + trace.getConf());
+//                        break;
+//                }
+//            }
+//        }
+//        checkTermination(committed, argsList);
+//    }
 
     public static final int ITERATIONS = 200;
 

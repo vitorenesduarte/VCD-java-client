@@ -165,8 +165,7 @@ public class ConfQueue {
         public Vertex(Dot dot, Message message, Clock<MaxInt> conf) {
             this.dot = dot;
             this.conf = conf;
-            this.colors = null;
-            // this.colors = new HashSet<>(message.getHashesList());
+            this.colors = new HashSet<>(message.getHashesList());
             this.box = new ConfQueueBox(dot, message, null);
             this.onStack = false;
         }
