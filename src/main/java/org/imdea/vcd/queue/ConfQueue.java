@@ -3,13 +3,14 @@ package org.imdea.vcd.queue;
 import com.google.protobuf.ByteString;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -98,9 +99,8 @@ public class ConfQueue {
         FinderResult res = finder.strongConnect(dot, vertex);
 
         // reset ids of stack
-        Dots stack = finder.getStack();
-        for (Dot d : stack) {
-            vertexIndex.get(d).id = 0;
+        for (Vertex s : finder.getStack()) {
+            s.id = 0;
         }
 
         // check if SCCs were found
@@ -110,7 +110,8 @@ public class ConfQueue {
                 for (Dots scc : sccs) {
                     saveSCC(scc);
                 }
-                tryPendingChildren(sccs);
+                tryPending();
+            // tryPendingChildren(sccs);
             default:
                 break;
         }
@@ -139,6 +140,16 @@ public class ConfQueue {
     private ConfQueueBox deleteMember(Dot member) {
         Vertex v = vertexIndex.remove(member);
         return v.box;
+    }
+
+    private void tryPending() {
+        Set<Dot> pending = new HashSet<>(vertexIndex.keySet());
+        for (Dot d : pending) {
+            Vertex v = vertexIndex.get(d);
+            if (v != null) {
+                findSCC(d, v);
+            }
+        }
     }
 
     private void tryPendingChildren(List<Dots> sccs) {
@@ -178,16 +189,20 @@ public class ConfQueue {
 
     private class Vertex {
 
+        private final Dot dot;
         private final Clock<MaxInt> conf;
         private final ConfQueueBox box;
         private final HashSet<ByteString> colors;
         private Integer id;
         private Integer low;
+        private Boolean onStack;
 
         public Vertex(Dot dot, Message message, Clock<MaxInt> conf) {
+            this.dot = dot;
             this.conf = conf;
             this.colors = new HashSet<>(message.getHashesList());
             this.box = new ConfQueueBox(dot, message, null);
+            this.onStack = false;
         }
 
         public boolean conflict(Vertex v) {
@@ -197,6 +212,11 @@ public class ConfQueue {
                 }
             }
             return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return this.dot.hashCode();
         }
     }
 
@@ -208,8 +228,7 @@ public class ConfQueue {
      */
     private class TarjanSCCFinder {
 
-        private final Deque<Dot> stack = new ArrayDeque<>();
-        private final Dots onStack = new Dots();
+        private final Deque<Vertex> stack = new ArrayDeque<>();
         private Integer id = 0;
 
         private final List<Dots> sccs = new ArrayList<>();
@@ -218,14 +237,15 @@ public class ConfQueue {
             // get conf
             Clock<MaxInt> conf = v.conf;
 
-            // add to the stack
-            stack.push(vd);
-            onStack.add(vd);
             // update id
             id++;
             // set id and low
             v.id = id;
             v.low = id;
+            v.onStack = true;
+
+            // add to the stack
+            stack.push(v);
 
             // for all deps
             for (Integer q = 0; q < N; q++) {
@@ -273,7 +293,7 @@ public class ConfQueue {
                         v.low = Math.min(v.low, w.low);
 
                     } // if visited neighbor is on stack, min lows
-                    else if (onStack.contains(wd)) {
+                    else if (w.onStack) {
                         v.low = Math.min(v.low, w.id);
                     }
                 }
@@ -283,14 +303,14 @@ public class ConfQueue {
             // good news: the SCC members are in the stack
             if (Objects.equals(v.id, v.low)) {
                 Dots scc = new Dots();
-                for (Dot d = stack.pop();; d = stack.pop()) {
+                for (Vertex s = stack.pop();; s = stack.pop()) {
                     // remove from stack
-                    onStack.remove(d);
+                    s.onStack = false;
                     // add to SCC
-                    scc.add(d);
+                    scc.add(s.dot);
 
                     // exit if done
-                    if (d.equals(vd)) {
+                    if (s.dot.equals(vd)) {
                         break;
                     }
                 }
@@ -308,8 +328,8 @@ public class ConfQueue {
             return this.sccs;
         }
 
-        private Dots getStack() {
-            return this.onStack;
+        private Collection<Vertex> getStack() {
+            return this.stack;
         }
     }
 }

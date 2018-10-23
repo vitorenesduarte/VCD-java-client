@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.imdea.vcd.queue.ConfQueue;
+import redis.clients.jedis.Jedis;
 
 /**
  *
@@ -248,6 +249,9 @@ public class DataRW {
         private final Histogram queueElements;
         private final Histogram midExecution;
 
+        private final Jedis jedis;
+        private final String jedisKey;
+
         public QueueRunner(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toQueueRunner, WriteDelay writeDelay, Config config) {
 
             parse = METRICS.timer(MetricRegistry.name(DataRW.class, "parse"));
@@ -261,10 +265,22 @@ public class DataRW {
             this.writeDelay = writeDelay;
             this.toDeliverer = new LinkedBlockingQueue<>();
             this.deliverer = new Deliverer(toClient, this.toDeliverer, this.writeDelay);
+            this.jedis = new Jedis(config.getRedis());
+            this.jedisKey = "" + config.getNodeNumber() + "/" + "trace-" + config.getCluster();
         }
 
         public void close() {
             this.deliverer.interrupt();
+        }
+
+        private void pushToRedis(Clock<ExceptionSet> committed) {
+            String encoded = Trace.encode(committed);
+            jedis.rpush(jedisKey, encoded);
+        }
+
+        private void pushToRedis(Dot dot, Clock<MaxInt> conf) {
+            String encoded = Trace.encode(dot, conf);
+            jedis.rpush(jedisKey, encoded);
         }
 
         @Override
@@ -280,10 +296,13 @@ public class DataRW {
                         case INIT:
                             // create committed clock
                             Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
-                            this.writeDelay.init(reply.getInit());
+
+                            // store trace in redis
+                            // pushToRedis(committed);
+                            writeDelay.init(reply.getInit());
 
                             // create delivery queue
-                            this.queue = new ConfQueue(committed);
+                            queue = new ConfQueue(committed);
                             break;
 
                         case COMMIT:
@@ -295,6 +314,8 @@ public class DataRW {
                             Message message = commit.getMessage();
                             Clock<MaxInt> conf = Clock.vclock(commit.getConfMap());
 
+                            // store trace in redis
+                            // pushToRedis(dot, conf);
                             // update write delay
                             writeDelay.commit(dot, conf);
                             midExecution.update(Metrics.midExecution(dot));

@@ -66,8 +66,7 @@ public class Generator {
         return randomByteString(config.getPayloadSize());
     }
 
-    private static final int MAX_SEQ_PER_NODE = 5;
-    private static final int MAX_DEPS = 5;
+    private static final int SEQ_PER_NODE = 100;
 
     public static Map<Dot, Clock<MaxInt>> dotToConf(Integer nodeNumber) {
         Map<Dot, Clock<MaxInt>> result = new HashMap<>();
@@ -75,8 +74,7 @@ public class Generator {
         // create dots
         List<Dot> dots = new ArrayList<>();
         for (Integer id = 0; id < nodeNumber; id++) {
-            Long maxSeq = RANDOM().nextLong(MAX_SEQ_PER_NODE);
-            for (Long seq = 1L; seq <= maxSeq; seq++) {
+            for (Long seq = 1L; seq <= SEQ_PER_NODE; seq++) {
                 dots.add(new Dot(id, seq));
             }
         }
@@ -84,13 +82,13 @@ public class Generator {
         List<Dot> deps = new ArrayList<>(dots);
         for (Dot dot : dots) {
             // for each dot, take a random subset of all dots as conf
+            Integer numberOfDeps = RANDOM().nextInt(nodeNumber + 1);
             Collections.shuffle(deps);
-            Integer numberOfDeps = RANDOM().nextInt(Math.min(MAX_DEPS, deps.size()));
+
             Clock<MaxInt> conf = new Clock<>(nodeNumber, new MaxInt());
             for (int i = 0; i < numberOfDeps; i++) {
                 conf.addDot(deps.get(i));
             }
-            conf.addDot(dot);
             result.put(dot, conf);
         }
 

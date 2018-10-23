@@ -33,7 +33,7 @@ public class Clock<T extends IntSet> {
         }
     }
 
-    public IntSet get(Integer id) {
+    public T get(Integer id) {
         return this.map.get(id);
     }
 

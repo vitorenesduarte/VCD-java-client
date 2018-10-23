@@ -174,6 +174,10 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
         return this.seq;
     }
 
+    public HashSet<Long> getExceptions() {
+        return exceptions;
+    }
+
     @Override
     public boolean equals(Object o) {
         // self check
