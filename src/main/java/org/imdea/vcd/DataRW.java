@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.imdea.vcd.queue.ConfQueue;
+import org.imdea.vcd.queue.WhiteBlackConfQueue;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -240,7 +241,7 @@ public class DataRW {
         private final WriteDelay writeDelay;
         private final Deliverer deliverer;
 
-        private ConfQueue queue;
+        private WhiteBlackConfQueue queue;
 
         // metrics
         private final Timer add;
@@ -302,7 +303,7 @@ public class DataRW {
                             writeDelay.init(reply.getInit());
 
                             // create delivery queue
-                            queue = new ConfQueue(committed);
+                            queue = new WhiteBlackConfQueue(committed);
                             break;
 
                         case COMMIT:

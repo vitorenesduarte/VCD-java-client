@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -123,13 +123,14 @@ public class ConfQueue {
         return v.box;
     }
 
-    private void tryPending() {
-        Set<Dot> pending = new HashSet<>(vertexIndex.keySet());
+    public void tryPending() {
+        HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
         Dots visited = new Dots();
 
-        for (Dot d : pending) {
-            Vertex v = vertexIndex.get(d);
-            if (v != null && !visited.contains(d)) {
+        for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
+            Dot d = e.getKey();
+            Vertex v = e.getValue();
+            if (!visited.contains(d)) {
                 findSCC(d, v, visited);
             }
         }
