@@ -27,7 +27,6 @@ public class ConfQueue {
     private static final boolean TRANSITIVE = true;
 
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
-    private final HashMap<Dot, Dots> childrenIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
@@ -59,7 +58,7 @@ public class ConfQueue {
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
         // update indexes
-        updateIndexes(dot, vertex, conf);
+        vertexIndex.put(dot, vertex);
 
         if (delivered.contains(dot)) {
             // FOR THE CASE OF FAILURES: just deliver again?
@@ -67,40 +66,22 @@ public class ConfQueue {
             Dots scc = new Dots();
             scc.add(dot);
             saveSCC(scc);
-        } else {
-            // try to find a SCC
-            findSCC(dot, vertex);
+        }
+        // try to find a SCC
+        Dots visited = new Dots();
+        if (findSCC(dot, vertex, visited)) {
+            tryPending();
         }
     }
 
-    private void updateIndexes(Dot dot, Vertex vertex, Clock<MaxInt> conf) {
-        // update vertex index
-        vertexIndex.put(dot, vertex);
-
-        // update children index
-        Dots highestDeps = conf.frontier();
-        for (Dot dep : highestDeps) {
-            Dots children = childrenIndex.get(dep);
-
-            // if this dep already has children, simply add a new one
-            // otherwise, create children, add, and update index
-            if (children != null) {
-                children.add(dot);
-            } else {
-                children = new Dots();
-                children.add(dot);
-                childrenIndex.put(dep, children);
-            }
-        }
-    }
-
-    private void findSCC(Dot dot, Vertex vertex) {
+    private boolean findSCC(Dot dot, Vertex vertex, Dots visited) {
         TarjanSCCFinder finder = new TarjanSCCFinder();
         FinderResult res = finder.strongConnect(dot, vertex);
 
         // reset ids of stack
         for (Vertex s : finder.getStack()) {
             s.id = 0;
+            visited.add(s.dot);
         }
 
         // check if SCCs were found
@@ -108,12 +89,12 @@ public class ConfQueue {
             case FOUND:
                 List<Dots> sccs = finder.getSCCs();
                 for (Dots scc : sccs) {
+                    visited.addAll(scc);
                     saveSCC(scc);
                 }
-                tryPending();
-            // tryPendingChildren(sccs);
+                return true;
             default:
-                break;
+                return false;
         }
     }
 
@@ -144,28 +125,12 @@ public class ConfQueue {
 
     private void tryPending() {
         Set<Dot> pending = new HashSet<>(vertexIndex.keySet());
+        Dots visited = new Dots();
+
         for (Dot d : pending) {
             Vertex v = vertexIndex.get(d);
-            if (v != null) {
-                findSCC(d, v);
-            }
-        }
-    }
-
-    private void tryPendingChildren(List<Dots> sccs) {
-        Dots visited = new Dots();
-        for (Dots scc : sccs) {
-            for (Dot dot : scc) {
-                Dots children = childrenIndex.remove(dot);
-                if (children != null) {
-                    for (Dot child : children) {
-                        Vertex vertex = vertexIndex.get(child);
-                        if (vertex != null && !visited.contains(child)) {
-                            visited.add(child);
-                            findSCC(child, vertex);
-                        }
-                    }
-                }
+            if (v != null && !visited.contains(d)) {
+                findSCC(d, v, visited);
             }
         }
     }
@@ -180,7 +145,6 @@ public class ConfQueue {
 
     public int elements() {
         return vertexIndex.size();
-
     }
 
     private enum FinderResult {
@@ -200,7 +164,8 @@ public class ConfQueue {
         public Vertex(Dot dot, Message message, Clock<MaxInt> conf) {
             this.dot = dot;
             this.conf = conf;
-            this.colors = new HashSet<>(message.getHashesList());
+            this.colors = null;
+            // this.colors = new HashSet<>(message.getHashesList());
             this.box = new ConfQueueBox(dot, message, null);
             this.onStack = false;
         }
@@ -303,9 +268,11 @@ public class ConfQueue {
             // good news: the SCC members are in the stack
             if (Objects.equals(v.id, v.low)) {
                 Dots scc = new Dots();
+
                 for (Vertex s = stack.pop();; s = stack.pop()) {
                     // remove from stack
                     s.onStack = false;
+
                     // add to SCC
                     scc.add(s.dot);
 
