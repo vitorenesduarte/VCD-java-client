@@ -20,14 +20,14 @@ import org.imdea.vcd.queue.clock.ExceptionSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
 
 /**
  *
  * @author Vitor Enes
  */
 public class ConfQueueTest {
-    
-    
+
 //    public static final String TRACE_FILE = "/Users/user/IMDEA/bin/logs/5/trace-northamerica-northeast1-b";
 //
 //    @Test
@@ -51,7 +51,6 @@ public class ConfQueueTest {
 //        }
 //        checkTermination(committed, argsList);
 //    }
-
     public static final int ITERATIONS = 200;
 
     @Test
@@ -95,6 +94,7 @@ public class ConfQueueTest {
         }
     }
 
+    @Ignore
     @Test
     public void testFailures() {
         for (int i = 0; i < ITERATIONS; i++) {
@@ -354,6 +354,7 @@ public class ConfQueueTest {
         checkTerminationRandomShuffles(nodeNumber, argsList);
     }
 
+    @Ignore
     @Test
     public void testFailure1() {
         // {0, 1} [4, 0]
