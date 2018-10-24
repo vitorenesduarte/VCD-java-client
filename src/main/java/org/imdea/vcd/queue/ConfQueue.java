@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -24,31 +23,38 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class ConfQueue {
 
-    private static final boolean TRANSITIVE = true;
-
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
     private final HashMap<ByteString, HashSet<Vertex>> pendingIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
+    private final boolean TRANSITIVE;
 
     public ConfQueue(Integer nodeNumber) {
+        this(nodeNumber, false);
+    }
+
+    public ConfQueue(Integer nodeNumber, boolean batching) {
         this.delivered = Clock.eclock(nodeNumber);
         this.N = nodeNumber;
+        this.TRANSITIVE = isTransitive(batching);
     }
 
     public ConfQueue(Clock<ExceptionSet> committed) {
-        this(committed, true);
+        this(committed, false);
     }
 
-    public ConfQueue(Clock<ExceptionSet> committed, boolean clone) {
-        if (clone) {
-            this.delivered = (Clock<ExceptionSet>) committed.clone();
-        } else {
-            this.delivered = committed;
-        }
+    public ConfQueue(Clock<ExceptionSet> committed, boolean batching) {
+        this.delivered = (Clock<ExceptionSet>) committed.clone();
         this.N = this.delivered.size();
+        this.TRANSITIVE = isTransitive(batching);
+    }
+
+    private boolean isTransitive(boolean batching) {
+        // with batching (or any application in which operations are multi-key),
+        // the conflict relation is not transitive
+        return !batching;
     }
 
     public boolean isEmpty() {
@@ -262,8 +268,10 @@ public class ConfQueue {
                         return FinderResult.MISSING_DEP;
                     }
 
-                    // ignore non-conflicting
+                    // ignore non-conflicting commands
                     if (!TRANSITIVE && !v.conflict(w)) {
+                        // if transitive, then it conflicts for sure
+                        // since we're only checking the highest dep
                         continue;
                     }
 
