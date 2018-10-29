@@ -322,7 +322,10 @@ public class DataRW {
                             parseContext.stop();
 
                             final Timer.Context addContext = add.time();
+                            Long start = System.nanoTime();
                             queue.add(dot, message, conf);
+                            Long timeMicro = (System.nanoTime() - start) / 1000;
+                            Metrics.endAdd(timeMicro);
                             addContext.stop();
 
                             final Timer.Context getToDeliverContext = getToDeliver.time();

@@ -22,6 +22,7 @@ public class Metrics {
     private static final StringBuilder DELIVERED_TIMES = new StringBuilder();
     private static final StringBuilder EXECUTION_TIMES = new StringBuilder();
     private static final StringBuilder MID_EXECUTION_TIMES = new StringBuilder();
+    private static final StringBuilder ADD_TIMES = new StringBuilder();
     private static final StringBuilder CHAINS = new StringBuilder();
 
     private static final ConcurrentHashMap<Dot, Long> DOT_TO_START = new ConcurrentHashMap<>();
@@ -45,8 +46,12 @@ public class Metrics {
         }
     }
 
+    public static void endAdd(Long timeMicro) {
+        ADD_TIMES.append(timeMicro).append("\n");
+    }
+
     public static void startExecution(Dot dot) {
-        DOT_TO_START.put(dot, start());
+        DOT_TO_START.put(dot, time());
     }
 
     public static Long midExecution(Dot dot) {
@@ -113,6 +118,10 @@ public class Metrics {
         m.put(
                 key(config, "log", "Execution"),
                 serialize(EXECUTION_TIMES)
+        );
+        m.put(
+                key(config, "log", "Add"),
+                serialize(ADD_TIMES)
         );
 
         return m;
