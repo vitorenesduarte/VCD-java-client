@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -24,30 +23,38 @@ import org.imdea.vcd.queue.clock.MaxInt;
  */
 public class ConfQueue {
 
-    private static final boolean TRANSITIVE = true;
-
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
+    private final HashMap<ByteString, HashSet<Vertex>> pendingIndex = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
+    private final boolean TRANSITIVE;
 
     public ConfQueue(Integer nodeNumber) {
+        this(nodeNumber, false);
+    }
+
+    public ConfQueue(Integer nodeNumber, boolean batching) {
         this.delivered = Clock.eclock(nodeNumber);
         this.N = nodeNumber;
+        this.TRANSITIVE = isTransitive(batching);
     }
 
     public ConfQueue(Clock<ExceptionSet> committed) {
-        this(committed, true);
+        this(committed, false);
     }
 
-    public ConfQueue(Clock<ExceptionSet> committed, boolean clone) {
-        if (clone) {
-            this.delivered = (Clock<ExceptionSet>) committed.clone();
-        } else {
-            this.delivered = committed;
-        }
+    public ConfQueue(Clock<ExceptionSet> committed, boolean batching) {
+        this.delivered = (Clock<ExceptionSet>) committed.clone();
         this.N = this.delivered.size();
+        this.TRANSITIVE = isTransitive(batching);
+    }
+
+    private boolean isTransitive(boolean batching) {
+        // with batching (or any application in which operations are multi-key),
+        // the conflict relation is not transitive
+        return !batching;
     }
 
     public boolean isEmpty() {
@@ -58,23 +65,33 @@ public class ConfQueue {
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
         // update indexes
-        vertexIndex.put(dot, vertex);
+        updateIndexes(dot, vertex);
 
-        if (delivered.contains(dot)) {
-            // FOR THE CASE OF FAILURES: just deliver again?
-            // this shouldn't happen
-            Dots scc = new Dots();
-            scc.add(dot);
-            saveSCC(scc);
-        }
         // try to find a SCC
         Dots visited = new Dots();
-        if (findSCC(dot, vertex, visited)) {
-            tryPending();
+        Collection<ByteString> colors = findSCC(dot, vertex, visited);
+        tryPending(colors);
+    }
+
+    private void updateIndexes(Dot dot, Vertex vertex) {
+        vertexIndex.put(dot, vertex);
+
+        for (ByteString color : vertex.colors) {
+            HashSet<Vertex> pending = pendingIndex.get(color);
+
+            if (pending == null) {
+                // if not found for this color, create it
+                pending = new HashSet<>();
+                pending.add(vertex);
+                pendingIndex.put(color, pending);
+            } else {
+                // otherwise, just update it
+                pending.add(vertex);
+            }
         }
     }
 
-    private boolean findSCC(Dot dot, Vertex vertex, Dots visited) {
+    private Collection<ByteString> findSCC(Dot dot, Vertex vertex, Dots visited) {
         TarjanSCCFinder finder = new TarjanSCCFinder();
         FinderResult res = finder.strongConnect(dot, vertex);
 
@@ -84,21 +101,26 @@ public class ConfQueue {
             visited.add(s.dot);
         }
 
+        // create set of delivered colors
+        HashSet<ByteString> colors = new HashSet<>();
+
         // check if SCCs were found
         switch (res) {
             case FOUND:
                 List<Dots> sccs = finder.getSCCs();
                 for (Dots scc : sccs) {
                     visited.addAll(scc);
-                    saveSCC(scc);
+                    saveSCC(scc, colors);
                 }
-                return true;
+                break;
             default:
-                return false;
+                break;
         }
+
+        return colors;
     }
 
-    private void saveSCC(Dots scc) {
+    private void saveSCC(Dots scc, HashSet<ByteString> colors) {
         // update delivered
         delivered.addDots(scc);
 
@@ -106,11 +128,11 @@ public class ConfQueue {
         // - remove from index along the way
         Iterator<Dot> it = scc.iterator();
         Dot member = it.next();
-        ConfQueueBox merged = deleteMember(member);
+        ConfQueueBox merged = deleteMember(member, colors);
 
         while (it.hasNext()) {
             member = it.next();
-            ConfQueueBox box = deleteMember(member);
+            ConfQueueBox box = deleteMember(member, colors);
             merged.merge(box);
         }
 
@@ -118,20 +140,27 @@ public class ConfQueue {
         toDeliver.add(merged);
     }
 
-    private ConfQueueBox deleteMember(Dot member) {
+    private ConfQueueBox deleteMember(Dot member, HashSet<ByteString> colors) {
         Vertex v = vertexIndex.remove(member);
+        // update set of delivered colors
+        colors.addAll(v.colors);
+        // update pending index
+        for (ByteString color : v.colors) {
+            pendingIndex.get(color).remove(v);
+        }
+        // return box
         return v.box;
     }
 
-    public void tryPending() {
-        HashMap<Dot, Vertex> pending = new HashMap<>(vertexIndex);
+    public void tryPending(Collection<ByteString> colors) {
         Dots visited = new Dots();
-
-        for (Map.Entry<Dot, Vertex> e : pending.entrySet()) {
-            Dot d = e.getKey();
-            Vertex v = e.getValue();
-            if (!visited.contains(d)) {
-                findSCC(d, v, visited);
+        for (ByteString color : colors) {
+            HashSet<Vertex> pending = new HashSet<>(pendingIndex.get(color));
+            for (Vertex v : pending) {
+                Dot d = v.dot;
+                if (!visited.contains(d)) {
+                    findSCC(d, v, visited);
+                }
             }
         }
     }
@@ -239,8 +268,10 @@ public class ConfQueue {
                         return FinderResult.MISSING_DEP;
                     }
 
-                    // ignore non-conflicting
+                    // ignore non-conflicting commands
                     if (!TRANSITIVE && !v.conflict(w)) {
+                        // if transitive, then it conflicts for sure
+                        // since we're only checking the highest dep
                         continue;
                     }
 
