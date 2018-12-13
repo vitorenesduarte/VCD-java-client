@@ -236,6 +236,8 @@ public class DataRW {
 
     private class QueueRunner extends Thread {
 
+        private static final boolean RECORD_TRACE = false;
+
         private final Logger LOGGER = VCDLogger.init(QueueRunner.class);
 
         private final LinkedBlockingQueue<Reply> toQueueRunner;
@@ -299,7 +301,10 @@ public class DataRW {
                             Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
 
                             // store trace in redis
-                            // pushToRedis(committed);
+                            if (RECORD_TRACE) {
+                                pushToRedis(committed);
+                            }
+
                             // create delivery queue
                             queue = new ConfQueue(committed);
                             break;
@@ -314,7 +319,10 @@ public class DataRW {
                             Clock<MaxInt> conf = Clock.vclock(commit.getConfMap());
 
                             // store trace in redis
-                            // pushToRedis(dot, conf);
+                            if (RECORD_TRACE) {
+                                pushToRedis(dot, conf);
+                            }
+
                             midExecution.update(Metrics.midExecution(dot));
                             parseContext.stop();
 
@@ -377,7 +385,6 @@ public class DataRW {
                     if (!toDeliver.isEmpty()) {
                         for (ConfQueueBox b : toDeliver) {
                             for (Dot d : b.getDots()) {
-                                // update write delay
                                 execution.update(Metrics.endExecution(d));
                             }
                             // update message set builder
