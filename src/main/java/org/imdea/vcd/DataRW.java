@@ -1,5 +1,7 @@
 package org.imdea.vcd;
 
+import org.imdea.vcd.util.Trace;
+import org.imdea.vcd.util.Batch;
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricAttribute;

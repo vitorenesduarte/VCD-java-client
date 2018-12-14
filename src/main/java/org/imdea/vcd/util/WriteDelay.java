@@ -1,4 +1,4 @@
-package org.imdea.vcd;
+package org.imdea.vcd.util;
 
 import java.util.concurrent.ConcurrentHashMap;
 import org.imdea.vcd.pb.Proto.Init;
