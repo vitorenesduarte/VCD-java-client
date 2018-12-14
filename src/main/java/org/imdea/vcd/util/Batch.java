@@ -73,6 +73,12 @@ public class Batch {
         return messageSet;
     }
 
+    public static List<Message> unpack(Message m) throws InvalidProtocolBufferException {
+        // parse protobuf inside message
+        MessageSet batch = MessageSet.parseFrom(m.getData());
+        return batch.getMessagesList();
+    }
+
     public static MessageSet unpack(MessageSet ms) throws InvalidProtocolBufferException {
         if (ms.getMessagesCount() != 1) {
             LOGGER.log(Level.WARNING, "[unpacking] Expecting a message set with a single message!!");
@@ -80,13 +86,13 @@ public class Batch {
         // find message
         Proto.Message m = ms.getMessages(0);
 
-        // parse protobuf inside message
-        MessageSet batch = MessageSet.parseFrom(m.getData());
+        // unpack it
+        List<Message> messages = unpack(m);
 
         // build a message with the messages in the batch
         // and keep the same status
         MessageSet messageSet = MessageSet.newBuilder()
-                .addAllMessages(batch.getMessagesList())
+                .addAllMessages(messages)
                 .setStatus(ms.getStatus())
                 .build();
         return messageSet;

@@ -7,6 +7,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricAttribute;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
@@ -342,7 +343,13 @@ public class DataRW {
 
                             final Timer.Context addContext = add.time();
                             Long start = System.nanoTime();
-                            queue.add(dot, message, conf);
+                            if (this.batching) {
+                                for (Message m : Batch.unpack(message)) {
+                                    queue.add(dot, m, conf);
+                                }
+                            } else {
+                                queue.add(dot, message, conf);
+                            }
                             Long timeMicro = (System.nanoTime() - start) / 1000;
                             Metrics.endAdd(timeMicro);
                             addContext.stop();
@@ -360,7 +367,7 @@ public class DataRW {
                             throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
                     }
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | InvalidProtocolBufferException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
