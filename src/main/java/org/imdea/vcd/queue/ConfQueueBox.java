@@ -19,11 +19,6 @@ public class ConfQueueBox {
     private final Dots dots;
     private final MessageMap messageMap;
 
-    public ConfQueueBox(Integer nodeNumber) {
-        this.dots = new Dots();
-        this.messageMap = new MessageMap();
-    }
-
     public ConfQueueBox(Dot dot, Message message) {
         this.dots = new Dots(dot);
         this.messageMap = new MessageMap(dot, message);
