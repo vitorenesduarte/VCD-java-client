@@ -267,8 +267,8 @@ public class DataRW {
         private final Histogram queueElements;
         private final Histogram midExecution;
 
-        private final Jedis jedis;
-        private final String jedisKey;
+        private Jedis jedis = null;
+        private String jedisKey = null;
 
         public QueueRunner(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toQueueRunner, Config config) {
 
@@ -283,12 +283,18 @@ public class DataRW {
             this.toQueueRunner = toQueueRunner;
             this.toDeliverer = new LinkedBlockingQueue<>();
             this.deliverer = new Deliverer(toClient, this.toDeliverer);
-            this.jedis = new Jedis(config.getRedis());
-            this.jedisKey = "" + config.getNodeNumber() + "/" + "trace-" + config.getCluster();
+            if (RECORD_TRACE) {
+                connectToRedis(config);
+            }
         }
 
         public void close() {
             this.deliverer.interrupt();
+        }
+
+        private void connectToRedis(Config config) {
+            this.jedis = new Jedis(config.getRedis());
+            this.jedisKey = "" + config.getNodeNumber() + "/" + "trace-" + config.getCluster();
         }
 
         private void pushToRedis(Clock<ExceptionSet> committed) {
