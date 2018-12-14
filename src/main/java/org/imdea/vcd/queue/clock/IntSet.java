@@ -17,6 +17,8 @@ public interface IntSet<T> {
 
     void add(Long seq);
 
+    void remove(Long seq);
+
     void merge(T o);
 
     List<Long> subtract(T o);

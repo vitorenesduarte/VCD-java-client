@@ -52,6 +52,11 @@ public class MaxInt implements IntSet<MaxInt> {
     }
 
     @Override
+    public void remove(Long seq) {
+        this.seq = Long.min(this.seq, seq - 1);
+    }
+
+    @Override
     public void merge(MaxInt o) {
         this.seq = Long.max(this.seq, o.seq);
     }

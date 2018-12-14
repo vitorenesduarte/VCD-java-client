@@ -35,34 +35,25 @@ public class WhiteBlackConfQueue {
     }
 
     public void add(Dot dot, Message message, Clock<MaxInt> conf) {
+        ConfQueue queue;
+
         if (message.getHashes(0).equals(Generator.BLACK)) {
-            black.add(dot, message, conf);
-            tryDeliverBlack();
+            queue = black;
         } else {
-            white.add(dot, message, conf);
-            tryDeliverWhite();
+            queue = white;
         }
+
+        queue.add(dot, message, conf);
+        List<ConfQueueBox> l = queue.getToDeliver();
+        toDeliver.addAll(l);
     }
 
-    public List<ConfQueueBox> tryDeliver() {
+    public List<ConfQueueBox> getToDeliver() {
         // return current list to be delivered,
         // and create a new one
         List<ConfQueueBox> result = toDeliver;
         toDeliver = new ArrayList<>();
         return result;
-    }
-
-    private void tryDeliverBlack() {
-        List<ConfQueueBox> l = black.tryDeliver();
-        toDeliver.addAll(l);
-    }
-
-    private void tryDeliverWhite() {
-        List<ConfQueueBox> l = white.tryDeliver();
-        if (!l.isEmpty()) {
-            toDeliver.addAll(l);
-            tryDeliverBlack();
-        }
     }
 
     public int elements() {

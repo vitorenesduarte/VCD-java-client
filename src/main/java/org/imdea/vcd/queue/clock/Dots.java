@@ -33,6 +33,10 @@ public class Dots implements Iterable<Dot> {
         this.set.add(dot);
     }
 
+    public void addAll(Dots dots) {
+        this.set.addAll(dots.set);
+    }
+
     public void remove(Dot dot) {
         this.set.remove(dot);
     }

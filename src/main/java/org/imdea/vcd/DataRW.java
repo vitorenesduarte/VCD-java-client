@@ -9,7 +9,6 @@ import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
-import org.imdea.vcd.queue.ConfQueue;
 import org.imdea.vcd.queue.ConfQueueBox;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -29,7 +28,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.imdea.vcd.queue.WhiteBlackConfQueue;
+import org.imdea.vcd.queue.ConfQueue;
+import redis.clients.jedis.Jedis;
 
 /**
  *
@@ -240,20 +240,23 @@ public class DataRW {
         private final WriteDelay writeDelay;
         private final Deliverer deliverer;
 
-        private WhiteBlackConfQueue queue;
+        private ConfQueue queue;
 
         // metrics
         private final Timer add;
         private final Timer parse;
-        private final Timer tryDeliver;
+        private final Timer getToDeliver;
         private final Histogram queueElements;
         private final Histogram midExecution;
+
+        private final Jedis jedis;
+        private final String jedisKey;
 
         public QueueRunner(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toQueueRunner, WriteDelay writeDelay, Config config) {
 
             parse = METRICS.timer(MetricRegistry.name(DataRW.class, "parse"));
             add = METRICS.timer(MetricRegistry.name(DataRW.class, "add"));
-            tryDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "tryDeliver"));
+            getToDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "getToDeliver"));
 
             queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
             midExecution = METRICS.histogram(MetricRegistry.name(DataRW.class, "midExecution"));
@@ -262,10 +265,22 @@ public class DataRW {
             this.writeDelay = writeDelay;
             this.toDeliverer = new LinkedBlockingQueue<>();
             this.deliverer = new Deliverer(toClient, this.toDeliverer, this.writeDelay);
+            this.jedis = new Jedis(config.getRedis());
+            this.jedisKey = "" + config.getNodeNumber() + "/" + "trace-" + config.getCluster();
         }
 
         public void close() {
             this.deliverer.interrupt();
+        }
+
+        private void pushToRedis(Clock<ExceptionSet> committed) {
+            String encoded = Trace.encode(committed);
+            jedis.rpush(jedisKey, encoded);
+        }
+
+        private void pushToRedis(Dot dot, Clock<MaxInt> conf) {
+            String encoded = Trace.encode(dot, conf);
+            jedis.rpush(jedisKey, encoded);
         }
 
         @Override
@@ -281,10 +296,13 @@ public class DataRW {
                         case INIT:
                             // create committed clock
                             Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
-                            this.writeDelay.init(reply.getInit());
+
+                            // store trace in redis
+                            // pushToRedis(committed);
+                            writeDelay.init(reply.getInit());
 
                             // create delivery queue
-                            this.queue = new WhiteBlackConfQueue(committed);
+                            queue = new ConfQueue(committed);
                             break;
 
                         case COMMIT:
@@ -296,22 +314,27 @@ public class DataRW {
                             Message message = commit.getMessage();
                             Clock<MaxInt> conf = Clock.vclock(commit.getConfMap());
 
+                            // store trace in redis
+                            // pushToRedis(dot, conf);
                             // update write delay
                             writeDelay.commit(dot, conf);
                             midExecution.update(Metrics.midExecution(dot));
                             parseContext.stop();
 
                             final Timer.Context addContext = add.time();
+                            Long start = System.nanoTime();
                             queue.add(dot, message, conf);
+                            Long timeMicro = (System.nanoTime() - start) / 1000;
+                            Metrics.endAdd(timeMicro);
                             addContext.stop();
 
-                            final Timer.Context tryDeliverContext = tryDeliver.time();
-                            List<ConfQueueBox> toDeliver = queue.tryDeliver();
+                            final Timer.Context getToDeliverContext = getToDeliver.time();
+                            List<ConfQueueBox> toDeliver = queue.getToDeliver();
                             if (!toDeliver.isEmpty()) {
                                 toDeliverer.put(toDeliver);
                             }
                             queueElements.update(queue.elements());
-                            tryDeliverContext.stop();
+                            getToDeliverContext.stop();
                             break;
 
                         default:

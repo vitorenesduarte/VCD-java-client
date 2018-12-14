@@ -33,7 +33,7 @@ public class Clock<T extends IntSet> {
         }
     }
 
-    public IntSet get(Integer id) {
+    public T get(Integer id) {
         return this.map.get(id);
     }
 
@@ -47,13 +47,10 @@ public class Clock<T extends IntSet> {
         return true;
     }
 
-    public Dots frontier(Dot toExclude) {
+    public Dots frontier() {
         Dots dots = new Dots();
         for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
             Dot dot = new Dot(entry.getKey(), entry.getValue().current());
-            if (dot.equals(toExclude)) {
-                dot = new Dot(dot.getId(), dot.getSeq() - 1);
-            }
             dots.add(dot);
         }
         return dots;
@@ -123,6 +120,10 @@ public class Clock<T extends IntSet> {
 
     public void addDot(Dot dot) {
         this.map.get(dot.getId()).add(dot.getSeq());
+    }
+
+    public void removeDot(Dot dot) {
+        this.map.get(dot.getId()).remove(dot.getSeq());
     }
 
     public void addDots(Dots dots) {

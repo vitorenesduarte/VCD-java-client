@@ -99,6 +99,11 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     }
 
     @Override
+    public void remove(Long seq) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
     public void merge(ExceptionSet o) {
         ExceptionSet merged = merge(this, o);
         this.seq = merged.seq;
@@ -167,6 +172,10 @@ public class ExceptionSet implements IntSet<ExceptionSet> {
     @Override
     public Long current() {
         return this.seq;
+    }
+
+    public HashSet<Long> getExceptions() {
+        return exceptions;
     }
 
     @Override
