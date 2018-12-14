@@ -146,8 +146,8 @@ public class Client {
     }
 
     private static void sendOp(int client) throws IOException, InterruptedException {
-        MessageSet messageSet = Generator.messageSet(CLIENT_KEY[client], CONFIG);
-        ByteString data = messageSet.getMessagesList().get(0).getData();
+        Message message = Generator.message(CLIENT_KEY[client], CONFIG);
+        ByteString data = message.getData();
         if (MAP.containsKey(data)) {
             // if this key already exists, try again
             sendOp(client);
@@ -155,7 +155,7 @@ public class Client {
             // if it doesn't, send it and update map
             PerData perData = new PerData(client, Metrics.start());
             MAP.put(data, perData);
-            SOCKET.send(messageSet);
+            SOCKET.send(message);
         }
     }
 

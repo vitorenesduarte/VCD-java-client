@@ -195,7 +195,7 @@ public class ConfQueue {
             this.dot = dot;
             this.conf = conf;
             this.colors = new HashSet<>(message.getHashesList());
-            this.box = new ConfQueueBox(dot, message, null);
+            this.box = new ConfQueueBox(dot, message);
             this.onStack = false;
         }
 

@@ -60,7 +60,7 @@ public class DataRW {
     private final DataInputStream in;
     private final DataOutputStream out;
 
-    private final LinkedBlockingQueue<MessageSet> toWriter;
+    private final LinkedBlockingQueue<Message> toWriter;
     private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
     private final Integer batchWait;
 
@@ -73,7 +73,7 @@ public class DataRW {
         this.toWriter = new LinkedBlockingQueue<>();
         this.toClient = new LinkedBlockingQueue<>();
         this.batchWait = config.getBatchWait();
-        this.writer = new Writer(this.out, this.toWriter, this.batchWait);
+        this.writer = new Writer(this.out, this.toWriter, config);
         this.socketReader = new SocketReader(this.in, this.toClient, config);
     }
 
@@ -102,11 +102,11 @@ public class DataRW {
         return result.get();
     }
 
-    public void write(MessageSet messageSet) throws IOException, InterruptedException {
+    public void write(Message message) throws IOException, InterruptedException {
         if (this.batchWait > 0) {
-            toWriter.put(messageSet);
+            toWriter.put(message);
         } else {
-            doWrite(messageSet, this.out);
+            doWrite(Batch.pack(message), this.out);
         }
     }
 
@@ -125,15 +125,15 @@ public class DataRW {
 
         private final Logger LOGGER = VCDLogger.init(Writer.class);
 
-        private final LinkedBlockingQueue<MessageSet> toWriter;
+        private final LinkedBlockingQueue<Message> toWriter;
         private final DataOutputStream out;
         private final Histogram batchSize;
         private final Integer batchWait;
 
-        public Writer(DataOutputStream out, LinkedBlockingQueue<MessageSet> toWriter, Integer batchWait) {
+        public Writer(DataOutputStream out, LinkedBlockingQueue<Message> toWriter, Config config) {
             this.out = out;
             this.toWriter = toWriter;
-            this.batchWait = batchWait;
+            this.batchWait = config.getBatchWait();
             this.batchSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "batchSize"));
         }
 
@@ -142,21 +142,20 @@ public class DataRW {
             try {
                 try {
                     while (true) {
-                        MessageSet first = toWriter.take();
-                        List<MessageSet> set = new ArrayList<>();
+                        Message first = toWriter.take();
+                        List<Message> ops = new ArrayList<>();
 
                         // wait, and drain the queue
                         Thread.sleep(this.batchWait);
-                        toWriter.drainTo(set);
+                        toWriter.drainTo(ops);
 
-                        set.add(first);
+                        ops.add(first);
 
                         // batch size metrics
-                        batchSize.update(set.size());
+                        batchSize.update(ops.size());
 
-                        for (MessageSet m : set) {
-                            doWrite(m, this.out);
-                        }
+                        MessageSet messageSet = Batch.pack(ops);
+                        doWrite(messageSet, this.out);
                     }
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -178,12 +177,14 @@ public class DataRW {
         private final DataInputStream in;
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<Reply> toQueueRunner;
+        private final Integer batchWait;
         private final QueueRunner queueRunner;
 
         public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Config config) {
             this.in = in;
             this.toClient = toClient;
             this.toQueueRunner = new LinkedBlockingQueue<>();
+            this.batchWait = config.getBatchWait();
             this.queueRunner = new QueueRunner(this.toClient, this.toQueueRunner, config);
         }
 
@@ -214,7 +215,11 @@ public class DataRW {
                                     LOGGER.log(Level.INFO, "Invalid durable notification");
                                 }
 
-                                toClient.put(Optional.of(durable));
+                                if (this.batchWait > 0) {
+                                    toClient.put(Optional.of(Batch.unpack(durable)));
+                                } else {
+                                    toClient.put(Optional.of(durable));
+                                }
                                 break;
                             default:
                                 if (reply.hasCommit()) {
@@ -382,14 +387,12 @@ public class DataRW {
                     // create message set builder
                     MessageSet.Builder builder = MessageSet.newBuilder();
 
-                    if (!toDeliver.isEmpty()) {
-                        for (ConfQueueBox b : toDeliver) {
-                            for (Dot d : b.getDots()) {
-                                execution.update(Metrics.endExecution(d));
-                            }
-                            // update message set builder
-                            builder.addAllMessages(b.sortMessages());
+                    for (ConfQueueBox b : toDeliver) {
+                        for (Dot d : b.getDots()) {
+                            execution.update(Metrics.endExecution(d));
                         }
+                        // update message set builder
+                        builder.addAllMessages(b.sortMessages());
                     }
                     // build message
                     builder.setStatus(MessageSet.Status.DELIVERED);

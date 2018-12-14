@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.imdea.vcd.pb.Proto.Message;
 
 /**
  *
@@ -100,8 +101,8 @@ public class Socket {
         throw new java.net.ConnectException();
     }
 
-    public void send(MessageSet messageSet) throws IOException, InterruptedException {
-        this.rw.write(messageSet);
+    public void send(Message message) throws IOException, InterruptedException {
+        this.rw.write(message);
     }
 
     public MessageSet receive() throws IOException, InterruptedException {

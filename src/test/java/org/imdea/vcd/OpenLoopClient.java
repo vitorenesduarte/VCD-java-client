@@ -172,7 +172,7 @@ public class OpenLoopClient {
             if (this.opsPerClient[client] < this.config.getOps()) {
                 // normal op
                 do {
-                    data = Generator.messageSetData(this.config);
+                    data = Generator.messageData(this.config);
                 } while (this.opToData.containsKey(data));
 
             } else if (this.opsPerClient[client] == this.config.getOps()) {
@@ -189,10 +189,10 @@ public class OpenLoopClient {
         }
 
         private void sendOp(int client, ByteString data) throws IOException, InterruptedException {
-            MessageSet messageSet = Generator.messageSet(this.clientsKey[client], this.config.getConflicts(), data);
+            Message message = Generator.message(this.clientsKey[client], this.config.getConflicts(), data);
             PerData perData = new PerData(client, Metrics.start());
             this.opToData.put(data, perData);
-            this.socket.send(messageSet);
+            this.socket.send(message);
         }
 
         private void redisPush() {

@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import org.imdea.vcd.pb.Proto.Message;
-import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.MaxInt;
@@ -23,9 +22,7 @@ public class Generator {
     public static final ByteString BLACK = repeat((byte) 1, 1);
 
     public static Message message() {
-        Integer conflicts = RANDOM().nextInt(100);
-        ByteString key = hash(randomByteString(KEY_SIZE), conflicts);
-        return message(key);
+        return message(randomByteString(KEY_SIZE));
     }
 
     public static Message message(String key) {
@@ -34,35 +31,26 @@ public class Generator {
 
     public static Message message(ByteString key) {
         ByteString data = randomByteString(RANDOM().nextInt(100));
-        return Message.newBuilder()
+        Message m = Message.newBuilder()
                 .addHashes(key)
                 .setData(data)
                 .build();
+        return m;
     }
 
-    public static MessageSet messageSet() {
-        return messageSet(randomByteString(KEY_SIZE), RANDOM().nextInt(100), randomByteString(RANDOM().nextInt(100)));
+    public static Message message(ByteString key, Config config) {
+        return message(key, config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
-    public static MessageSet messageSet(ByteString key, Config config) {
-        return messageSet(key, config.getConflicts(), randomByteString(config.getPayloadSize()));
-    }
-
-    public static MessageSet messageSet(ByteString key, Integer conflicts, ByteString data) {
-        MessageSet.Builder builder = MessageSet.newBuilder();
-
+    public static Message message(ByteString key, Integer conflicts, ByteString data) {
         Message m = Message.newBuilder()
                 .addHashes(hash(key, conflicts))
                 .setData(data)
                 .build();
-        builder.addMessages(m);
-
-        builder.setStatus(MessageSet.Status.START);
-
-        return builder.build();
+        return m;
     }
 
-    public static ByteString messageSetData(Config config) {
+    public static ByteString messageData(Config config) {
         return randomByteString(config.getPayloadSize());
     }
 
