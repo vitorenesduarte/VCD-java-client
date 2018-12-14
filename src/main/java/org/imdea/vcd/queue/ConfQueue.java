@@ -31,18 +31,10 @@ public class ConfQueue {
     private final Integer N;
     private final boolean TRANSITIVE;
 
-    public ConfQueue(Integer nodeNumber) {
-        this(nodeNumber, false);
-    }
-
     public ConfQueue(Integer nodeNumber, boolean batching) {
         this.delivered = Clock.eclock(nodeNumber);
         this.N = nodeNumber;
         this.TRANSITIVE = isTransitive(batching);
-    }
-
-    public ConfQueue(Clock<ExceptionSet> committed) {
-        this(committed, false);
     }
 
     public ConfQueue(Clock<ExceptionSet> committed, boolean batching) {

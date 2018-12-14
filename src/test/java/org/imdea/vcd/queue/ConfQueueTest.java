@@ -66,7 +66,7 @@ public class ConfQueueTest {
         Message m2 = Generator.message("red");
         Clock<MaxInt> conf2 = vclock(1L, 0L);
 
-        ConfQueue queue = new ConfQueue(nodeNumber);
+        ConfQueue queue = new ConfQueue(nodeNumber, false);
 
         queue.add(dot1, m1, conf1);
         assertFalse(queue.isEmpty());
@@ -393,9 +393,9 @@ public class ConfQueueTest {
     private Map<Dots, List<Message>> checkTermination(Object queueArg, List<QueueAddArgs> argsList) {
         ConfQueue queue;
         if (queueArg instanceof Integer) {
-            queue = new ConfQueue((Integer) queueArg);
+            queue = new ConfQueue((Integer) queueArg, false);
         } else {
-            queue = new ConfQueue((Clock<ExceptionSet>) queueArg);
+            queue = new ConfQueue((Clock<ExceptionSet>) queueArg, false);
         }
 
         return checkTermination(queue, argsList);

@@ -62,30 +62,34 @@ public class DataRW {
 
     private final LinkedBlockingQueue<Message> toWriter;
     private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
-    private final Integer batchWait;
+    private final Boolean batching;
 
     private final Writer writer;
     private final SocketReader socketReader;
+
+    private boolean batching(Integer batchWait) {
+        return batchWait > 0;
+    }
 
     public DataRW(DataInputStream in, DataOutputStream out, Config config) {
         this.in = in;
         this.out = out;
         this.toWriter = new LinkedBlockingQueue<>();
         this.toClient = new LinkedBlockingQueue<>();
-        this.batchWait = config.getBatchWait();
+        this.batching = batching(config.getBatchWait());
         this.writer = new Writer(this.out, this.toWriter, config);
         this.socketReader = new SocketReader(this.in, this.toClient, config);
     }
 
     public void start() {
-        if (this.batchWait > 0) {
+        if (this.batching) {
             this.writer.start();
         }
         this.socketReader.start();
     }
 
     public void close() throws IOException {
-        if (this.batchWait > 0) {
+        if (this.batching) {
             this.writer.interrupt();
         }
         this.socketReader.close();
@@ -103,7 +107,7 @@ public class DataRW {
     }
 
     public void write(Message message) throws IOException, InterruptedException {
-        if (this.batchWait > 0) {
+        if (this.batching) {
             toWriter.put(message);
         } else {
             doWrite(Batch.pack(message), this.out);
@@ -127,8 +131,9 @@ public class DataRW {
 
         private final LinkedBlockingQueue<Message> toWriter;
         private final DataOutputStream out;
-        private final Histogram batchSize;
         private final Integer batchWait;
+
+        private final Histogram batchSize;
 
         public Writer(DataOutputStream out, LinkedBlockingQueue<Message> toWriter, Config config) {
             this.out = out;
@@ -177,14 +182,14 @@ public class DataRW {
         private final DataInputStream in;
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<Reply> toQueueRunner;
-        private final Integer batchWait;
+        private final Boolean batching;
         private final QueueRunner queueRunner;
 
         public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Config config) {
             this.in = in;
             this.toClient = toClient;
             this.toQueueRunner = new LinkedBlockingQueue<>();
-            this.batchWait = config.getBatchWait();
+            this.batching = batching(config.getBatchWait());
             this.queueRunner = new QueueRunner(this.toClient, this.toQueueRunner, config);
         }
 
@@ -215,7 +220,7 @@ public class DataRW {
                                     LOGGER.log(Level.INFO, "Invalid durable notification");
                                 }
 
-                                if (this.batchWait > 0) {
+                                if (this.batching) {
                                     toClient.put(Optional.of(Batch.unpack(durable)));
                                 } else {
                                     toClient.put(Optional.of(durable));
@@ -247,6 +252,7 @@ public class DataRW {
 
         private final LinkedBlockingQueue<Reply> toQueueRunner;
         private final LinkedBlockingQueue<List<ConfQueueBox>> toDeliverer;
+        private final Boolean batching;
         private final Deliverer deliverer;
 
         private ConfQueue queue;
@@ -270,6 +276,7 @@ public class DataRW {
             queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
             midExecution = METRICS.histogram(MetricRegistry.name(DataRW.class, "midExecution"));
 
+            this.batching = batching(config.getBatchWait());
             this.toQueueRunner = toQueueRunner;
             this.toDeliverer = new LinkedBlockingQueue<>();
             this.deliverer = new Deliverer(toClient, this.toDeliverer);
@@ -311,7 +318,7 @@ public class DataRW {
                             }
 
                             // create delivery queue
-                            queue = new ConfQueue(committed);
+                            queue = new ConfQueue(committed, this.batching);
                             break;
 
                         case COMMIT:
