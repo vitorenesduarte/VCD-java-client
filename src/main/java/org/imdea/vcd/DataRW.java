@@ -349,13 +349,7 @@ public class DataRW {
 
                             final Timer.Context addContext = add.time();
                             Long start = System.nanoTime();
-                            if (this.batching) {
-                                for (Message m : Batch.unpack(message)) {
-                                    queue.add(dot, m, conf);
-                                }
-                            } else {
-                                queue.add(dot, message, conf);
-                            }
+                            queue.add(dot, message, conf);
                             Long timeMicro = (System.nanoTime() - start) / 1000;
                             Metrics.endAdd(timeMicro);
                             addContext.stop();
@@ -373,7 +367,7 @@ public class DataRW {
                             throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
                     }
                 }
-            } catch (InterruptedException | InvalidProtocolBufferException e) {
+            } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
