@@ -1,9 +1,11 @@
 package org.imdea.vcd.queue;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +18,7 @@ import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
+import org.imdea.vcd.util.Batch;
 
 /**
  *
@@ -29,17 +32,20 @@ public class ConfQueue {
 
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
+    private final boolean BATCHING;
     private final boolean TRANSITIVE;
 
     public ConfQueue(Integer nodeNumber, boolean batching) {
         this.delivered = Clock.eclock(nodeNumber);
         this.N = nodeNumber;
+        this.BATCHING = batching;
         this.TRANSITIVE = isTransitive(batching);
     }
 
     public ConfQueue(Clock<ExceptionSet> committed, boolean batching) {
         this.delivered = (Clock<ExceptionSet>) committed.clone();
         this.N = this.delivered.size();
+        this.BATCHING = batching;
         this.TRANSITIVE = isTransitive(batching);
     }
 
@@ -53,7 +59,7 @@ public class ConfQueue {
         return vertexIndex.isEmpty();
     }
 
-    public void add(Dot dot, Message message, Clock<MaxInt> conf) {
+    public void add(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
         // update indexes
@@ -183,11 +189,17 @@ public class ConfQueue {
         private Integer low;
         private Boolean onStack;
 
-        public Vertex(Dot dot, Message message, Clock<MaxInt> conf) {
+        public Vertex(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
             this.dot = dot;
             this.conf = conf;
             this.colors = new HashSet<>(message.getHashesList());
-            this.box = new ConfQueueBox(dot, message);
+            List<Message> messages;
+            if (BATCHING) {
+                messages = Batch.unpack(message);
+            } else {
+                messages = Collections.singletonList(message);
+            }
+            this.box = new ConfQueueBox(dot, messages);
             this.onStack = false;
         }
 

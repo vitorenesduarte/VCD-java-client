@@ -1,6 +1,7 @@
 package org.imdea.vcd.queue;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.imdea.vcd.Generator;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -54,7 +55,7 @@ public class ConfQueueTest {
     public static final int ITERATIONS = 200;
 
     @Test
-    public void testSimple() {
+    public void testSimple() throws InvalidProtocolBufferException {
         Integer nodeNumber = 2;
 
         // op1
@@ -80,7 +81,7 @@ public class ConfQueueTest {
     }
 
     @Test
-    public void testRandom() {
+    public void testRandom() throws InvalidProtocolBufferException {
         for (int i = 0; i < ITERATIONS; i++) {
             Integer nodeNumber = 2;
             Map<Dot, Clock<MaxInt>> dotToConf = Generator.dotToConf(nodeNumber);
@@ -96,7 +97,7 @@ public class ConfQueueTest {
 
     @Ignore
     @Test
-    public void testFailures() {
+    public void testFailures() throws InvalidProtocolBufferException {
         for (int i = 0; i < ITERATIONS; i++) {
             Integer nodeNumber = 2;
             Map<Dot, Clock<MaxInt>> dotToConf;
@@ -121,7 +122,7 @@ public class ConfQueueTest {
     }
 
     @Test
-    public void testAdd1() {
+    public void testAdd1() throws InvalidProtocolBufferException {
         Integer nodeNumber = 2;
 
         // {0, 2}, [2, 2]
@@ -175,7 +176,7 @@ public class ConfQueueTest {
     }
 
     @Test
-    public void testAdd2() {
+    public void testAdd2() throws InvalidProtocolBufferException {
         Integer nodeNumber = 2;
 
         // {1, 4}, [3, 4]
@@ -219,7 +220,7 @@ public class ConfQueueTest {
     }
 
     @Test
-    public void testAdd3() {
+    public void testAdd3() throws InvalidProtocolBufferException {
         Integer nodeNumber = 3;
 
         // {{2, 2}, [1, 0, 2]
@@ -253,7 +254,7 @@ public class ConfQueueTest {
     }
 
     @Test
-    public void testAdd4() {
+    public void testAdd4() throws InvalidProtocolBufferException {
         Integer nodeNumber = 1;
 
         // {{0, 5}, [5]
@@ -292,7 +293,7 @@ public class ConfQueueTest {
     }
 
     @Test
-    public void testAdd5() {
+    public void testAdd5() throws InvalidProtocolBufferException {
         Integer nodeNumber = 2;
 
         // {{0, 1}, [1, 1]
@@ -316,7 +317,7 @@ public class ConfQueueTest {
     }
 
     @Test
-    public void testAdd6() {
+    public void testAdd6() throws InvalidProtocolBufferException {
         Integer nodeNumber = 2;
 
         // {{0, 1}, [1, 0]
@@ -356,7 +357,7 @@ public class ConfQueueTest {
 
     @Ignore
     @Test
-    public void testFailure1() {
+    public void testFailure1() throws InvalidProtocolBufferException {
         // {0, 1} [4, 0]
         Dot dotA = new Dot(0, 1L);
         Clock<MaxInt> confA = vclock(4L, 0L);
@@ -380,7 +381,7 @@ public class ConfQueueTest {
         checkTerminationRandomShuffles(delivered, argsList);
     }
 
-    private void checkTerminationRandomShuffles(Object queueArg, List<QueueAddArgs> argsList) {
+    private void checkTerminationRandomShuffles(Object queueArg, List<QueueAddArgs> argsList) throws InvalidProtocolBufferException {
         List<List<QueueAddArgs>> permutations = Permutations.of(argsList);
         Map<Dots, List<Message>> totalOrder = checkTermination(queueArg, argsList);
 
@@ -390,7 +391,7 @@ public class ConfQueueTest {
         }
     }
 
-    private Map<Dots, List<Message>> checkTermination(Object queueArg, List<QueueAddArgs> argsList) {
+    private Map<Dots, List<Message>> checkTermination(Object queueArg, List<QueueAddArgs> argsList) throws InvalidProtocolBufferException {
         ConfQueue queue;
         if (queueArg instanceof Integer) {
             queue = new ConfQueue((Integer) queueArg, false);
@@ -401,7 +402,7 @@ public class ConfQueueTest {
         return checkTermination(queue, argsList);
     }
 
-    private Map<Dots, List<Message>> checkTermination(ConfQueue queue, List<QueueAddArgs> argsList) {
+    private Map<Dots, List<Message>> checkTermination(ConfQueue queue, List<QueueAddArgs> argsList) throws InvalidProtocolBufferException {
         // results
         List<ConfQueueBox> results = new ArrayList<>();
 

@@ -367,7 +367,7 @@ public class DataRW {
                             throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
                     }
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | InvalidProtocolBufferException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
