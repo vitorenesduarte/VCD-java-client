@@ -113,7 +113,11 @@ public class DataRW {
         if (this.batching) {
             toWriter.put(message);
         } else {
-            doWrite(Batch.pack(message), this.out);
+            MessageSet ms = MessageSet.newBuilder()
+                    .addMessages(message)
+                    .setStatus(MessageSet.Status.START)
+                    .build();
+            doWrite(ms, this.out);
         }
     }
 

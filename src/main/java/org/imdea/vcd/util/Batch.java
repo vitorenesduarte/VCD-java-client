@@ -42,10 +42,6 @@ public class Batch {
 
     private static final Logger LOGGER = VCDLogger.init(Batch.class);
 
-    public static MessageSet pack(Message m) {
-        return pack(Collections.singletonList(m));
-    }
-
     public static MessageSet pack(List<Message> ops) {
         // create a message set with all messages in the batch
         MessageSet.Builder builder = MessageSet.newBuilder();
