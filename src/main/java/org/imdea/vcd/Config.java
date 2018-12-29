@@ -160,6 +160,10 @@ public class Config {
         this.batchWait = Integer.parseInt(batchWait);
     }
 
+    public Boolean getBatching() {
+        return batchWait > 0;
+    }
+
     public static Config parseArgs(String[] args) {
         Config config = new Config();
         config.doParseArgs(args);

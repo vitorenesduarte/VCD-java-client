@@ -134,7 +134,7 @@ public class Metrics {
     private static String key(Config config, String prefix, String protocolSuffix) {
         return "" + config.getNodeNumber() + "/"
                 + prefix + "-"
-                + protocol(config.getMaxFaults(), protocolSuffix) + "-"
+                + protocol(config.getMaxFaults(), protocolSuffix, config) + "-"
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
                 + config.getConflicts() + "-"
@@ -142,7 +142,8 @@ public class Metrics {
                 + config.getOp();
     }
 
-    private static String protocol(Integer maxFaults, String protocolSuffix) {
+    private static String protocol(Integer maxFaults, String protocolSuffix, Config config) {
+        protocolSuffix += config.getBatching() ? "Batching" : "";
         return "VCD" + "f" + maxFaults + protocolSuffix;
     }
 

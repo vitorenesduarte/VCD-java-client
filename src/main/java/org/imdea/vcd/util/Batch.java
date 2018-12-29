@@ -2,7 +2,6 @@ package org.imdea.vcd.util;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
