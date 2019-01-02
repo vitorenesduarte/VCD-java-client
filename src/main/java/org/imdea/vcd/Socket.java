@@ -130,23 +130,23 @@ public class Socket {
         return closest;
     }
 
-    private static List<Proto.NodeSpec> getAllNodes(Config config) throws IOException {
+    private static List<Proto.NodeSpec> getAllNodes(Config config) throws IOException, InterruptedException {
         List<Proto.NodeSpec> nodes = new ArrayList<>();
         String root = "/" + config.getTimestamp();
 
-        try {
-            ZooKeeper zk = zkConnection(config);
+        ZooKeeper zk = zkConnection(config);
 
+        try {
             for (String child : zk.getChildren(root, null)) {
                 String path = root + "/" + child;
                 byte[] data = zk.getData(path, null, null);
                 nodes.add(Proto.NodeSpec.parseFrom(data));
             }
+        } catch(KeeperException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            return getAllNodes(config);
+        } finally {
             zk.close();
-
-        } catch (KeeperException | InterruptedException e) {
-            LOGGER.log(Level.SEVERE, e.toString(), e);
-            throw new RuntimeException("Fatal error, cannot connect to Zk.");
         }
 
         return nodes;
