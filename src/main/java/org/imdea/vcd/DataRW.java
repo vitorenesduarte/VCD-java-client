@@ -297,18 +297,22 @@ public class DataRW {
         }
 
         private void connectToRedis(Config config) {
-            this.jedis = new Jedis(config.getRedis());
+            this.jedis = (config.getRedis() != null) ? new Jedis(config.getRedis()) : null;
             this.jedisKey = "" + config.getNodeNumber() + "/" + "trace-" + config.getCluster();
         }
 
         private void pushToRedis(Clock<ExceptionSet> committed) {
             String encoded = Trace.encode(committed);
-            jedis.rpush(jedisKey, encoded);
+            if (this.jedis != null) {
+                jedis.rpush(jedisKey, encoded);
+            }
         }
 
         private void pushToRedis(Dot dot, Clock<MaxInt> conf) {
             String encoded = Trace.encode(dot, conf);
-            jedis.rpush(jedisKey, encoded);
+            if (this.jedis != null)  {
+                jedis.rpush(jedisKey, encoded);
+            }
         }
 
         @Override
