@@ -2,6 +2,7 @@ package org.imdea.vcd.util;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
@@ -35,13 +36,39 @@ import org.imdea.vcd.pb.Proto.MessageSet;
  * Y = <DURABLE, [<{red, blue}, X>]>
  *
  * unpack(Y) = <DURABLE, X>
- *
  */
 public class Batch {
 
     private static final Logger LOGGER = VCDLogger.init(Batch.class);
 
-    public static MessageSet pack(List<Message> ops) {
+    public static MessageSet[] pack(List<Message> ops) {
+        List<Message> pure = new ArrayList<>();
+        List<Message> nonPure = new ArrayList<>();
+
+        for (Message op : ops) {
+            if (op.getPure()) {
+                pure.add(op);
+            } else {
+                nonPure.add(op);
+            }
+        }
+
+        // create bacthes
+        MessageSet pureBatch = pack_(pure);
+        MessageSet nonPureBatch = pack_(nonPure);
+
+        MessageSet[] result;
+        if (pure.isEmpty()) {
+            result = new MessageSet[]{nonPureBatch};
+        } else if (nonPure.isEmpty()) {
+            result = new MessageSet[]{pureBatch};
+        } else {
+            result = new MessageSet[]{nonPureBatch, pureBatch};
+        }
+        return result;
+    }
+
+    private static MessageSet pack_(List<Message> ops) {
         // create a message set with all messages in the batch
         MessageSet.Builder builder = MessageSet.newBuilder();
         HashSet<ByteString> hashes = new HashSet<>();
@@ -55,7 +82,7 @@ public class Batch {
 
         // create a message that has as data
         // a protobuf with the previous message set
-        Proto.Message theMessage = Proto.Message.newBuilder()
+        Proto.Message theMessage = Message.newBuilder()
                 .addAllHashes(hashes)
                 .setData(batch.toByteString())
                 .build();
@@ -79,7 +106,7 @@ public class Batch {
             LOGGER.log(Level.WARNING, "[unpacking] Expecting a message set with a single message!!");
         }
         // find message
-        Proto.Message m = ms.getMessages(0);
+        Message m = ms.getMessages(0);
 
         // unpack it
         List<Message> messages = unpack(m);

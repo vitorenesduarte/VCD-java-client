@@ -526,6 +526,7 @@ public class ConfQueueTest {
             this.message = Message.newBuilder()
                     .addAllHashes(o.message.getHashesList())
                     .setData(o.message.getData())
+                    .setPure(false)
                     .build();
             this.conf = new Clock(o.conf);
         }

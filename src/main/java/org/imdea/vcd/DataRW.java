@@ -166,8 +166,9 @@ public class DataRW {
                         // batch size metrics
                         batchSize.update(ops.size());
 
-                        MessageSet messageSet = Batch.pack(ops);
-                        doWrite(messageSet, this.out);
+                        for(MessageSet messageSet : Batch.pack(ops)) {
+                            doWrite(messageSet, this.out);
+                        }
                     }
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);

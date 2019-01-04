@@ -34,6 +34,7 @@ public class Generator {
         Message m = Message.newBuilder()
                 .addHashes(key)
                 .setData(data)
+                .setPure(false)
                 .build();
         return m;
     }
@@ -46,6 +47,7 @@ public class Generator {
         Message m = Message.newBuilder()
                 .addHashes(hash(key, conflicts))
                 .setData(data)
+                .setPure(false)
                 .build();
         return m;
     }
