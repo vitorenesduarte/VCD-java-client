@@ -21,4 +21,4 @@ CMD java -jar $JAR -ops=${OPS} \
                    -redis=${REDIS} \
                    -zk=${ZK} \
                    -sleep=${SLEEP} \
-                   -write_delay=${WRITE_DELAY}
+                   -batch_wait=${BATCH_WAIT}

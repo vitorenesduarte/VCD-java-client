@@ -1,4 +1,4 @@
-package org.imdea.vcd;
+package org.imdea.vcd.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;

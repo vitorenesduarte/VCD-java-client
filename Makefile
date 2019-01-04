@@ -9,9 +9,10 @@ rel:
 
 run: rel $(JAR)
 	java -jar $(JAR) \
-		-clients=3 \
+		-clients=10 \
 		-ops=10000 \
 		-conflicts=100 \
+		-batch_wait=1 \
 		-zk=127.0.0.1:2181
 
 clean:

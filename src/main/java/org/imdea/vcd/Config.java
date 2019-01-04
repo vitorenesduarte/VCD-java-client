@@ -50,8 +50,8 @@ public class Config {
     @Parameter(names = "-sleep")
     private Integer sleep = 340;// if 42, closed loop
 
-    @Parameter(names = "-write_delay", arity = 1)
-    private Boolean writeDelay = false;
+    @Parameter(names = "-batch_wait")
+    private Integer batchWait = 0; // if 0, batching is disabled
 
     private Config() {
     }
@@ -152,12 +152,16 @@ public class Config {
         return this.sleep == CLOSED_LOOP;
     }
 
-    public Boolean getWriteDelay() {
-        return writeDelay;
+    public Integer getBatchWait() {
+        return batchWait;
     }
 
-    public void setWriteDelay(String writeDelay) {
-        this.writeDelay = Boolean.parseBoolean(writeDelay);
+    public void setBatchWait(String batchWait) {
+        this.batchWait = Integer.parseInt(batchWait);
+    }
+
+    public Boolean getBatching() {
+        return batchWait > 0;
     }
 
     public static Config parseArgs(String[] args) {
