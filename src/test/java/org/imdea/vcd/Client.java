@@ -32,6 +32,7 @@ public class Client {
     public static void main(String[] args) {
         try {
             CONFIG = Config.parseArgs(args);
+            LOGGER.log(Level.INFO, "Optimized delivery is " + (CONFIG.getOptDelivery()? "enabled" : "disabled"));
             SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
             MAP = new HashMap<>();
             OPS_PER_CLIENT = new int[CONFIG.getClients()];

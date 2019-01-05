@@ -2,6 +2,7 @@ package org.imdea.vcd.queue;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -21,7 +23,6 @@ import org.imdea.vcd.queue.clock.MaxInt;
 import org.imdea.vcd.util.Batch;
 
 /**
- *
  * @author Vitor Enes
  */
 public class ConfQueue {
@@ -34,19 +35,18 @@ public class ConfQueue {
     private final Integer N;
     private final boolean BATCHING;
     private final boolean TRANSITIVE;
+    private final boolean OPT_DELIVERY;
 
-    public ConfQueue(Integer nodeNumber, boolean batching) {
-        this.delivered = Clock.eclock(nodeNumber);
-        this.N = nodeNumber;
-        this.BATCHING = batching;
-        this.TRANSITIVE = isTransitive(batching);
+    public ConfQueue(Integer nodeNumber, boolean batching, boolean optDelivery) {
+        this(Clock.eclock(nodeNumber), batching, optDelivery);
     }
 
-    public ConfQueue(Clock<ExceptionSet> committed, boolean batching) {
+    public ConfQueue(Clock<ExceptionSet> committed, boolean batching, boolean optDelivery) {
         this.delivered = (Clock<ExceptionSet>) committed.clone();
         this.N = this.delivered.size();
         this.BATCHING = batching;
         this.TRANSITIVE = isTransitive(batching);
+        this.OPT_DELIVERY = optDelivery;
     }
 
     private boolean isTransitive(boolean batching) {
@@ -220,9 +220,8 @@ public class ConfQueue {
 
     /**
      * Find a SCC using Tarjan's algorithm.
-     *
+     * <p>
      * https://github.com/NYU-NEWS/janus/blob/09372bd1de206f9e0f15712a9a171a349bdcf3c0/src/deptran/rococo/graph.h#L274-L314
-     *
      */
     private class TarjanSCCFinder {
 
@@ -249,7 +248,7 @@ public class ConfQueue {
             for (Integer q = 0; q < N; q++) {
                 Long to = conf.get(q).current();
                 Long from;
-                if (TRANSITIVE) {
+                if (OPT_DELIVERY && TRANSITIVE) {
                     from = to;
                 } else {
                     from = delivered.get(q).next();
@@ -273,7 +272,7 @@ public class ConfQueue {
                     }
 
                     // ignore non-conflicting commands
-                    if (!TRANSITIVE && !v.conflict(w)) {
+                    if (OPT_DELIVERY && !TRANSITIVE && !v.conflict(w)) {
                         // if transitive, then it conflicts for sure
                         // since we're only checking the highest dep
                         continue;
@@ -304,7 +303,7 @@ public class ConfQueue {
             if (Objects.equals(v.id, v.low)) {
                 Dots scc = new Dots();
 
-                for (Vertex s = stack.pop();; s = stack.pop()) {
+                for (Vertex s = stack.pop(); ; s = stack.pop()) {
                     // remove from stack
                     s.onStack = false;
 
