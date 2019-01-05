@@ -794,6 +794,11 @@ public final class Proto {
      * <code>bytes data = 2;</code>
      */
     com.google.protobuf.ByteString getData();
+
+    /**
+     * <code>bool pure = 3;</code>
+     */
+    boolean getPure();
   }
   /**
    * Protobuf type {@code Message}
@@ -810,6 +815,7 @@ public final class Proto {
     private Message() {
       hashes_ = java.util.Collections.emptyList();
       data_ = com.google.protobuf.ByteString.EMPTY;
+      pure_ = false;
     }
 
     @java.lang.Override
@@ -851,6 +857,11 @@ public final class Proto {
             case 18: {
 
               data_ = input.readBytes();
+              break;
+            }
+            case 24: {
+
+              pure_ = input.readBool();
               break;
             }
           }
@@ -912,6 +923,15 @@ public final class Proto {
       return data_;
     }
 
+    public static final int PURE_FIELD_NUMBER = 3;
+    private boolean pure_;
+    /**
+     * <code>bool pure = 3;</code>
+     */
+    public boolean getPure() {
+      return pure_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -929,6 +949,9 @@ public final class Proto {
       }
       if (!data_.isEmpty()) {
         output.writeBytes(2, data_);
+      }
+      if (pure_ != false) {
+        output.writeBool(3, pure_);
       }
       unknownFields.writeTo(output);
     }
@@ -951,6 +974,10 @@ public final class Proto {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, data_);
       }
+      if (pure_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, pure_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -971,6 +998,8 @@ public final class Proto {
           .equals(other.getHashesList());
       result = result && getData()
           .equals(other.getData());
+      result = result && (getPure()
+          == other.getPure());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -988,6 +1017,9 @@ public final class Proto {
       }
       hash = (37 * hash) + DATA_FIELD_NUMBER;
       hash = (53 * hash) + getData().hashCode();
+      hash = (37 * hash) + PURE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPure());
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -1121,6 +1153,8 @@ public final class Proto {
         bitField0_ = (bitField0_ & ~0x00000001);
         data_ = com.google.protobuf.ByteString.EMPTY;
 
+        pure_ = false;
+
         return this;
       }
 
@@ -1151,6 +1185,7 @@ public final class Proto {
         }
         result.hashes_ = hashes_;
         result.data_ = data_;
+        result.pure_ = pure_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1205,6 +1240,9 @@ public final class Proto {
         }
         if (other.getData() != com.google.protobuf.ByteString.EMPTY) {
           setData(other.getData());
+        }
+        if (other.getPure() != false) {
+          setPure(other.getPure());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1331,6 +1369,32 @@ public final class Proto {
       public Builder clearData() {
         
         data_ = getDefaultInstance().getData();
+        onChanged();
+        return this;
+      }
+
+      private boolean pure_ ;
+      /**
+       * <code>bool pure = 3;</code>
+       */
+      public boolean getPure() {
+        return pure_;
+      }
+      /**
+       * <code>bool pure = 3;</code>
+       */
+      public Builder setPure(boolean value) {
+        
+        pure_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool pure = 3;</code>
+       */
+      public Builder clearPure() {
+        
+        pure_ = false;
         onChanged();
         return this;
       }
@@ -6841,23 +6905,24 @@ public final class Proto {
       "\n\014client.proto\"~\n\004Init\022\'\n\tcommitted\030\001 \003(" +
       "\0132\024.Init.CommittedEntry\022\014\n\004site\030\002 \001(\005\032?\n" +
       "\016CommittedEntry\022\013\n\003key\030\001 \001(\005\022\034\n\005value\030\002 " +
-      "\001(\0132\r.ExceptionSet:\0028\001\"\'\n\007Message\022\016\n\006has" +
-      "hes\030\001 \003(\014\022\014\n\004data\030\002 \001(\014\"}\n\nMessageSet\022\032\n" +
-      "\010messages\030\001 \003(\0132\010.Message\022\"\n\006status\030\002 \001(" +
-      "\0162\022.MessageSet.Status\"/\n\006Status\022\t\n\005START" +
-      "\020\000\022\013\n\007DURABLE\020\001\022\r\n\tDELIVERED\020\002\"0\n\010NodeSp" +
-      "ec\022\n\n\002id\030\001 \001(\005\022\n\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005" +
-      "\"\036\n\003Dot\022\n\n\002id\030\001 \001(\005\022\013\n\003seq\030\002 \001(\003\"\'\n\014Exce",
-      "ptionSet\022\013\n\003seq\030\001 \001(\003\022\n\n\002ex\030\002 \003(\003\"\336\001\n\006Co" +
-      "mmit\022\021\n\003dot\030\001 \001(\0132\004.Dot\022\031\n\007message\030\002 \001(\013" +
-      "2\010.Message\022\035\n\003dep\030\003 \003(\0132\020.Commit.DepEntr" +
-      "y\022\037\n\004conf\030\004 \003(\0132\021.Commit.ConfEntry\0329\n\010De" +
-      "pEntry\022\013\n\003key\030\001 \001(\005\022\034\n\005value\030\002 \001(\0132\r.Exc" +
-      "eptionSet:\0028\001\032+\n\tConfEntry\022\013\n\003key\030\001 \001(\005\022" +
-      "\r\n\005value\030\002 \001(\003:\0028\001\"^\n\005Reply\022\025\n\004init\030\001 \001(" +
-      "\0132\005.InitH\000\022\032\n\003set\030\002 \001(\0132\013.MessageSetH\000\022\031" +
-      "\n\006commit\030\003 \001(\0132\007.CommitH\000B\007\n\005replyB\031\n\020or" +
-      "g.imdea.vcd.pbB\005Protob\006proto3"
+      "\001(\0132\r.ExceptionSet:\0028\001\"5\n\007Message\022\016\n\006has" +
+      "hes\030\001 \003(\014\022\014\n\004data\030\002 \001(\014\022\014\n\004pure\030\003 \001(\010\"}\n" +
+      "\nMessageSet\022\032\n\010messages\030\001 \003(\0132\010.Message\022" +
+      "\"\n\006status\030\002 \001(\0162\022.MessageSet.Status\"/\n\006S" +
+      "tatus\022\t\n\005START\020\000\022\013\n\007DURABLE\020\001\022\r\n\tDELIVER" +
+      "ED\020\002\"0\n\010NodeSpec\022\n\n\002id\030\001 \001(\005\022\n\n\002ip\030\002 \001(\t" +
+      "\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n\002id\030\001 \001(\005\022\013\n\003seq",
+      "\030\002 \001(\003\"\'\n\014ExceptionSet\022\013\n\003seq\030\001 \001(\003\022\n\n\002e" +
+      "x\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003dot\030\001 \001(\0132\004.Dot\022\031\n" +
+      "\007message\030\002 \001(\0132\010.Message\022\035\n\003dep\030\003 \003(\0132\020." +
+      "Commit.DepEntry\022\037\n\004conf\030\004 \003(\0132\021.Commit.C" +
+      "onfEntry\0329\n\010DepEntry\022\013\n\003key\030\001 \001(\005\022\034\n\005val" +
+      "ue\030\002 \001(\0132\r.ExceptionSet:\0028\001\032+\n\tConfEntry" +
+      "\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001(\003:\0028\001\"^\n\005Repl" +
+      "y\022\025\n\004init\030\001 \001(\0132\005.InitH\000\022\032\n\003set\030\002 \001(\0132\013." +
+      "MessageSetH\000\022\031\n\006commit\030\003 \001(\0132\007.CommitH\000B" +
+      "\007\n\005replyB\031\n\020org.imdea.vcd.pbB\005Protob\006pro",
+      "to3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -6888,7 +6953,7 @@ public final class Proto {
     internal_static_Message_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Message_descriptor,
-        new java.lang.String[] { "Hashes", "Data", });
+        new java.lang.String[] { "Hashes", "Data", "Pure", });
     internal_static_MessageSet_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_MessageSet_fieldAccessorTable = new
