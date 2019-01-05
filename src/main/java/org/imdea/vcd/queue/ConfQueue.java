@@ -68,7 +68,13 @@ public class ConfQueue {
         // try to find a SCC
         Dots visited = new Dots();
         Collection<ByteString> colors = findSCC(dot, vertex, visited);
-        tryPending(colors);
+        if(OPT_DELIVERY) {
+            tryPending(colors);
+        } else {
+            // if non opt, try all colors
+            tryPending(pendingIndex.keySet());
+        }
+
     }
 
     private void updateIndexes(Dot dot, Vertex vertex) {
