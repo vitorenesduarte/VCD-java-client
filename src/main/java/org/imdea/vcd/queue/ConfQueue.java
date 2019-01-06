@@ -68,13 +68,7 @@ public class ConfQueue {
         // try to find a SCC
         Dots visited = new Dots();
         Collection<ByteString> colors = findSCC(dot, vertex, visited);
-        if(OPT_DELIVERY) {
-            tryPending(colors);
-        } else {
-            // if non opt, try all colors
-            tryPending(pendingIndex.keySet());
-        }
-
+        tryPending(colors);
     }
 
     private void updateIndexes(Dot dot, Vertex vertex) {
@@ -158,11 +152,21 @@ public class ConfQueue {
 
     public void tryPending(Collection<ByteString> colors) {
         Dots visited = new Dots();
-        for (ByteString color : colors) {
-            HashSet<Vertex> pending = new HashSet<>(pendingIndex.get(color));
-            for (Vertex v : pending) {
-                Dot d = v.dot;
-                if (!visited.contains(d)) {
+        if(OPT_DELIVERY) {
+            for (ByteString color : colors) {
+                HashSet<Vertex> pending = new HashSet<>(pendingIndex.get(color));
+                for (Vertex v : pending) {
+                    Dot d = v.dot;
+                    if (!visited.contains(d)) {
+                        findSCC(d, v, visited);
+                    }
+                }
+            }
+        }
+        else {
+            for(Dot d : delivered.nextDots()) {
+                Vertex v = vertexIndex.get(d);
+                if(v != null) {
                     findSCC(d, v, visited);
                 }
             }
