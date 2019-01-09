@@ -55,12 +55,12 @@ public class Client {
                     List<Message> messages = messageSet.getMessagesList();
                     MessageSet.Status status = messageSet.getStatus();
 
-                    ByteString data;
+                    ByteString from;
                     PerData perData;
                     switch (status) {
                         case DURABLE:
-                            data = messages.get(0).getData();
-                            perData = MAP.get(data);
+                            from = messages.get(0).getFrom();
+                            perData = MAP.get(from);
                             // record commit time, if perData exists
                             // TODO check how to could have been delivered
                             // before being committed
@@ -80,8 +80,8 @@ public class Client {
 
                             // try to find operations from clients
                             while (it.hasNext()) {
-                                data = it.next().getData();
-                                perData = MAP.remove(data);
+                                from = it.next().getFrom();
+                                perData = MAP.remove(from);
 
                                 // if it belongs to a client
                                 if (perData != null) {
@@ -148,17 +148,11 @@ public class Client {
     }
 
     private static void sendOp(int client) throws IOException, InterruptedException {
-        Message message = Generator.message(CLIENT_KEY[client], CONFIG);
-        ByteString data = message.getData();
-        if (MAP.containsKey(data)) {
-            // if this key already exists, try again
-            sendOp(client);
-        } else {
-            // if it doesn't, send it and update map
-            PerData perData = new PerData(client, Metrics.start());
-            MAP.put(data, perData);
-            SOCKET.send(message);
-        }
+        ByteString from = CLIENT_KEY[client];
+        Message message = Generator.message(from, CONFIG);
+        PerData perData = new PerData(client, Metrics.start());
+        MAP.put(from, perData);
+        SOCKET.send(message);
     }
 
     private static void redisPush() {

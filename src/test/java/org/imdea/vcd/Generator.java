@@ -40,14 +40,15 @@ public class Generator {
     }
 
     public static Message message(ByteString key, Config config) {
-        return message(key, config.getConflicts(), randomByteString(config.getPayloadSize()));
+        return message(key, key, config.getConflicts(), randomByteString(config.getPayloadSize()));
     }
 
-    public static Message message(ByteString key, Integer conflicts, ByteString data) {
+    public static Message message(ByteString key, ByteString from, Integer conflicts, ByteString data) {
         Message m = Message.newBuilder()
                 .addHashes(hash(key, conflicts))
                 .setData(data)
                 .setPure(false)
+                .setFrom(from)
                 .build();
         return m;
     }

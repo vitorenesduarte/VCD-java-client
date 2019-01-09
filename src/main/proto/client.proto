@@ -12,6 +12,7 @@ message Message {
   repeated bytes hashes = 1;
   bytes data = 2;
   bool pure = 3;
+  bytes from = 4;
 }
 
 message MessageSet {
