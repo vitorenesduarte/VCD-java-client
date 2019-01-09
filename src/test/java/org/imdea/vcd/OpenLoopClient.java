@@ -189,7 +189,7 @@ public class OpenLoopClient {
         }
 
         private void sendOp(int client, ByteString data) throws IOException, InterruptedException {
-            Message message = Generator.message(this.clientsKey[client], this.config.getConflicts(), data);
+            Message message = Generator.message(this.clientsKey[client], this.clientsKey[client], this.config.getConflicts(), data);
             PerData perData = new PerData(client, Metrics.start());
             this.opToData.put(data, perData);
             this.socket.send(message);
