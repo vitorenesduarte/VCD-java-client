@@ -261,6 +261,7 @@ public class DataRW {
         private final LinkedBlockingQueue<Reply> toQueueRunner;
         private final LinkedBlockingQueue<List<ConfQueueBox>> toDeliverer;
         private final Boolean batching;
+        private final Boolean optDelivery;
         private final Deliverer deliverer;
 
         private ConfQueue queue;
@@ -285,6 +286,7 @@ public class DataRW {
             midExecution = METRICS.histogram(MetricRegistry.name(DataRW.class, "midExecution"));
 
             this.batching = batching(config.getBatchWait());
+            this.optDelivery = config.getOptDelivery();
             this.toQueueRunner = toQueueRunner;
             this.toDeliverer = new LinkedBlockingQueue<>();
             this.deliverer = new Deliverer(toClient, this.toDeliverer);
@@ -336,7 +338,7 @@ public class DataRW {
                             }
 
                             // create delivery queue
-                            queue = new ConfQueue(committed, this.batching);
+                            queue = new ConfQueue(committed, this.batching, this.optDelivery);
                             break;
 
                         case COMMIT:

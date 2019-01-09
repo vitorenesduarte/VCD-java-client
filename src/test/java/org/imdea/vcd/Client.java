@@ -32,6 +32,8 @@ public class Client {
     public static void main(String[] args) {
         try {
             CONFIG = Config.parseArgs(args);
+            LOGGER.log(Level.INFO, "Optimized delivery is {0}", CONFIG.getOptDelivery() ? "enabled" : "disabled");
+            LOGGER.log(Level.INFO, "Payload size is {0}", CONFIG.getPayloadSize());
             SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
             MAP = new HashMap<>();
             OPS_PER_CLIENT = new int[CONFIG.getClients()];
@@ -160,15 +162,21 @@ public class Client {
     }
 
     private static void redisPush() {
-        String redis = CONFIG.getRedis();
+        try {
+            String redis = CONFIG.getRedis();
 
-        if (redis != null) {
-            try (Jedis jedis = new Jedis(redis)) {
-                Map<String, String> push = Metrics.serialize(CONFIG);
-                for (String key : push.keySet()) {
-                    jedis.sadd(key, push.get(key));
+            if (redis != null) {
+                try (Jedis jedis = new Jedis(redis)) {
+                    Map<String, String> push = Metrics.serialize(CONFIG);
+                    for (String key : push.keySet()) {
+                        jedis.sadd(key, push.get(key));
+                    }
                 }
             }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, e.toString(), e);
+            // if any exception, try again
+            redisPush();
         }
     }
 

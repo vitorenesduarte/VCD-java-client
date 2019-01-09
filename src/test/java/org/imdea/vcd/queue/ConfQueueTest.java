@@ -67,7 +67,7 @@ public class ConfQueueTest {
         Message m2 = Generator.message("red");
         Clock<MaxInt> conf2 = vclock(1L, 0L);
 
-        ConfQueue queue = new ConfQueue(nodeNumber, false);
+        ConfQueue queue = new ConfQueue(nodeNumber, false, true);
 
         queue.add(dot1, m1, conf1);
         assertFalse(queue.isEmpty());
@@ -394,9 +394,9 @@ public class ConfQueueTest {
     private Map<Dots, List<Message>> checkTermination(Object queueArg, List<QueueAddArgs> argsList) throws InvalidProtocolBufferException {
         ConfQueue queue;
         if (queueArg instanceof Integer) {
-            queue = new ConfQueue((Integer) queueArg, false);
+            queue = new ConfQueue((Integer) queueArg, false, true);
         } else {
-            queue = new ConfQueue((Clock<ExceptionSet>) queueArg, false);
+            queue = new ConfQueue((Clock<ExceptionSet>) queueArg, false, true);
         }
 
         return checkTermination(queue, argsList);

@@ -144,6 +144,7 @@ public class Metrics {
 
     private static String protocol(Integer maxFaults, String protocolSuffix, Config config) {
         protocolSuffix += config.getBatching() ? "Batching" : "";
+        protocolSuffix += !config.getOptDelivery() ? "NonOptDelivery" : "";
         return "VCD" + "f" + maxFaults + protocolSuffix;
     }
 

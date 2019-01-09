@@ -53,6 +53,9 @@ public class Config {
     @Parameter(names = "-batch_wait")
     private Integer batchWait = 0; // if 0, batching is disabled
 
+    @Parameter(names = "-opt_delivery", arity = 1)
+    private Boolean optDelivery = true;
+
     private Config() {
     }
 
@@ -162,6 +165,10 @@ public class Config {
 
     public Boolean getBatching() {
         return batchWait > 0;
+    }
+
+    public Boolean getOptDelivery() {
+        return this.optDelivery;
     }
 
     public static Config parseArgs(String[] args) {
