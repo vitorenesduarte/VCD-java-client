@@ -1,64 +1,36 @@
 package org.imdea.vcd;
 
-import org.imdea.vcd.util.Trace;
-import org.imdea.vcd.util.Batch;
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.MetricAttribute;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import org.imdea.vcd.pb.Proto.Reply;
+import org.imdea.vcd.queue.ConfQueue;
 import org.imdea.vcd.queue.ConfQueueBox;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
+import org.imdea.vcd.util.Batch;
+import org.imdea.vcd.util.Trace;
+import redis.clients.jedis.Jedis;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.imdea.vcd.queue.ConfQueue;
-import redis.clients.jedis.Jedis;
 
 /**
- *
  * @author Vitor Enes
  */
 public class DataRW {
 
-    private static final MetricRegistry METRICS = new MetricRegistry();
-    private static final int METRICS_REPORT_PERIOD = 10; // in seconds.
-
-    static {
-        Set<MetricAttribute> disabledMetricAttributes
-                = new HashSet<>(Arrays.asList(new MetricAttribute[]{
-            MetricAttribute.MAX,
-            MetricAttribute.M1_RATE, MetricAttribute.M5_RATE,
-            MetricAttribute.M15_RATE, MetricAttribute.MIN,
-            MetricAttribute.P99, MetricAttribute.P50,
-            MetricAttribute.P75, MetricAttribute.P95,
-            MetricAttribute.P98, MetricAttribute.P999}));
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(METRICS)
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MICROSECONDS)
-                .disabledMetricAttributes(disabledMetricAttributes)
-                .build();
-        reporter.start(METRICS_REPORT_PERIOD, TimeUnit.SECONDS);
-    }
 
     private final DataInputStream in;
     private final DataOutputStream out;
@@ -70,10 +42,6 @@ public class DataRW {
     private final Writer writer;
     private final SocketReader socketReader;
 
-    private boolean batching(Integer batchWait) {
-        return batchWait > 0;
-    }
-
     public DataRW(DataInputStream in, DataOutputStream out, Config config) {
         this.in = in;
         this.out = out;
@@ -82,6 +50,10 @@ public class DataRW {
         this.batching = batching(config.getBatchWait());
         this.writer = new Writer(this.out, this.toWriter, config);
         this.socketReader = new SocketReader(this.in, this.toClient, config);
+    }
+
+    private boolean batching(Integer batchWait) {
+        return batchWait > 0;
     }
 
     public void start() {
@@ -140,13 +112,10 @@ public class DataRW {
         private final DataOutputStream out;
         private final Integer batchWait;
 
-        private final Histogram batchSize;
-
         public Writer(DataOutputStream out, LinkedBlockingQueue<Message> toWriter, Config config) {
             this.out = out;
             this.toWriter = toWriter;
             this.batchWait = config.getBatchWait();
-            this.batchSize = METRICS.histogram(MetricRegistry.name(DataRW.class, "batchSize"));
         }
 
         @Override
@@ -164,9 +133,9 @@ public class DataRW {
                         ops.add(first);
 
                         // batch size metrics
-                        batchSize.update(ops.size());
+                        RWMetrics.BATCH_SIZE.update(ops.size());
 
-                        for(MessageSet messageSet : Batch.pack(ops)) {
+                        for (MessageSet messageSet : Batch.pack(ops)) {
                             doWrite(messageSet, this.out);
                         }
                     }
@@ -236,7 +205,7 @@ public class DataRW {
                                 break;
                             default:
                                 if (reply.hasCommit()) {
-                                    Metrics.startExecution(Dot.dot(reply.getCommit().getDot()));
+                                    RWMetrics.startExecution(Dot.dot(reply.getCommit().getDot()));
                                 }
                                 toQueueRunner.put(reply);
                                 break;
@@ -266,25 +235,10 @@ public class DataRW {
 
         private ConfQueue queue;
 
-        // metrics
-        private final Timer add;
-        private final Timer parse;
-        private final Timer getToDeliver;
-        private final Histogram queueElements;
-        private final Histogram midExecution;
-
         private Jedis jedis = null;
         private String jedisKey = null;
 
         public QueueRunner(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toQueueRunner, Config config) {
-
-            parse = METRICS.timer(MetricRegistry.name(DataRW.class, "parse"));
-            add = METRICS.timer(MetricRegistry.name(DataRW.class, "add"));
-            getToDeliver = METRICS.timer(MetricRegistry.name(DataRW.class, "getToDeliver"));
-
-            queueElements = METRICS.histogram(MetricRegistry.name(DataRW.class, "queueElements"));
-            midExecution = METRICS.histogram(MetricRegistry.name(DataRW.class, "midExecution"));
-
             this.batching = batching(config.getBatchWait());
             this.optDelivery = config.getOptDelivery();
             this.toQueueRunner = toQueueRunner;
@@ -313,7 +267,7 @@ public class DataRW {
 
         private void pushToRedis(Dot dot, Clock<MaxInt> conf) {
             String encoded = Trace.encode(dot, conf);
-            if (this.jedis != null)  {
+            if (this.jedis != null) {
                 jedis.rpush(jedisKey, encoded);
             }
         }
@@ -342,7 +296,7 @@ public class DataRW {
                             break;
 
                         case COMMIT:
-                            final Timer.Context parseContext = parse.time();
+                            final Timer.Context parseContext = RWMetrics.PARSE.time();
 
                             // fetch dot, dep, message and conf
                             Commit commit = reply.getCommit();
@@ -350,28 +304,24 @@ public class DataRW {
                             Message message = commit.getMessage();
                             Clock<MaxInt> conf = Clock.vclock(commit.getConfMap());
 
+                            parseContext.stop();
+
                             // store trace in redis
                             if (RECORD_TRACE) {
                                 pushToRedis(dot, conf);
                             }
 
-                            midExecution.update(Metrics.midExecution(dot));
-                            parseContext.stop();
+                            RWMetrics.endMidExecution(dot);
 
-                            final Timer.Context addContext = add.time();
-                            Long start = System.nanoTime();
+                            final Timer.Context addContext = RWMetrics.ADD.time();
                             queue.add(dot, message, conf);
-                            Long timeMicro = (System.nanoTime() - start) / 1000;
-                            Metrics.endAdd(timeMicro);
                             addContext.stop();
 
-                            final Timer.Context getToDeliverContext = getToDeliver.time();
                             List<ConfQueueBox> toDeliver = queue.getToDeliver();
                             if (!toDeliver.isEmpty()) {
                                 toDeliverer.put(toDeliver);
                             }
-                            queueElements.update(queue.elements());
-                            getToDeliverContext.stop();
+                            RWMetrics.QUEUE_ELEMENTS.update(queue.elements());
                             break;
 
                         default:
@@ -390,17 +340,9 @@ public class DataRW {
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<List<ConfQueueBox>> toDeliverer;
 
-        private final Timer deliver;
-        private final Histogram components;
-        private final Histogram execution;
-
         public Deliverer(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<List<ConfQueueBox>> toDeliverer) {
             this.toClient = toClient;
             this.toDeliverer = toDeliverer;
-
-            deliver = METRICS.timer(MetricRegistry.name(DataRW.class, "deliver"));
-            components = METRICS.histogram(MetricRegistry.name(DataRW.class, "components"));
-            execution = METRICS.histogram(MetricRegistry.name(DataRW.class, "execution"));
         }
 
         @Override
@@ -408,15 +350,15 @@ public class DataRW {
             try {
                 while (true) {
                     List<ConfQueueBox> toDeliver = toDeliverer.take();
-                    components.update(toDeliver.size());
+                    RWMetrics.COMPONENTS.update(toDeliver.size());
 
-                    final Timer.Context deliverContext = deliver.time();
+                    final Timer.Context deliverContext = RWMetrics.DELIVER.time();
                     // create message set builder
                     MessageSet.Builder builder = MessageSet.newBuilder();
 
                     for (ConfQueueBox b : toDeliver) {
                         for (Dot d : b.getDots()) {
-                            execution.update(Metrics.endExecution(d));
+                            RWMetrics.endExecution(d);
                         }
                         // update message set builder
                         builder.addAllMessages(b.sortMessages());
