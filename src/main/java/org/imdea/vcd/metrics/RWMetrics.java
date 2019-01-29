@@ -1,4 +1,4 @@
-package org.imdea.vcd;
+package org.imdea.vcd.metrics;
 
 import com.codahale.metrics.*;
 import org.imdea.vcd.queue.clock.Dot;
@@ -12,16 +12,22 @@ import java.util.concurrent.TimeUnit;
 public class RWMetrics {
 
     private static final MetricRegistry METRICS = new MetricRegistry();
-    // metrics
-    public static final Timer PARSE = METRICS.timer(MetricRegistry.name("metrics", "parse"));
-    public static final Timer ADD = METRICS.timer(MetricRegistry.name("metrics", "add"));
-    public static final Timer DELIVER = METRICS.timer(MetricRegistry.name("metrics", "deliver"));
-    public static final Histogram QUEUE_ELEMENTS = METRICS.histogram(MetricRegistry.name("metrics", "queueElements"));
-    public static final Histogram BATCH_SIZE = METRICS.histogram(MetricRegistry.name("metrics", "batchSize"));
-    public static final Histogram COMPONENTS = METRICS.histogram(MetricRegistry.name("metrics", "components"));
     private static final int METRICS_REPORT_PERIOD = 10; // in seconds.
-    private static final Timer MID_EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "midExecution"));
-    private static final Timer EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "execution"));
+
+    // metrics
+    public static final Timer PARSE = METRICS.timer(MetricRegistry.name("metrics", "Parse"));
+    public static final Timer QUEUE_ADD = METRICS.timer(MetricRegistry.name("metrics", "QueueAdd"));
+    public static final Timer DELIVER_LOOP = METRICS.timer(MetricRegistry.name("metrics", "DeliverLoop"));
+
+    private static final Timer MID_EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "MidExecution"));
+    private static final Timer EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "Execution"));
+    private static final Timer DURABLE = METRICS.timer(MetricRegistry.name("metrics", "DURABLE"));
+    private static final Timer DELIVER = METRICS.timer(MetricRegistry.name("metrics", "DELIVER"));
+
+    public static final Histogram QUEUE_ELEMENTS = METRICS.histogram(MetricRegistry.name("metrics", "QueueElements"));
+    public static final Histogram BATCH_SIZE = METRICS.histogram(MetricRegistry.name("metrics", "BatchSize"));
+    public static final Histogram COMPONENTS_COUNT = METRICS.histogram(MetricRegistry.name("metrics", "ComponentsCount"));
+
     private static final ConcurrentHashMap<Dot, Timer.Context> DOT_TO_MID_EXECUTION_CTX = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Dot, Timer.Context> DOT_TO_EXECUTION_CTX = new ConcurrentHashMap<>();
 
@@ -44,7 +50,7 @@ public class RWMetrics {
 
     public static void startExecution(Dot dot) {
         DOT_TO_MID_EXECUTION_CTX.put(dot, MID_EXECUTION.time());
-        DOT_TO_EXECUTION_CTX.put(dot, MID_EXECUTION.time());
+        DOT_TO_EXECUTION_CTX.put(dot, EXECUTION.time());
     }
 
     public static void endMidExecution(Dot dot) {
@@ -55,5 +61,13 @@ public class RWMetrics {
     public static void endExecution(Dot dot) {
         Timer.Context context = DOT_TO_EXECUTION_CTX.remove(dot);
         context.stop();
+    }
+
+    public static Timer.Context createDurableContext() {
+        return DURABLE.time();
+    }
+
+    public static Timer.Context createDeliverContext() {
+        return DELIVER.time();
     }
 }

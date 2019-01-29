@@ -1,5 +1,6 @@
-package org.imdea.vcd;
+package org.imdea.vcd.metrics;
 
+import org.imdea.vcd.Config;
 import org.imdea.vcd.pb.Proto.MessageSet;
 
 import java.util.HashMap;
@@ -8,7 +9,7 @@ import java.util.Map;
 /**
  * @author Vitor Enes
  */
-public class Metrics {
+public class ClientMetrics {
 
     private static final Averager DURABLE_AVG = new Averager();
     private static final Averager DELIVERED_AVG = new Averager();

@@ -2,6 +2,7 @@ package org.imdea.vcd;
 
 import com.codahale.metrics.Timer;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.imdea.vcd.metrics.RWMetrics;
 import org.imdea.vcd.pb.Proto.Commit;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
@@ -313,9 +314,9 @@ public class DataRW {
 
                             RWMetrics.endMidExecution(dot);
 
-                            final Timer.Context addContext = RWMetrics.ADD.time();
+                            final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
                             queue.add(dot, message, conf);
-                            addContext.stop();
+                            queueAddContext.stop();
 
                             List<ConfQueueBox> toDeliver = queue.getToDeliver();
                             if (!toDeliver.isEmpty()) {
@@ -350,9 +351,9 @@ public class DataRW {
             try {
                 while (true) {
                     List<ConfQueueBox> toDeliver = toDeliverer.take();
-                    RWMetrics.COMPONENTS.update(toDeliver.size());
+                    RWMetrics.COMPONENTS_COUNT.update(toDeliver.size());
 
-                    final Timer.Context deliverContext = RWMetrics.DELIVER.time();
+                    final Timer.Context deliverLoopContext = RWMetrics.DELIVER_LOOP.time();
                     // create message set builder
                     MessageSet.Builder builder = MessageSet.newBuilder();
 
@@ -369,7 +370,7 @@ public class DataRW {
 
                     // send it to client
                     toClient.put(Optional.of(messageSet));
-                    deliverContext.stop();
+                    deliverLoopContext.stop();
                 }
             } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);

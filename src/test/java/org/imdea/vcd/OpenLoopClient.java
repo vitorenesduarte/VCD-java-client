@@ -11,6 +11,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.imdea.vcd.metrics.ClientMetrics;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import redis.clients.jedis.Jedis;
@@ -71,7 +73,7 @@ public class OpenLoopClient {
                 // after all operations from all clients
                 // show metrics
                 this.done.acquire();
-                LOGGER.log(Level.INFO, Metrics.show());
+                LOGGER.log(Level.INFO, ClientMetrics.show());
 
                 // and push them to redis
                 this.redisPush();
@@ -190,7 +192,7 @@ public class OpenLoopClient {
 
         private void sendOp(int client, ByteString data) throws IOException, InterruptedException {
             Message message = Generator.message(this.clientsKey[client], this.clientsKey[client], this.config.getConflicts(), data);
-            PerData perData = new PerData(client, Metrics.start());
+            PerData perData = new PerData(client, ClientMetrics.start());
             this.opToData.put(data, perData);
             this.socket.send(message);
         }
@@ -199,7 +201,7 @@ public class OpenLoopClient {
             String redis = this.config.getRedis();
             if (redis != null) {
                 try (Jedis jedis = new Jedis(redis)) {
-                    Map<String, String> push = Metrics.serialize(this.config);
+                    Map<String, String> push = ClientMetrics.serialize(this.config);
                     for (String key : push.keySet()) {
                         jedis.sadd(key, push.get(key));
                     }
@@ -256,13 +258,13 @@ public class OpenLoopClient {
                                 perData = this.opToData.get(data);
                                 // record commit time, if perData exists
                                 if (perData != null) {
-                                    Metrics.end(status, perData.getStartTime());
+                                    ClientMetrics.end(status, perData.getStartTime());
                                 }
                                 // keep waiting
                                 break;
                             case DELIVERED:
                                 // record chain size
-                                Metrics.chain(messages.size());
+                                ClientMetrics.chain(messages.size());
 
                                 Iterator<Message> it = messages.iterator();
 
@@ -277,7 +279,7 @@ public class OpenLoopClient {
                                         Long startTime = perData.getStartTime();
 
                                         // record delivery time
-                                        Metrics.end(status, startTime);
+                                        ClientMetrics.end(status, startTime);
 
                                         // notify writer thread
                                         this.maybeNotifyOp(client);
