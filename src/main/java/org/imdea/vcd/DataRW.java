@@ -160,27 +160,27 @@ public class DataRW {
 
         private final DataInputStream in;
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
-        private final LinkedBlockingQueue<Reply> toQueueRunner;
+        private final LinkedBlockingQueue<Reply> toParser;
         private final Boolean batching;
-        private final QueueRunner queueRunner;
+        private final Parser parser;
 
         public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Config config) {
             this.in = in;
             this.toClient = toClient;
-            this.toQueueRunner = new LinkedBlockingQueue<>();
+            this.toParser = new LinkedBlockingQueue<>();
             this.batching = batching(config.getBatchWait());
-            this.queueRunner = new QueueRunner(this.toClient, this.toQueueRunner, config);
+            this.parser = new Parser(this.toClient, this.toParser, config);
         }
 
         public void close() {
-            this.queueRunner.close();
-            this.queueRunner.interrupt();
+            this.parser.close();
+            this.parser.interrupt();
         }
 
         @Override
         public void run() {
-            // start queue runner
-            this.queueRunner.start();
+            // start parser
+            this.parser.start();
 
             try {
                 try {
@@ -209,7 +209,7 @@ public class DataRW {
                                 if (reply.hasCommit()) {
                                     RWMetrics.startExecution(Dot.dot(reply.getCommit().getDot()));
                                 }
-                                toQueueRunner.put(reply);
+                                toParser.put(reply);
                                 break;
                         }
                     }
@@ -223,36 +223,31 @@ public class DataRW {
         }
     }
 
-    private class QueueRunner extends Thread {
+    private class Parser extends Thread {
 
         private static final boolean RECORD_TRACE = false;
 
-        private final Logger LOGGER = VCDLogger.init(QueueRunner.class);
+        private final Logger LOGGER = VCDLogger.init(Parser.class);
 
-        private final LinkedBlockingQueue<Reply> toQueueRunner;
-        private final LinkedBlockingQueue<List<ConfQueueBox>> toDeliverer;
-        private final Boolean batching;
-        private final Boolean optDelivery;
-        private final Deliverer deliverer;
-
-        private ConfQueue queue;
+        private final LinkedBlockingQueue<Reply> toParser;
+        private final LinkedBlockingQueue<QueueRunnerMsg> toQueueRunner;
+        private final QueueRunner queueRunner;
 
         private Jedis jedis = null;
         private String jedisKey = null;
 
-        public QueueRunner(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toQueueRunner, Config config) {
-            this.batching = batching(config.getBatchWait());
-            this.optDelivery = config.getOptDelivery();
-            this.toQueueRunner = toQueueRunner;
-            this.toDeliverer = new LinkedBlockingQueue<>();
-            this.deliverer = new Deliverer(toClient, this.toDeliverer);
+        public Parser(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toParser, Config config) {
+            this.toParser = toParser;
+            this.toQueueRunner = new LinkedBlockingQueue<>();
+            this.queueRunner = new QueueRunner(toClient, this.toQueueRunner, config);
             if (RECORD_TRACE) {
                 connectToRedis(config);
             }
         }
 
         public void close() {
-            this.deliverer.interrupt();
+            this.queueRunner.close();
+            this.queueRunner.interrupt();
         }
 
         private void connectToRedis(Config config) {
@@ -276,12 +271,12 @@ public class DataRW {
 
         @Override
         public void run() {
-            // start deliverer
-            this.deliverer.start();
+            // start queue runner
+            this.queueRunner.start();
 
             try {
                 while (true) {
-                    Reply reply = toQueueRunner.take();
+                    Reply reply = toParser.take();
 
                     switch (reply.getReplyCase()) {
                         case INIT:
@@ -293,8 +288,9 @@ public class DataRW {
                                 pushToRedis(committed);
                             }
 
-                            // create delivery queue
-                            queue = new ConfQueue(committed, this.batching, this.optDelivery);
+                            // send to queue runner
+                            QueueRunnerMsg initMsg = new QueueRunnerMsg(committed);
+                            toQueueRunner.add(initMsg);
                             break;
 
                         case COMMIT:
@@ -313,26 +309,98 @@ public class DataRW {
                                 pushToRedis(dot, conf);
                             }
 
-                            RWMetrics.endMidExecution(dot);
-
-                            final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
-                            Map<Integer, List<Long>> missing = queue.add(dot, message, conf);
-                            Integer missingCount = 0;
-                            for(List<Long> s : missing.values()) {
-                                missingCount += s.size();
-                            }
-                            RWMetrics.MISSING_DEPS.update(missingCount);
-                            queueAddContext.stop();
-
-                            List<ConfQueueBox> toDeliver = queue.getToDeliver();
-                            if (!toDeliver.isEmpty()) {
-                                toDeliverer.put(toDeliver);
-                            }
-                            RWMetrics.QUEUE_ELEMENTS.update(queue.elements());
+                            // send to queue runner
+                            QueueRunnerMsg commitMsg = new QueueRunnerMsg(dot, message, conf);
+                            toQueueRunner.add(commitMsg);
                             break;
 
                         default:
                             throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
+                    }
+                }
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, e.toString(), e);
+            }
+        }
+    }
+
+    private class QueueRunnerMsg {
+        private final boolean isInit;
+        private Clock<ExceptionSet> committed;
+        private Dot dot;
+        private Message message;
+        private Clock<MaxInt> conf;
+
+        QueueRunnerMsg(Clock<ExceptionSet> committed) {
+            this.isInit = true;
+            this.committed = committed;
+        }
+
+        QueueRunnerMsg(Dot dot, Message message, Clock<MaxInt> conf) {
+            this.isInit = false;
+            this.dot = dot;
+            this.message = message;
+            this.conf = conf;
+        }
+    }
+
+
+    private class QueueRunner extends Thread {
+
+        private final Logger LOGGER = VCDLogger.init(QueueRunner.class);
+
+        private final LinkedBlockingQueue<QueueRunnerMsg> toQueueRunner;
+        private final LinkedBlockingQueue<List<ConfQueueBox>> toDeliverer;
+        private final Boolean batching;
+        private final Boolean optDelivery;
+        private final Deliverer deliverer;
+
+        private ConfQueue queue;
+
+        public QueueRunner(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<QueueRunnerMsg> toQueueRunner, Config config) {
+            this.batching = batching(config.getBatchWait());
+            this.optDelivery = config.getOptDelivery();
+            this.toQueueRunner = toQueueRunner;
+            this.toDeliverer = new LinkedBlockingQueue<>();
+            this.deliverer = new Deliverer(toClient, this.toDeliverer);
+        }
+
+        public void close() {
+            this.deliverer.interrupt();
+        }
+
+        @Override
+        public void run() {
+            // start deliverer
+            this.deliverer.start();
+
+            try {
+                while (true) {
+                    QueueRunnerMsg msg = toQueueRunner.take();
+
+                    if (msg.isInit) {
+                        // create delivery queue
+                        queue = new ConfQueue(msg.committed, this.batching, this.optDelivery);
+                        break;
+                    } else {
+                        // add to delivery queue
+                        RWMetrics.endMidExecution(msg.dot);
+
+                        final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
+                        Map<Integer, List<Long>> missing = queue.add(msg.dot, msg.message, msg.conf);
+                        Integer missingCount = 0;
+                        for (List<Long> s : missing.values()) {
+                            missingCount += s.size();
+                        }
+                        RWMetrics.MISSING_DEPS.update(missingCount);
+                        queueAddContext.stop();
+
+                        List<ConfQueueBox> toDeliver = queue.getToDeliver();
+                        if (!toDeliver.isEmpty()) {
+                            toDeliverer.put(toDeliver);
+                        }
+                        RWMetrics.QUEUE_ELEMENTS.update(queue.elements());
+                        break;
                     }
                 }
             } catch (InterruptedException | InvalidProtocolBufferException e) {
