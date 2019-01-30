@@ -3,16 +3,7 @@ package org.imdea.vcd.queue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -32,6 +23,8 @@ public class ConfQueue {
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
+    private final Clock<ExceptionSet> committed;
+    private final Clock<MaxInt> dependencies;
     private final Integer N;
     private final boolean BATCHING;
     private final boolean TRANSITIVE;
@@ -43,6 +36,8 @@ public class ConfQueue {
 
     public ConfQueue(Clock<ExceptionSet> committed, boolean batching, boolean optDelivery) {
         this.delivered = (Clock<ExceptionSet>) committed.clone();
+        this.committed = (Clock<ExceptionSet>) committed.clone();
+        this.dependencies = Clock.vclock(committed.size());
         this.N = this.delivered.size();
         this.BATCHING = batching;
         this.TRANSITIVE = isTransitive(batching);
@@ -59,16 +54,23 @@ public class ConfQueue {
         return vertexIndex.isEmpty();
     }
 
-    public void add(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
+    public Map<Integer, List<Long>> add(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
         // update indexes
         updateIndexes(dot, vertex);
 
+        // update committed and dependencies
+        committed.addDot(dot);
+        dependencies.merge(conf);
+        Map<Integer, List<Long>> missing = Clock.subtract(dependencies, committed);
+
         // try to find a SCC
         Dots visited = new Dots();
         Collection<ByteString> colors = findSCC(dot, vertex, visited);
         tryPending(colors);
+
+        return missing;
     }
 
     private void updateIndexes(Dot dot, Vertex vertex) {

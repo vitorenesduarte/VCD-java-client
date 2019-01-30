@@ -79,7 +79,7 @@ public class Clock<T extends IntSet> {
         return false;
     }
 
-    public Dots subtract(Clock<T> clock) {
+    public Dots subtract(Clock<T> clockB) {
         Dots dots = new Dots();
 
         for (Map.Entry<Integer, T> entry : this.map.entrySet()) {
@@ -88,7 +88,7 @@ public class Clock<T extends IntSet> {
 
             // subtract b from a
             T a = entry.getValue();
-            T b = clock.map.get(actor);
+            T b = clockB.map.get(actor);
             List<Long> seqs = a.subtract(b);
 
             // create dots from subtract result
@@ -99,6 +99,24 @@ public class Clock<T extends IntSet> {
         }
 
         return dots;
+    }
+
+    public static Map<Integer, List<Long>> subtract(Clock<MaxInt> clockA, Clock<ExceptionSet> clockB) {
+        Map<Integer, List<Long>> result = new HashMap<>();
+
+        for (Map.Entry<Integer, MaxInt> entry : clockA.map.entrySet()) {
+            // get actor
+            Integer actor = entry.getKey();
+
+            // subtract b from a
+            MaxInt a = entry.getValue();
+            ExceptionSet b = clockB.map.get(actor);
+            List<Long> seqs = a.subtract(b);
+
+            result.put(actor, seqs);
+        }
+
+        return result;
     }
 
     public boolean subtractIsBottom(Clock<T> clock) {

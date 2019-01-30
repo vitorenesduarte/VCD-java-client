@@ -22,6 +22,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
@@ -315,7 +316,12 @@ public class DataRW {
                             RWMetrics.endMidExecution(dot);
 
                             final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
-                            queue.add(dot, message, conf);
+                            Map<Integer, List<Long>> missing = queue.add(dot, message, conf);
+                            Integer missingCount = 0;
+                            for(List<Long> s : missing.values()) {
+                                missingCount += s.size();
+                            }
+                            RWMetrics.MISSING_DEPS.update(missingCount);
                             queueAddContext.stop();
 
                             List<ConfQueueBox> toDeliver = queue.getToDeliver();
