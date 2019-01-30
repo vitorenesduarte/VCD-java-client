@@ -122,6 +122,7 @@ public class DataRW {
 
         @Override
         public void run() {
+            LOGGER.log(Level.INFO, "Writer thread started...");
             try {
                 try {
                     while (true) {
@@ -151,7 +152,8 @@ public class DataRW {
         }
     }
 
-    // socket reader -> client | queue runner
+    // socket reader -> client | parser
+    // parser -> queue runner
     // queue runner -> deliverer
     // deliverer -> client
     private class SocketReader extends Thread {
@@ -181,6 +183,8 @@ public class DataRW {
         public void run() {
             // start parser
             this.parser.start();
+
+            LOGGER.log(Level.INFO, "SocketReader thread started...");
 
             try {
                 try {
@@ -273,6 +277,8 @@ public class DataRW {
         public void run() {
             // start queue runner
             this.queueRunner.start();
+
+            LOGGER.log(Level.INFO, "Parser thread started...");
 
             try {
                 while (true) {
@@ -374,6 +380,8 @@ public class DataRW {
             // start deliverer
             this.deliverer.start();
 
+            LOGGER.log(Level.INFO, "QueueRunner thread started...");
+
             try {
                 while (true) {
                     QueueRunnerMsg msg = toQueueRunner.take();
@@ -381,18 +389,18 @@ public class DataRW {
                     if (msg.isInit) {
                         // create delivery queue
                         queue = new ConfQueue(msg.committed, this.batching, this.optDelivery);
-                        break;
                     } else {
                         // add to delivery queue
                         RWMetrics.endMidExecution(msg.dot);
 
                         final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
-                        Map<Integer, List<Long>> missing = queue.add(msg.dot, msg.message, msg.conf);
-                        Integer missingCount = 0;
-                        for (List<Long> s : missing.values()) {
-                            missingCount += s.size();
-                        }
-                        RWMetrics.MISSING_DEPS.update(missingCount);
+                        queue.add(msg.dot, msg.message, msg.conf);
+//                        Map<Integer, List<Long>> missing = queue.add(msg.dot, msg.message, msg.conf);
+//                        Integer missingCount = 0;
+//                        for (List<Long> s : missing.values()) {
+//                            missingCount += s.size();
+//                        }
+//                        RWMetrics.MISSING_DEPS.update(missingCount);
                         queueAddContext.stop();
 
                         List<ConfQueueBox> toDeliver = queue.getToDeliver();
@@ -400,7 +408,6 @@ public class DataRW {
                             toDeliverer.put(toDeliver);
                         }
                         RWMetrics.QUEUE_ELEMENTS.update(queue.elements());
-                        break;
                     }
                 }
             } catch (InterruptedException | InvalidProtocolBufferException e) {
@@ -422,6 +429,7 @@ public class DataRW {
 
         @Override
         public void run() {
+            LOGGER.log(Level.INFO, "Deliverer thread started...");
             try {
                 while (true) {
                     List<ConfQueueBox> toDeliver = toDeliverer.take();
