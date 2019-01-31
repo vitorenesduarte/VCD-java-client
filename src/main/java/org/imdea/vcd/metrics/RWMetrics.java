@@ -24,7 +24,6 @@ public class RWMetrics {
     private static final Timer DURABLE = METRICS.timer(MetricRegistry.name("metrics", "DURABLE"));
     private static final Timer DELIVER = METRICS.timer(MetricRegistry.name("metrics", "DELIVER"));
 
-    public static final Histogram MISSING_DEPS = METRICS.histogram(MetricRegistry.name("metrics", "MissingDependencies"));
     public static final Histogram QUEUE_ELEMENTS = METRICS.histogram(MetricRegistry.name("metrics", "QueueElements"));
     public static final Histogram BATCH_SIZE = METRICS.histogram(MetricRegistry.name("metrics", "BatchSize"));
     public static final Histogram COMPONENTS_COUNT = METRICS.histogram(MetricRegistry.name("metrics", "ComponentsCount"));
