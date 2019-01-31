@@ -395,12 +395,6 @@ public class DataRW {
 
                         final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
                         queue.add(msg.dot, msg.message, msg.conf);
-//                        Map<Integer, List<Long>> missing = queue.add(msg.dot, msg.message, msg.conf);
-//                        Integer missingCount = 0;
-//                        for (List<Long> s : missing.values()) {
-//                            missingCount += s.size();
-//                        }
-//                        RWMetrics.MISSING_DEPS.update(missingCount);
                         queueAddContext.stop();
 
                         List<ConfQueueBox> toDeliver = queue.getToDeliver();
