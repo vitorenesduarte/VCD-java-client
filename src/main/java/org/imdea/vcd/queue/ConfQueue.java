@@ -2,16 +2,11 @@ package org.imdea.vcd.queue;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.imdea.vcd.pb.Proto.Message;
+import org.imdea.vcd.queue.clock.*;
+import org.imdea.vcd.util.Batch;
 
 import java.util.*;
-
-import org.imdea.vcd.pb.Proto.Message;
-import org.imdea.vcd.queue.clock.Clock;
-import org.imdea.vcd.queue.clock.Dot;
-import org.imdea.vcd.queue.clock.Dots;
-import org.imdea.vcd.queue.clock.ExceptionSet;
-import org.imdea.vcd.queue.clock.MaxInt;
-import org.imdea.vcd.util.Batch;
 
 /**
  * @author Vitor Enes
@@ -19,11 +14,11 @@ import org.imdea.vcd.util.Batch;
 public class ConfQueue {
 
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
-    private final HashMap<ByteString, HashSet<Vertex>> pendingIndex = new HashMap<>();
+    private final HashMap<Dot, Dots> childrenMap = new HashMap<>();
     private List<ConfQueueBox> toDeliver = new ArrayList<>();
 
     private final Clock<ExceptionSet> delivered;
-//    private final Clock<ExceptionSet> committed;
+    //    private final Clock<ExceptionSet> committed;
 //    private final Clock<MaxInt> dependencies;
     private final Integer N;
     private final boolean BATCHING;
@@ -66,59 +61,54 @@ public class ConfQueue {
 //        Map<Integer, List<Long>> missing = Clock.subtract(dependencies, committed);
 
         // try to find a SCC
-        Dots visited = new Dots();
-        Collection<ByteString> colors = findSCC(dot, vertex, visited);
-        tryPending(colors);
+        Dots shouldTry = new Dots();
+        findSCC(dot, vertex, shouldTry);
+        tryPending(shouldTry);
     }
 
     private void updateIndexes(Dot dot, Vertex vertex) {
         vertexIndex.put(dot, vertex);
 
-        for (ByteString color : vertex.colors) {
-            HashSet<Vertex> pending = pendingIndex.get(color);
-
-            if (pending == null) {
-                // if not found for this color, create it
-                pending = new HashSet<>();
-                pending.add(vertex);
-                pendingIndex.put(color, pending);
-            } else {
-                // otherwise, just update it
-                pending.add(vertex);
+        for (Dot parent : vertex.conf.frontier()) {
+            if (!delivered.contains(parent)) {
+                // only add me as a child if this
+                // hasn't been delivered yet
+                Dots children = childrenMap.get(parent);
+                if (children == null) {
+                    // if no children yet, create map entry
+                    children = new Dots(dot);
+                    childrenMap.put(parent, children);
+                } else {
+                    // otherwise just update it
+                    children.add(dot);
+                }
             }
         }
     }
 
-    private Collection<ByteString> findSCC(Dot dot, Vertex vertex, Dots visited) {
+    private void findSCC(Dot dot, Vertex vertex, Dots shouldTry) {
         TarjanSCCFinder finder = new TarjanSCCFinder();
         FinderResult res = finder.strongConnect(dot, vertex);
 
         // reset ids of stack
         for (Vertex s : finder.getStack()) {
             s.id = 0;
-            visited.add(s.dot);
         }
-
-        // create set of delivered colors
-        HashSet<ByteString> colors = new HashSet<>();
 
         // check if SCCs were found
         switch (res) {
             case FOUND:
                 List<Dots> sccs = finder.getSCCs();
                 for (Dots scc : sccs) {
-                    visited.addAll(scc);
-                    saveSCC(scc, colors);
+                    saveSCC(scc, shouldTry);
                 }
                 break;
             default:
                 break;
         }
-
-        return colors;
     }
 
-    private void saveSCC(Dots scc, HashSet<ByteString> colors) {
+    private void saveSCC(Dots scc, Dots shouldTry) {
         // update delivered
         delivered.addDots(scc);
 
@@ -126,11 +116,11 @@ public class ConfQueue {
         // - remove from index along the way
         Iterator<Dot> it = scc.iterator();
         Dot member = it.next();
-        ConfQueueBox merged = deleteMember(member, colors);
+        ConfQueueBox merged = deleteMember(member, shouldTry);
 
         while (it.hasNext()) {
             member = it.next();
-            ConfQueueBox box = deleteMember(member, colors);
+            ConfQueueBox box = deleteMember(member, shouldTry);
             merged.merge(box);
         }
 
@@ -138,36 +128,38 @@ public class ConfQueue {
         toDeliver.add(merged);
     }
 
-    private ConfQueueBox deleteMember(Dot member, HashSet<ByteString> colors) {
+    private ConfQueueBox deleteMember(Dot member, Dots shouldTry) {
         Vertex v = vertexIndex.remove(member);
-        // update set of delivered colors
-        colors.addAll(v.colors);
-        // update pending index
-        for (ByteString color : v.colors) {
-            pendingIndex.get(color).remove(v);
-        }
+
+        // remove parent from children map and add its children
+        // to the set of dots we should try
+        Dots children = childrenMap.remove(member);
+        shouldTry.merge(children);
+
         // return box
         return v.box;
     }
 
-    public void tryPending(Collection<ByteString> colors) {
-        Dots visited = new Dots();
-        if(OPT_DELIVERY) {
-            for (ByteString color : colors) {
-                HashSet<Vertex> pending = new HashSet<>(pendingIndex.get(color));
-                for (Vertex v : pending) {
-                    Dot d = v.dot;
-                    if (!visited.contains(d)) {
-                        findSCC(d, v, visited);
-                    }
+    public void tryPending(Dots shouldTry) {
+        if (shouldTry.isEmpty()) {
+            return;
+        }
+
+        Dots shouldTryNext = new Dots();
+
+        if (OPT_DELIVERY) {
+            for (Dot child : shouldTry) {
+                Vertex v = vertexIndex.get(child);
+                if (v != null) {
+                    findSCC(child, v, shouldTryNext);
                 }
             }
-        }
-        else {
-            for(Dot d : delivered.nextDots()) {
+            tryPending(shouldTryNext);
+        } else {
+            for (Dot d : delivered.nextDots()) {
                 Vertex v = vertexIndex.get(d);
-                if(v != null) {
-                    findSCC(d, v, visited);
+                if (v != null) {
+                    findSCC(d, v, shouldTryNext);
                 }
             }
         }

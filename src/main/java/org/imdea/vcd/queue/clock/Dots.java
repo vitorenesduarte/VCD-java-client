@@ -42,7 +42,9 @@ public class Dots implements Iterable<Dot> {
     }
 
     public void merge(Dots dots) {
-        this.set.addAll(dots.set);
+        if(dots != null) {
+            this.set.addAll(dots.set);
+        }
     }
 
     public boolean contains(Dot dot) {
