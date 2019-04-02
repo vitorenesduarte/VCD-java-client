@@ -73,6 +73,12 @@ public class MaxInt implements IntSet<MaxInt> {
         return result;
     }
 
+    public List<Long> subtract(ExceptionSet b) {
+        List<Long> result = this.subtract(b.toMaxInt());
+        result.removeAll(b.getExceptions());
+        return result;
+    }
+
     @Override
     public boolean subtractIsBottom(MaxInt b) {
         return b.seq >= this.seq;

@@ -1,5 +1,6 @@
 package org.imdea.vcd;
 
+import com.codahale.metrics.Timer;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.util.HashMap;
@@ -8,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.imdea.vcd.metrics.ClientMetrics;
+import org.imdea.vcd.metrics.RWMetrics;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import redis.clients.jedis.Jedis;
@@ -68,13 +72,14 @@ public class Client {
                             //   in another node
                             // - or on recovery?
                             if (perData != null) {
-                                Metrics.end(status, perData.getStartTime());
+                                ClientMetrics.end(status, perData.startTime);
+                                perData.durableContext.stop();
                             }
                             // keep waiting
                             break;
                         case DELIVERED:
                             // record chain size
-                            Metrics.chain(messages.size());
+                            ClientMetrics.chain(messages.size());
 
                             Iterator<Message> it = messages.iterator();
 
@@ -85,11 +90,13 @@ public class Client {
 
                                 // if it belongs to a client
                                 if (perData != null) {
-                                    int client = perData.getClient();
-                                    Long startTime = perData.getStartTime();
+                                    int client = perData.client;
+                                    Long startTime = perData.startTime;
 
                                     // record delivery time
-                                    Metrics.end(status, startTime);
+                                    ClientMetrics.end(status, startTime);
+                                    perData.deliverContext.stop();
+
                                     // increment number of ops of this client
                                     OPS_PER_CLIENT[client]++;
 
@@ -130,7 +137,7 @@ public class Client {
 
             // after all operations from all clients
             // show metrics
-            LOGGER.log(Level.INFO, Metrics.show());
+            LOGGER.log(Level.INFO, ClientMetrics.show());
 
             // and push them to redis
             redisPush();
@@ -150,7 +157,7 @@ public class Client {
     private static void sendOp(int client) throws IOException, InterruptedException {
         ByteString from = CLIENT_KEY[client];
         Message message = Generator.message(from, CONFIG);
-        PerData perData = new PerData(client, Metrics.start());
+        PerData perData = new PerData(client, ClientMetrics.start());
         MAP.put(from, perData);
         SOCKET.send(message);
     }
@@ -161,7 +168,7 @@ public class Client {
 
             if (redis != null) {
                 try (Jedis jedis = new Jedis(redis)) {
-                    Map<String, String> push = Metrics.serialize(CONFIG);
+                    Map<String, String> push = ClientMetrics.serialize(CONFIG);
                     for (String key : push.keySet()) {
                         jedis.sadd(key, push.get(key));
                     }
@@ -178,18 +185,15 @@ public class Client {
 
         private final int client;
         private final Long startTime;
+        private final Timer.Context durableContext;
+        private final Timer.Context deliverContext;
 
         public PerData(int client, Long startTime) {
             this.client = client;
             this.startTime = startTime;
+            this.durableContext = RWMetrics.createDurableContext();
+            this.deliverContext = RWMetrics.createDeliverContext();
         }
 
-        public int getClient() {
-            return client;
-        }
-
-        public long getStartTime() {
-            return startTime;
-        }
     }
 }
