@@ -34,16 +34,13 @@ public class ClientMetrics {
             case DELIVERED:
                 DELIVERED_AVG.add(time);
                 DELIVERED_TIMES.append(time).append("\n");
+                CHAINS.append(time()).append("-1").append("\n");
                 break;
         }
     }
 
     public static void chain(Integer size) {
         CHAINS_AVG.add(size.longValue());
-        CHAINS.append(time())
-                .append("-")
-                .append(size)
-                .append("\n");
     }
 
     public static String show() {
