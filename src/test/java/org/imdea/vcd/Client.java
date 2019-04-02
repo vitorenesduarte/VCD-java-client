@@ -38,6 +38,7 @@ public class Client {
             CONFIG = Config.parseArgs(args);
             LOGGER.log(Level.INFO, "Optimized delivery is {0}", CONFIG.getOptDelivery() ? "enabled" : "disabled");
             LOGGER.log(Level.INFO, "Payload size is {0}", CONFIG.getPayloadSize());
+            LOGGER.log(Level.INFO, "Conflict rate is {0}", CONFIG.getConflicts());
             SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
             MAP = new HashMap<>();
             OPS_PER_CLIENT = new int[CONFIG.getClients()];
@@ -155,10 +156,14 @@ public class Client {
     }
 
     private static void sendOp(int client) throws IOException, InterruptedException {
+        // create client data
         ByteString from = CLIENT_KEY[client];
-        Message message = Generator.message(from, CONFIG);
         PerData perData = new PerData(client, ClientMetrics.start());
         MAP.put(from, perData);
+
+        // generate message
+        boolean blackColor = CONFIG.getConflicts() == 142 && client <= CONFIG.getClients() / 2;
+        Message message = Generator.message(from, blackColor, CONFIG);
         SOCKET.send(message);
     }
 

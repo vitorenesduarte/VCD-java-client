@@ -23,6 +23,9 @@ public class Config {
     @Parameter(names = "-clients")
     private Integer clients = 1;
 
+    // if the conflict rate is 142, two classes of clients are created:
+    // - one issues non-conflicting commands
+    // - the other issues conflicting commands
     @Parameter(names = "-conflicts")
     private Integer conflicts = 100;
 
