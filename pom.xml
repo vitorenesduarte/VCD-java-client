@@ -97,6 +97,7 @@
                     <archive>
                         <manifest>
                             <mainClass>org.imdea.vcd.Client</mainClass>
+                            <!-- <mainClass>org.imdea.vcd.OpenLoopClient</mainClass> -->
                         </manifest>
                     </archive>
                     <descriptorRefs>

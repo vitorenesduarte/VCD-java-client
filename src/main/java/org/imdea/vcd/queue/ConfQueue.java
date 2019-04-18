@@ -4,6 +4,8 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.*;
+import java.util.logging.Logger;
+import org.imdea.vcd.VCDLogger;
 
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -17,6 +19,8 @@ import org.imdea.vcd.util.Batch;
  * @author Vitor Enes
  */
 public class ConfQueue {
+
+    private static final Logger LOGGER = VCDLogger.init(ConfQueue.class);
 
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
     private final HashMap<ByteString, HashSet<Vertex>> pendingIndex = new HashMap<>();
@@ -51,6 +55,8 @@ public class ConfQueue {
     }
 
     public void add(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
+        //LOGGER.log(Level.INFO, "add {0} {1}", new Object[]{dot, conf});
+
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
         // update indexes
@@ -131,6 +137,8 @@ public class ConfQueue {
 
     private ConfQueueBox deleteMember(Dot member, HashSet<ByteString> colors) {
         Vertex v = vertexIndex.remove(member);
+        //LOGGER.log(Level.INFO, "rmv {0} {1}", new Object[]{v.dot, v.conf});
+
         // update set of delivered colors
         colors.addAll(v.colors);
         // update pending index
@@ -143,7 +151,7 @@ public class ConfQueue {
 
     public void tryPending(Collection<ByteString> colors) {
         Dots visited = new Dots();
-        if(OPT_DELIVERY) {
+        if (OPT_DELIVERY) {
             for (ByteString color : colors) {
                 HashSet<Vertex> pending = new HashSet<>(pendingIndex.get(color));
                 for (Vertex v : pending) {
@@ -153,11 +161,10 @@ public class ConfQueue {
                     }
                 }
             }
-        }
-        else {
-            for(Dot d : delivered.nextDots()) {
+        } else {
+            for (Dot d : delivered.nextDots()) {
                 Vertex v = vertexIndex.get(d);
-                if(v != null) {
+                if (v != null) {
                     findSCC(d, v, visited);
                 }
             }
@@ -304,7 +311,7 @@ public class ConfQueue {
             if (Objects.equals(v.id, v.low)) {
                 Dots scc = new Dots();
 
-                for (Vertex s = stack.pop(); ; s = stack.pop()) {
+                for (Vertex s = stack.pop();; s = stack.pop()) {
                     // remove from stack
                     s.onStack = false;
 

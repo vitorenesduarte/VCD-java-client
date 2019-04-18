@@ -23,7 +23,6 @@ import redis.clients.jedis.Jedis;
 public class Client {
 
     private static final Logger LOGGER = VCDLogger.init(Client.class);
-
     private static final int CONNECT_RETRIES = 100;
 
     private static Config CONFIG;
@@ -155,15 +154,16 @@ public class Client {
         }
     }
 
-    private static void sendOp(int client) throws IOException, InterruptedException {
-        // create client data
+    private static void sendOp(Integer client) throws IOException, InterruptedException {
+        // generate message
         ByteString from = CLIENT_KEY[client];
+        Message message = Generator.message(client, from, from, ByteString.copyFrom(client.toString().getBytes()), CONFIG);
+
+        // store info
         PerData perData = new PerData(client, ClientMetrics.start());
         MAP.put(from, perData);
 
-        // generate message
-        boolean blackColor = CONFIG.getConflicts() == 142 && client <= CONFIG.getClients() / 2;
-        Message message = Generator.message(from, blackColor, CONFIG);
+        // send op
         SOCKET.send(message);
     }
 

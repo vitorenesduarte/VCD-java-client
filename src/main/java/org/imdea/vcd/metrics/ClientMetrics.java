@@ -34,7 +34,7 @@ public class ClientMetrics {
             case DELIVERED:
                 DELIVERED_AVG.add(time);
                 DELIVERED_TIMES.append(time).append("\n");
-                CHAINS.append(time()).append("-1").append("\n");
+                CHAINS.append(time()).append("-").append("1").append("\n");
                 break;
         }
     }

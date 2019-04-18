@@ -40,13 +40,17 @@ public class Generator {
     }
 
     // this is the method used by the client
-    public static Message message(ByteString from, boolean blackColor, Config config) {
-        return message(from, from, blackColor, config.getConflicts(), randomByteString(config.getPayloadSize()));
+    public static Message message(Integer client, ByteString from, Config config) {
+        return message(client, from, from, config);
     }
 
-    public static Message message(ByteString key, ByteString from, boolean blackColor, Integer conflicts, ByteString data) {
+    public static Message message(Integer client, ByteString key, ByteString from, Config config) {
+        return message(client, from, from, randomByteString(config.getPayloadSize()), config);
+    }
+
+    public static Message message(Integer client, ByteString key, ByteString from, ByteString data, Config config) {
         Message m = Message.newBuilder()
-                .addHashes(hash(key, blackColor, conflicts))
+                .addHashes(hash(client, key, config))
                 .setData(data)
                 .setPure(false)
                 .setFrom(from)
@@ -133,12 +137,23 @@ public class Generator {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteString hash(ByteString key, boolean blackColor, Integer conflicts) {
-        if (blackColor || RANDOM().nextInt(100) < conflicts) {
-            return BLACK;
+    private static ByteString hash(Integer client, ByteString key, Config config) {
+        Integer conflicts = config.getConflicts();
+
+        if (conflicts == 142) {
+            // two classes of clients
+            if ((client + 1) % 2 == 0) {
+                return BLACK;
+            } else {
+                return key;
+            }
         } else {
-            // try to avoid conflicts with client random key
-            return key;
+            if (RANDOM().nextInt(100) < conflicts) {
+                return BLACK;
+            } else {
+                // try to avoid conflicts with client random key
+                return key;
+            }
         }
     }
 
