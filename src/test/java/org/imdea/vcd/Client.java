@@ -157,7 +157,7 @@ public class Client {
     private static void sendOp(Integer client) throws IOException, InterruptedException {
         // generate message
         ByteString from = CLIENT_KEY[client];
-        Message message = Generator.message(client, from, from, ByteString.copyFrom(client.toString().getBytes()), CONFIG);
+        Message message = Generator.message(client, from, from, CONFIG);
 
         // store info
         PerData perData = new PerData(client, ClientMetrics.start());

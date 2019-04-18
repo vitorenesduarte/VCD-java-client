@@ -193,7 +193,7 @@ public class OpenLoopClient {
         private void sendOp(Integer client, ByteString data) throws IOException, InterruptedException {
             // generate message
             ByteString from = this.clientsKey[client];
-            Message message = Generator.message(client, from, from, ByteString.copyFrom(client.toString().getBytes()), this.config);
+            Message message = Generator.message(client, from, from, data, this.config);
 
             // store info
             PerData perData = new PerData(client, ClientMetrics.start());
