@@ -39,11 +39,7 @@ public class Generator {
         return m;
     }
 
-    // this is the method used by the client
-    public static Message message(Integer client, ByteString from, Config config) {
-        return message(client, from, from, config);
-    }
-
+    // the following two methods are the ones used by the clients
     public static Message message(Integer client, ByteString key, ByteString from, Config config) {
         return message(client, from, from, randomByteString(config.getPayloadSize()), config);
     }
