@@ -190,10 +190,16 @@ public class OpenLoopClient {
             this.sendOp(client, data);
         }
 
-        private void sendOp(int client, ByteString data) throws IOException, InterruptedException {
-            Message message = Generator.message(this.clientsKey[client], this.clientsKey[client], this.config.getConflicts(), data);
+        private void sendOp(Integer client, ByteString data) throws IOException, InterruptedException {
+            // generate message
+            ByteString from = this.clientsKey[client];
+            Message message = Generator.message(client, from, from, data, this.config);
+
+            // store info
             PerData perData = new PerData(client, ClientMetrics.start());
             this.opToData.put(data, perData);
+
+            // send op
             this.socket.send(message);
         }
 

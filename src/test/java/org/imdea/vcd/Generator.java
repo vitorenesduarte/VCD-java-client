@@ -39,13 +39,14 @@ public class Generator {
         return m;
     }
 
-    public static Message message(ByteString key, Config config) {
-        return message(key, key, config.getConflicts(), randomByteString(config.getPayloadSize()));
+    // the following two methods are the ones used by the clients
+    public static Message message(Integer client, ByteString key, ByteString from, Config config) {
+        return message(client, from, from, randomByteString(config.getPayloadSize()), config);
     }
 
-    public static Message message(ByteString key, ByteString from, Integer conflicts, ByteString data) {
+    public static Message message(Integer client, ByteString key, ByteString from, ByteString data, Config config) {
         Message m = Message.newBuilder()
-                .addHashes(hash(key, conflicts))
+                .addHashes(hash(client, key, config))
                 .setData(data)
                 .setPure(false)
                 .setFrom(from)
@@ -132,12 +133,23 @@ public class Generator {
         return ThreadLocalRandom.current();
     }
 
-    private static ByteString hash(ByteString key, Integer conflicts) {
-        if (RANDOM().nextInt(100) < conflicts) {
-            return BLACK;
+    private static ByteString hash(Integer client, ByteString key, Config config) {
+        Integer conflicts = config.getConflicts();
+
+        if (conflicts == 142) {
+            // two classes of clients
+            if ((client + 1) % 2 == 0) {
+                return BLACK;
+            } else {
+                return key;
+            }
         } else {
-            // try to avoid conflicts with client random key
-            return key;
+            if (RANDOM().nextInt(100) < conflicts) {
+                return BLACK;
+            } else {
+                // try to avoid conflicts with client random key
+                return key;
+            }
         }
     }
 

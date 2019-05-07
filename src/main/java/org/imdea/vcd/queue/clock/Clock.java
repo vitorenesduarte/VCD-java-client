@@ -186,12 +186,12 @@ public class Clock<T extends IntSet> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("(");
+        sb.append("[");
         for (T t : this.map.values()) {
             sb.append(t).append(",");
         }
         sb.deleteCharAt(sb.length() - 1);
-        sb.append(")");
+        sb.append("]");
         return sb.toString();
     }
 
