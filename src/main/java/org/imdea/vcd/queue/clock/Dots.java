@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -20,6 +21,10 @@ public class Dots implements Iterable<Dot> {
 
     public Dots(Dot dot) {
         this.set = new HashSet<>(Arrays.asList(dot));
+    }
+
+    public Dots(Set<Dot> dots) {
+        this.set = new HashSet<>(dots);
     }
 
     public Dots(Dots dots) {

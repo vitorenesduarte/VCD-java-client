@@ -13,7 +13,6 @@ import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
-import org.imdea.vcd.util.Batch;
 
 /**
  * @author Vitor Enes
@@ -201,13 +200,7 @@ public class ConfQueue {
             this.dot = dot;
             this.conf = conf;
             this.colors = new HashSet<>(message.getHashesList());
-            List<Message> messages;
-            if (BATCHING) {
-                messages = Batch.unpack(message);
-            } else {
-                messages = Collections.singletonList(message);
-            }
-            this.box = new ConfQueueBox(dot, messages);
+            this.box = new ConfQueueBox(dot, message);
             this.onStack = false;
         }
 

@@ -2,7 +2,6 @@ package org.imdea.vcd;
 
 import com.google.protobuf.ByteString;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -259,12 +258,14 @@ public class OpenLoopClient {
                         ByteString data;
                         PerData perData;
                         switch (status) {
-                            case DURABLE:
-                                data = messages.get(0).getData();
-                                perData = this.opToData.get(data);
-                                // record commit time, if perData exists
-                                if (perData != null) {
-                                    ClientMetrics.end(status, perData.getStartTime());
+                            case COMMIT:
+                                for (Message message : messages) {
+                                    data = message.getData();
+                                    perData = this.opToData.get(data);
+                                    // record commit time, if perData exists
+                                    if (perData != null) {
+                                        ClientMetrics.end(status, perData.getStartTime());
+                                    }
                                 }
                                 // keep waiting
                                 break;
@@ -272,11 +273,9 @@ public class OpenLoopClient {
                                 // record chain size
                                 ClientMetrics.chain(messages.size());
 
-                                Iterator<Message> it = messages.iterator();
-
                                 // try to find operations from clients
-                                while (it.hasNext()) {
-                                    data = it.next().getData();
+                                for (Message message : messages) {
+                                    data = message.getData();
                                     perData = this.opToData.remove(data);
 
                                     // if it belongs to a client

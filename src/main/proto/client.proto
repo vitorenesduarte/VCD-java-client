@@ -18,9 +18,8 @@ message Message {
 message MessageSet {
   repeated Message messages = 1;
   enum Status {
-    START = 0;
-    DURABLE = 1;
-    DELIVERED = 2;
+    COMMIT = 0;
+    DELIVERED = 1;
   }
   Status status = 2;
 }
@@ -52,9 +51,6 @@ message Reply {
   oneof reply {
     // initialize queue with dots of committed messages
     Init init = 1;
-
-    // durable notification
-    MessageSet set = 2;
 
     // commit notification
     Commit commit = 3;

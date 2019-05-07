@@ -1643,32 +1643,24 @@ public final class Proto {
     public enum Status
         implements com.google.protobuf.ProtocolMessageEnum {
       /**
-       * <code>START = 0;</code>
+       * <code>COMMIT = 0;</code>
        */
-      START(0),
+      COMMIT(0),
       /**
-       * <code>DURABLE = 1;</code>
+       * <code>DELIVERED = 1;</code>
        */
-      DURABLE(1),
-      /**
-       * <code>DELIVERED = 2;</code>
-       */
-      DELIVERED(2),
+      DELIVERED(1),
       UNRECOGNIZED(-1),
       ;
 
       /**
-       * <code>START = 0;</code>
+       * <code>COMMIT = 0;</code>
        */
-      public static final int START_VALUE = 0;
+      public static final int COMMIT_VALUE = 0;
       /**
-       * <code>DURABLE = 1;</code>
+       * <code>DELIVERED = 1;</code>
        */
-      public static final int DURABLE_VALUE = 1;
-      /**
-       * <code>DELIVERED = 2;</code>
-       */
-      public static final int DELIVERED_VALUE = 2;
+      public static final int DELIVERED_VALUE = 1;
 
 
       public final int getNumber() {
@@ -1689,9 +1681,8 @@ public final class Proto {
 
       public static Status forNumber(int value) {
         switch (value) {
-          case 0: return START;
-          case 1: return DURABLE;
-          case 2: return DELIVERED;
+          case 0: return COMMIT;
+          case 1: return DELIVERED;
           default: return null;
         }
       }
@@ -1811,7 +1802,7 @@ public final class Proto {
       for (int i = 0; i < messages_.size(); i++) {
         output.writeMessage(1, messages_.get(i));
       }
-      if (status_ != org.imdea.vcd.pb.Proto.MessageSet.Status.START.getNumber()) {
+      if (status_ != org.imdea.vcd.pb.Proto.MessageSet.Status.COMMIT.getNumber()) {
         output.writeEnum(2, status_);
       }
       unknownFields.writeTo(output);
@@ -1826,7 +1817,7 @@ public final class Proto {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, messages_.get(i));
       }
-      if (status_ != org.imdea.vcd.pb.Proto.MessageSet.Status.START.getNumber()) {
+      if (status_ != org.imdea.vcd.pb.Proto.MessageSet.Status.COMMIT.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(2, status_);
       }
@@ -5649,31 +5640,6 @@ public final class Proto {
 
     /**
      * <pre>
-     * durable notification
-     * </pre>
-     *
-     * <code>.MessageSet set = 2;</code>
-     */
-    boolean hasSet();
-    /**
-     * <pre>
-     * durable notification
-     * </pre>
-     *
-     * <code>.MessageSet set = 2;</code>
-     */
-    org.imdea.vcd.pb.Proto.MessageSet getSet();
-    /**
-     * <pre>
-     * durable notification
-     * </pre>
-     *
-     * <code>.MessageSet set = 2;</code>
-     */
-    org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder();
-
-    /**
-     * <pre>
      * commit notification
      * </pre>
      *
@@ -5756,20 +5722,6 @@ public final class Proto {
               replyCase_ = 1;
               break;
             }
-            case 18: {
-              org.imdea.vcd.pb.Proto.MessageSet.Builder subBuilder = null;
-              if (replyCase_ == 2) {
-                subBuilder = ((org.imdea.vcd.pb.Proto.MessageSet) reply_).toBuilder();
-              }
-              reply_ =
-                  input.readMessage(org.imdea.vcd.pb.Proto.MessageSet.parser(), extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom((org.imdea.vcd.pb.Proto.MessageSet) reply_);
-                reply_ = subBuilder.buildPartial();
-              }
-              replyCase_ = 2;
-              break;
-            }
             case 26: {
               org.imdea.vcd.pb.Proto.Commit.Builder subBuilder = null;
               if (replyCase_ == 3) {
@@ -5813,7 +5765,6 @@ public final class Proto {
     public enum ReplyCase
         implements com.google.protobuf.Internal.EnumLite {
       INIT(1),
-      SET(2),
       COMMIT(3),
       REPLY_NOT_SET(0);
       private final int value;
@@ -5831,7 +5782,6 @@ public final class Proto {
       public static ReplyCase forNumber(int value) {
         switch (value) {
           case 1: return INIT;
-          case 2: return SET;
           case 3: return COMMIT;
           case 0: return REPLY_NOT_SET;
           default: return null;
@@ -5884,44 +5834,6 @@ public final class Proto {
          return (org.imdea.vcd.pb.Proto.Init) reply_;
       }
       return org.imdea.vcd.pb.Proto.Init.getDefaultInstance();
-    }
-
-    public static final int SET_FIELD_NUMBER = 2;
-    /**
-     * <pre>
-     * durable notification
-     * </pre>
-     *
-     * <code>.MessageSet set = 2;</code>
-     */
-    public boolean hasSet() {
-      return replyCase_ == 2;
-    }
-    /**
-     * <pre>
-     * durable notification
-     * </pre>
-     *
-     * <code>.MessageSet set = 2;</code>
-     */
-    public org.imdea.vcd.pb.Proto.MessageSet getSet() {
-      if (replyCase_ == 2) {
-         return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
-      }
-      return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
-    }
-    /**
-     * <pre>
-     * durable notification
-     * </pre>
-     *
-     * <code>.MessageSet set = 2;</code>
-     */
-    public org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder() {
-      if (replyCase_ == 2) {
-         return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
-      }
-      return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
     }
 
     public static final int COMMIT_FIELD_NUMBER = 3;
@@ -5977,9 +5889,6 @@ public final class Proto {
       if (replyCase_ == 1) {
         output.writeMessage(1, (org.imdea.vcd.pb.Proto.Init) reply_);
       }
-      if (replyCase_ == 2) {
-        output.writeMessage(2, (org.imdea.vcd.pb.Proto.MessageSet) reply_);
-      }
       if (replyCase_ == 3) {
         output.writeMessage(3, (org.imdea.vcd.pb.Proto.Commit) reply_);
       }
@@ -5994,10 +5903,6 @@ public final class Proto {
       if (replyCase_ == 1) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, (org.imdea.vcd.pb.Proto.Init) reply_);
-      }
-      if (replyCase_ == 2) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, (org.imdea.vcd.pb.Proto.MessageSet) reply_);
       }
       if (replyCase_ == 3) {
         size += com.google.protobuf.CodedOutputStream
@@ -6027,10 +5932,6 @@ public final class Proto {
           result = result && getInit()
               .equals(other.getInit());
           break;
-        case 2:
-          result = result && getSet()
-              .equals(other.getSet());
-          break;
         case 3:
           result = result && getCommit()
               .equals(other.getCommit());
@@ -6053,10 +5954,6 @@ public final class Proto {
         case 1:
           hash = (37 * hash) + INIT_FIELD_NUMBER;
           hash = (53 * hash) + getInit().hashCode();
-          break;
-        case 2:
-          hash = (37 * hash) + SET_FIELD_NUMBER;
-          hash = (53 * hash) + getSet().hashCode();
           break;
         case 3:
           hash = (37 * hash) + COMMIT_FIELD_NUMBER;
@@ -6225,13 +6122,6 @@ public final class Proto {
             result.reply_ = initBuilder_.build();
           }
         }
-        if (replyCase_ == 2) {
-          if (setBuilder_ == null) {
-            result.reply_ = reply_;
-          } else {
-            result.reply_ = setBuilder_.build();
-          }
-        }
         if (replyCase_ == 3) {
           if (commitBuilder_ == null) {
             result.reply_ = reply_;
@@ -6284,10 +6174,6 @@ public final class Proto {
         switch (other.getReplyCase()) {
           case INIT: {
             mergeInit(other.getInit());
-            break;
-          }
-          case SET: {
-            mergeSet(other.getSet());
             break;
           }
           case COMMIT: {
@@ -6510,178 +6396,6 @@ public final class Proto {
         replyCase_ = 1;
         onChanged();;
         return initBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilderV3<
-          org.imdea.vcd.pb.Proto.MessageSet, org.imdea.vcd.pb.Proto.MessageSet.Builder, org.imdea.vcd.pb.Proto.MessageSetOrBuilder> setBuilder_;
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public boolean hasSet() {
-        return replyCase_ == 2;
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public org.imdea.vcd.pb.Proto.MessageSet getSet() {
-        if (setBuilder_ == null) {
-          if (replyCase_ == 2) {
-            return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
-          }
-          return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
-        } else {
-          if (replyCase_ == 2) {
-            return setBuilder_.getMessage();
-          }
-          return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
-        }
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public Builder setSet(org.imdea.vcd.pb.Proto.MessageSet value) {
-        if (setBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          reply_ = value;
-          onChanged();
-        } else {
-          setBuilder_.setMessage(value);
-        }
-        replyCase_ = 2;
-        return this;
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public Builder setSet(
-          org.imdea.vcd.pb.Proto.MessageSet.Builder builderForValue) {
-        if (setBuilder_ == null) {
-          reply_ = builderForValue.build();
-          onChanged();
-        } else {
-          setBuilder_.setMessage(builderForValue.build());
-        }
-        replyCase_ = 2;
-        return this;
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public Builder mergeSet(org.imdea.vcd.pb.Proto.MessageSet value) {
-        if (setBuilder_ == null) {
-          if (replyCase_ == 2 &&
-              reply_ != org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance()) {
-            reply_ = org.imdea.vcd.pb.Proto.MessageSet.newBuilder((org.imdea.vcd.pb.Proto.MessageSet) reply_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            reply_ = value;
-          }
-          onChanged();
-        } else {
-          if (replyCase_ == 2) {
-            setBuilder_.mergeFrom(value);
-          }
-          setBuilder_.setMessage(value);
-        }
-        replyCase_ = 2;
-        return this;
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public Builder clearSet() {
-        if (setBuilder_ == null) {
-          if (replyCase_ == 2) {
-            replyCase_ = 0;
-            reply_ = null;
-            onChanged();
-          }
-        } else {
-          if (replyCase_ == 2) {
-            replyCase_ = 0;
-            reply_ = null;
-          }
-          setBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public org.imdea.vcd.pb.Proto.MessageSet.Builder getSetBuilder() {
-        return getSetFieldBuilder().getBuilder();
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      public org.imdea.vcd.pb.Proto.MessageSetOrBuilder getSetOrBuilder() {
-        if ((replyCase_ == 2) && (setBuilder_ != null)) {
-          return setBuilder_.getMessageOrBuilder();
-        } else {
-          if (replyCase_ == 2) {
-            return (org.imdea.vcd.pb.Proto.MessageSet) reply_;
-          }
-          return org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
-        }
-      }
-      /**
-       * <pre>
-       * durable notification
-       * </pre>
-       *
-       * <code>.MessageSet set = 2;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilderV3<
-          org.imdea.vcd.pb.Proto.MessageSet, org.imdea.vcd.pb.Proto.MessageSet.Builder, org.imdea.vcd.pb.Proto.MessageSetOrBuilder> 
-          getSetFieldBuilder() {
-        if (setBuilder_ == null) {
-          if (!(replyCase_ == 2)) {
-            reply_ = org.imdea.vcd.pb.Proto.MessageSet.getDefaultInstance();
-          }
-          setBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              org.imdea.vcd.pb.Proto.MessageSet, org.imdea.vcd.pb.Proto.MessageSet.Builder, org.imdea.vcd.pb.Proto.MessageSetOrBuilder>(
-                  (org.imdea.vcd.pb.Proto.MessageSet) reply_,
-                  getParentForChildren(),
-                  isClean());
-          reply_ = null;
-        }
-        replyCase_ = 2;
-        onChanged();;
-        return setBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilderV3<
@@ -6973,21 +6687,20 @@ public final class Proto {
       "\016CommittedEntry\022\013\n\003key\030\001 \001(\005\022\034\n\005value\030\002 " +
       "\001(\0132\r.ExceptionSet:\0028\001\"C\n\007Message\022\016\n\006has" +
       "hes\030\001 \003(\014\022\014\n\004data\030\002 \001(\014\022\014\n\004pure\030\003 \001(\010\022\014\n" +
-      "\004from\030\004 \001(\014\"}\n\nMessageSet\022\032\n\010messages\030\001 " +
+      "\004from\030\004 \001(\014\"q\n\nMessageSet\022\032\n\010messages\030\001 " +
       "\003(\0132\010.Message\022\"\n\006status\030\002 \001(\0162\022.MessageS" +
-      "et.Status\"/\n\006Status\022\t\n\005START\020\000\022\013\n\007DURABL" +
-      "E\020\001\022\r\n\tDELIVERED\020\002\"0\n\010NodeSpec\022\n\n\002id\030\001 \001" +
-      "(\005\022\n\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n\002i",
-      "d\030\001 \001(\005\022\013\n\003seq\030\002 \001(\003\"\'\n\014ExceptionSet\022\013\n\003" +
-      "seq\030\001 \001(\003\022\n\n\002ex\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003dot\030" +
-      "\001 \001(\0132\004.Dot\022\031\n\007message\030\002 \001(\0132\010.Message\022\035" +
-      "\n\003dep\030\003 \003(\0132\020.Commit.DepEntry\022\037\n\004conf\030\004 " +
-      "\003(\0132\021.Commit.ConfEntry\0329\n\010DepEntry\022\013\n\003ke" +
-      "y\030\001 \001(\005\022\034\n\005value\030\002 \001(\0132\r.ExceptionSet:\0028" +
-      "\001\032+\n\tConfEntry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001" +
-      "(\003:\0028\001\"^\n\005Reply\022\025\n\004init\030\001 \001(\0132\005.InitH\000\022\032" +
-      "\n\003set\030\002 \001(\0132\013.MessageSetH\000\022\031\n\006commit\030\003 \001" +
-      "(\0132\007.CommitH\000B\007\n\005replyB\031\n\020org.imdea.vcd.",
+      "et.Status\"#\n\006Status\022\n\n\006COMMIT\020\000\022\r\n\tDELIV" +
+      "ERED\020\001\"0\n\010NodeSpec\022\n\n\002id\030\001 \001(\005\022\n\n\002ip\030\002 \001" +
+      "(\t\022\014\n\004port\030\003 \001(\005\"\036\n\003Dot\022\n\n\002id\030\001 \001(\005\022\013\n\003s",
+      "eq\030\002 \001(\003\"\'\n\014ExceptionSet\022\013\n\003seq\030\001 \001(\003\022\n\n" +
+      "\002ex\030\002 \003(\003\"\336\001\n\006Commit\022\021\n\003dot\030\001 \001(\0132\004.Dot\022" +
+      "\031\n\007message\030\002 \001(\0132\010.Message\022\035\n\003dep\030\003 \003(\0132" +
+      "\020.Commit.DepEntry\022\037\n\004conf\030\004 \003(\0132\021.Commit" +
+      ".ConfEntry\0329\n\010DepEntry\022\013\n\003key\030\001 \001(\005\022\034\n\005v" +
+      "alue\030\002 \001(\0132\r.ExceptionSet:\0028\001\032+\n\tConfEnt" +
+      "ry\022\013\n\003key\030\001 \001(\005\022\r\n\005value\030\002 \001(\003:\0028\001\"B\n\005Re" +
+      "ply\022\025\n\004init\030\001 \001(\0132\005.InitH\000\022\031\n\006commit\030\003 \001" +
+      "(\0132\007.CommitH\000B\007\n\005replyB\031\n\020org.imdea.vcd." +
       "pbB\005Protob\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
@@ -7067,7 +6780,7 @@ public final class Proto {
     internal_static_Reply_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Reply_descriptor,
-        new java.lang.String[] { "Init", "Set", "Commit", "Reply", });
+        new java.lang.String[] { "Init", "Commit", "Reply", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

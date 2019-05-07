@@ -21,6 +21,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,7 +32,6 @@ import java.util.logging.Logger;
  * @author Vitor Enes
  */
 public class DataRW {
-
 
     private final DataInputStream in;
     private final DataOutputStream out;
@@ -86,16 +86,12 @@ public class DataRW {
         if (this.batching) {
             toWriter.put(message);
         } else {
-            MessageSet ms = MessageSet.newBuilder()
-                    .addMessages(message)
-                    .setStatus(MessageSet.Status.START)
-                    .build();
-            doWrite(ms, this.out);
+            doWrite(Batch.pack(Arrays.asList(message)), this.out);
         }
     }
 
-    private void doWrite(MessageSet messageSet, DataOutputStream o) throws IOException {
-        byte[] data = messageSet.toByteArray();
+    private void doWrite(Message message, DataOutputStream o) throws IOException {
+        byte[] data = message.toByteArray();
         o.writeInt(data.length);
         o.write(data, 0, data.length);
         o.flush();
@@ -137,9 +133,7 @@ public class DataRW {
                         // batch size metrics
                         RWMetrics.BATCH_SIZE.update(ops.size());
 
-                        for (MessageSet messageSet : Batch.pack(ops)) {
-                            doWrite(messageSet, this.out);
-                        }
+                        doWrite(Batch.pack(ops), this.out);
                     }
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -193,28 +187,14 @@ public class DataRW {
                         in.readFully(data, 0, length);
                         Reply reply = Reply.parseFrom(data);
 
-                        // if durable notification, send it to client
-                        // otherwise to dep queue thread
-                        switch (reply.getReplyCase()) {
-                            case SET:
-                                MessageSet durable = reply.getSet();
-                                if (durable.getMessagesCount() != 1 || durable.getStatus() != MessageSet.Status.DURABLE) {
-                                    LOGGER.log(Level.INFO, "Invalid durable notification");
-                                }
-
-                                if (this.batching) {
-                                    toClient.put(Optional.of(Batch.unpack(durable)));
-                                } else {
-                                    toClient.put(Optional.of(durable));
-                                }
-                                break;
-                            default:
-                                if (reply.hasCommit()) {
-                                    RWMetrics.startExecution(Dot.dot(reply.getCommit().getDot()));
-                                }
-                                toParser.put(reply);
-                                break;
+                        // if commit, send notification to client
+                        // and forward it to dep queue thread
+                        if (reply.hasCommit()) {
+                            Commit commit = reply.getCommit();
+                            RWMetrics.startExecution(Dot.dot(commit.getDot()));
+                            toClient.put(Optional.of(Batch.unpack(commit.getMessage(), MessageSet.Status.COMMIT)));
                         }
+                        toParser.put(reply);
                     }
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -330,6 +310,7 @@ public class DataRW {
     }
 
     private class QueueRunnerMsg {
+
         private final boolean isInit;
         private Clock<ExceptionSet> committed;
         private Dot dot;
@@ -348,7 +329,6 @@ public class DataRW {
             this.conf = conf;
         }
     }
-
 
     private class QueueRunner extends Thread {
 
@@ -437,7 +417,9 @@ public class DataRW {
                             RWMetrics.endExecution(d);
                         }
                         // update message set builder
-                        builder.addAllMessages(b.sortMessages());
+                        for (Message m : b.sortMessages()) {
+                            builder.addAllMessages(Batch.unpack(m));
+                        }
                     }
                     // build message
                     builder.setStatus(MessageSet.Status.DELIVERED);
@@ -447,7 +429,7 @@ public class DataRW {
                     toClient.put(Optional.of(messageSet));
                     deliverLoopContext.stop();
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | InvalidProtocolBufferException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }

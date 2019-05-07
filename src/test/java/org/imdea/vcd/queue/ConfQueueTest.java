@@ -427,7 +427,7 @@ public class ConfQueueTest {
         // return messages sorted
         Map<Dots, List<Message>> sorted = new HashMap<>();
         for (ConfQueueBox box : results) {
-            sorted.put(box.getDots(), box.sortMessages());
+            sorted.put(new Dots(box.getDots()), new ArrayList<>(box.sortMessages()));
         }
         return sorted;
     }

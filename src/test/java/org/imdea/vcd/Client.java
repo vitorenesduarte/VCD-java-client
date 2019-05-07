@@ -4,7 +4,6 @@ import com.codahale.metrics.Timer;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -62,18 +61,20 @@ public class Client {
                     ByteString from;
                     PerData perData;
                     switch (status) {
-                        case DURABLE:
-                            from = messages.get(0).getFrom();
-                            perData = MAP.get(from);
-                            // record commit time, if perData exists
-                            // TODO check how to could have been delivered
-                            // before being committed
-                            // - maybe collision with another message,
-                            //   in another node
-                            // - or on recovery?
-                            if (perData != null) {
-                                ClientMetrics.end(status, perData.startTime);
-                                perData.durableContext.stop();
+                        case COMMIT:
+                            for (Message message : messages) {
+                                from = message.getFrom();
+                                perData = MAP.get(from);
+                                // record commit time, if perData exists
+                                // TODO check how to could have been delivered
+                                // before being committed
+                                // - maybe collision with another message,
+                                //   in another node
+                                // - or on recovery?
+                                if (perData != null) {
+                                    ClientMetrics.end(status, perData.startTime);
+                                    perData.commitContext.stop();
+                                }
                             }
                             // keep waiting
                             break;
@@ -81,11 +82,9 @@ public class Client {
                             // record chain size
                             ClientMetrics.chain(messages.size());
 
-                            Iterator<Message> it = messages.iterator();
-
                             // try to find operations from clients
-                            while (it.hasNext()) {
-                                from = it.next().getFrom();
+                            for (Message message : messages) {
+                                from = message.getFrom();
                                 perData = MAP.remove(from);
 
                                 // if it belongs to a client
@@ -190,13 +189,13 @@ public class Client {
 
         private final int client;
         private final Long startTime;
-        private final Timer.Context durableContext;
+        private final Timer.Context commitContext;
         private final Timer.Context deliverContext;
 
         public PerData(int client, Long startTime) {
             this.client = client;
             this.startTime = startTime;
-            this.durableContext = RWMetrics.createDurableContext();
+            this.commitContext = RWMetrics.createCommitContext();
             this.deliverContext = RWMetrics.createDeliverContext();
         }
 
