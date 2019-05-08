@@ -81,8 +81,7 @@ public class ClientMetrics {
     }
 
     private static String key(Config config, String prefix, String protocolSuffix) {
-        return "" + config.getNodeNumber() + "/"
-                + prefix + "-"
+        return "" + prefix + "-"
                 + protocol(config, protocolSuffix) + "-"
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
