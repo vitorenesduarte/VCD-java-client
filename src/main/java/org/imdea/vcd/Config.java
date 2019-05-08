@@ -33,7 +33,7 @@ public class Config {
     private Integer payloadSize = 100;
 
     @Parameter(names = "-protocol")
-    private String protocol = "VCD";
+    private String protocol = "vcd";
 
     @Parameter(names = "-node_number")
     private Integer nodeNumber = 1;

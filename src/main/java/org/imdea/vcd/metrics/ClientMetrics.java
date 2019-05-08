@@ -97,8 +97,8 @@ public class ClientMetrics {
     }
 
     private static String protocolName(Config config) {
-        if (config.getProtocol().equals("VCD")) {
-            return "VCD" + "f" + config.getMaxFaults();
+        if (config.getProtocol().equals("vcd")) {
+            return "vcd" + "f" + config.getMaxFaults();
         } else {
             return config.getProtocol();
         }
