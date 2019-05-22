@@ -37,7 +37,6 @@ public class ConfQueue {
     public ConfQueue(Clock<ExceptionSet> committed, boolean batching, boolean optDelivery) {
         this.delivered = (Clock<ExceptionSet>) committed.clone();
         this.N = this.delivered.size();
-        this.BATCHING = batching;
         this.TRANSITIVE = isTransitive(batching);
         this.OPT_DELIVERY = optDelivery;
     }
