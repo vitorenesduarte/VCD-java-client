@@ -32,6 +32,9 @@ public class Config {
     @Parameter(names = "-payload_size")
     private Integer payloadSize = 100;
 
+    @Parameter(names = "-protocol")
+    private String protocol = "vcd";
+
     @Parameter(names = "-node_number")
     private Integer nodeNumber = 1;
 
@@ -100,6 +103,10 @@ public class Config {
 
     public void setPayloadSize(String payloadSize) {
         this.payloadSize = Integer.parseInt(payloadSize);
+    }
+
+    public String getProtocol() {
+        return protocol;
     }
 
     public Integer getNodeNumber() {

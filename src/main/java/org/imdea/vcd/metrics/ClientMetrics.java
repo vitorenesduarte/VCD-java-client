@@ -11,13 +11,15 @@ import java.util.Map;
  */
 public class ClientMetrics {
 
-    private static final Averager DURABLE_AVG = new Averager();
+    private static final Averager COMMIT_AVG = new Averager();
     private static final Averager DELIVERED_AVG = new Averager();
     private static final Averager CHAINS_AVG = new Averager();
 
-    private static final StringBuilder DURABLE_TIMES = new StringBuilder();
+    private static final StringBuilder COMMIT_TIMES = new StringBuilder();
     private static final StringBuilder DELIVERED_TIMES = new StringBuilder();
+    private static final StringBuilder TIMESERIES = new StringBuilder();
     private static final StringBuilder CHAINS = new StringBuilder();
+//    private static final StringBuilder QUEUE = new StringBuilder();
 
     public static Long start() {
         return time();
@@ -27,21 +29,28 @@ public class ClientMetrics {
         Long time = time() - start;
 
         switch (status) {
-            case DURABLE:
-                DURABLE_AVG.add(time);
-                DURABLE_TIMES.append(time).append("\n");
+            case COMMIT:
+                COMMIT_AVG.add(time);
+                COMMIT_TIMES.append(time).append("\n");
                 break;
             case DELIVERED:
                 DELIVERED_AVG.add(time);
                 DELIVERED_TIMES.append(time).append("\n");
-                CHAINS.append(time()).append("-").append("1").append("\n");
+                TIMESERIES.append(time()).append("-").append("1").append("\n");
                 break;
         }
     }
 
     public static void chain(Integer size) {
+        CHAINS.append(size);
         CHAINS_AVG.add(size.longValue());
     }
+
+//    public static void queue(String r) {
+//        synchronized (QUEUE) {
+//            QUEUE.append(r).append("\n");
+//        }
+//    }
 
     public static String show() {
         StringBuilder sb = new StringBuilder();
@@ -49,8 +58,8 @@ public class ClientMetrics {
         sb.append("CHAINS: ")
                 .append(CHAINS_AVG.getAverage())
                 .append("\n");
-        sb.append("DURABLE: ")
-                .append(DURABLE_AVG.getAverage())
+        sb.append("COMMIT: ")
+                .append(COMMIT_AVG.getAverage())
                 .append(" (ms)\n");
         sb.append("DELIVERED: ")
                 .append(DELIVERED_AVG.getAverage())
@@ -65,12 +74,20 @@ public class ClientMetrics {
                 serialize(CHAINS)
         );
         m.put(
-                key(config, "log", "Durable"),
-                serialize(DURABLE_TIMES)
+                key(config, "log", "Commit"),
+                serialize(COMMIT_TIMES)
         );
         m.put(
                 key(config, "log"),
                 serialize(DELIVERED_TIMES)
+        );
+//        m.put(
+//                key(config, "queue"),
+//                serialize(QUEUE)
+//        );
+        m.put(
+                key(config, "timeseries"),
+                serialize(TIMESERIES)
         );
 
         return m;
@@ -81,9 +98,8 @@ public class ClientMetrics {
     }
 
     private static String key(Config config, String prefix, String protocolSuffix) {
-        return "" + config.getNodeNumber() + "/"
-                + prefix + "-"
-                + protocol(config.getMaxFaults(), protocolSuffix, config) + "-"
+        return "" + prefix + "-"
+                + protocol(config, protocolSuffix) + "-"
                 + config.getCluster() + "-"
                 + config.getClients() + "-"
                 + config.getConflicts() + "-"
@@ -91,10 +107,18 @@ public class ClientMetrics {
                 + config.getOp();
     }
 
-    private static String protocol(Integer maxFaults, String protocolSuffix, Config config) {
+    private static String protocol(Config config, String protocolSuffix) {
         protocolSuffix += config.getBatching() ? "Batching" : "";
         protocolSuffix += !config.getOptDelivery() ? "NonOptDelivery" : "";
-        return "VCD" + "f" + maxFaults + protocolSuffix;
+        return protocolName(config) + protocolSuffix;
+    }
+
+    private static String protocolName(Config config) {
+        if (config.getProtocol().equals("vcd")) {
+            return "vcd" + "f" + config.getMaxFaults();
+        } else {
+            return config.getProtocol();
+        }
     }
 
     private static String serialize(StringBuilder sb) {

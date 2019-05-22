@@ -21,7 +21,7 @@ public class RWMetrics {
 
     private static final Timer MID_EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "MidExecution"));
     private static final Timer EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "Execution"));
-    private static final Timer DURABLE = METRICS.timer(MetricRegistry.name("metrics", "DURABLE"));
+    private static final Timer COMMIT = METRICS.timer(MetricRegistry.name("metrics", "COMMIT"));
     private static final Timer DELIVER = METRICS.timer(MetricRegistry.name("metrics", "DELIVER"));
 
     public static final Histogram QUEUE_ELEMENTS = METRICS.histogram(MetricRegistry.name("metrics", "QueueElements"));
@@ -63,8 +63,8 @@ public class RWMetrics {
         context.stop();
     }
 
-    public static Timer.Context createDurableContext() {
-        return DURABLE.time();
+    public static Timer.Context createCommitContext() {
+        return COMMIT.time();
     }
 
     public static Timer.Context createDeliverContext() {

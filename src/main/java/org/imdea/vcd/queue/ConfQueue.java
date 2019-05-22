@@ -13,7 +13,6 @@ import org.imdea.vcd.queue.clock.Dot;
 import org.imdea.vcd.queue.clock.Dots;
 import org.imdea.vcd.queue.clock.ExceptionSet;
 import org.imdea.vcd.queue.clock.MaxInt;
-import org.imdea.vcd.util.Batch;
 
 /**
  * @author Vitor Enes
@@ -28,7 +27,6 @@ public class ConfQueue {
 
     private final Clock<ExceptionSet> delivered;
     private final Integer N;
-    private final boolean BATCHING;
     private final boolean TRANSITIVE;
     private final boolean OPT_DELIVERY;
 
@@ -39,7 +37,6 @@ public class ConfQueue {
     public ConfQueue(Clock<ExceptionSet> committed, boolean batching, boolean optDelivery) {
         this.delivered = (Clock<ExceptionSet>) committed.clone();
         this.N = this.delivered.size();
-        this.BATCHING = batching;
         this.TRANSITIVE = isTransitive(batching);
         this.OPT_DELIVERY = optDelivery;
     }
@@ -55,10 +52,10 @@ public class ConfQueue {
     }
 
     public void add(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
-        //LOGGER.log(Level.INFO, "add {0} {1}", new Object[]{dot, conf});
-
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
+//        ClientMetrics.queue("add;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" +  vertex.conf);
+
         // update indexes
         updateIndexes(dot, vertex);
 
@@ -136,17 +133,17 @@ public class ConfQueue {
     }
 
     private ConfQueueBox deleteMember(Dot member, HashSet<ByteString> colors) {
-        Vertex v = vertexIndex.remove(member);
-        //LOGGER.log(Level.INFO, "rmv {0} {1}", new Object[]{v.dot, v.conf});
+        Vertex vertex = vertexIndex.remove(member);
+//        ClientMetrics.queue("rmv;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" +  vertex.conf);
 
         // update set of delivered colors
-        colors.addAll(v.colors);
+        colors.addAll(vertex.colors);
         // update pending index
-        for (ByteString color : v.colors) {
-            pendingIndex.get(color).remove(v);
+        for (ByteString color : vertex.colors) {
+            pendingIndex.get(color).remove(vertex);
         }
         // return box
-        return v.box;
+        return vertex.box;
     }
 
     public void tryPending(Collection<ByteString> colors) {
@@ -201,13 +198,7 @@ public class ConfQueue {
             this.dot = dot;
             this.conf = conf;
             this.colors = new HashSet<>(message.getHashesList());
-            List<Message> messages;
-            if (BATCHING) {
-                messages = Batch.unpack(message);
-            } else {
-                messages = Collections.singletonList(message);
-            }
-            this.box = new ConfQueueBox(dot, messages);
+            this.box = new ConfQueueBox(dot, message);
             this.onStack = false;
         }
 
