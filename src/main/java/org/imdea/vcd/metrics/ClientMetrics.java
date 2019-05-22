@@ -17,7 +17,9 @@ public class ClientMetrics {
 
     private static final StringBuilder COMMIT_TIMES = new StringBuilder();
     private static final StringBuilder DELIVERED_TIMES = new StringBuilder();
+    private static final StringBuilder TIMESERIES = new StringBuilder();
     private static final StringBuilder CHAINS = new StringBuilder();
+    private static final StringBuilder QUEUE = new StringBuilder();
 
     public static Long start() {
         return time();
@@ -34,13 +36,20 @@ public class ClientMetrics {
             case DELIVERED:
                 DELIVERED_AVG.add(time);
                 DELIVERED_TIMES.append(time).append("\n");
-                CHAINS.append(time()).append("-").append("1").append("\n");
+                TIMESERIES.append(time()).append("-").append("1").append("\n");
                 break;
         }
     }
 
     public static void chain(Integer size) {
+        CHAINS.append(size);
         CHAINS_AVG.add(size.longValue());
+    }
+
+    public static void queue(String r) {
+        synchronized (QUEUE) {
+            QUEUE.append(r).append("\n");
+        }
     }
 
     public static String show() {
@@ -71,6 +80,14 @@ public class ClientMetrics {
         m.put(
                 key(config, "log"),
                 serialize(DELIVERED_TIMES)
+        );
+        m.put(
+                key(config, "queue"),
+                serialize(QUEUE)
+        );
+        m.put(
+                key(config, "timeseries"),
+                serialize(TIMESERIES)
         );
 
         return m;

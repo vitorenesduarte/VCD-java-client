@@ -4,8 +4,10 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.imdea.vcd.VCDLogger;
+import org.imdea.vcd.metrics.ClientMetrics;
 
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -54,10 +56,10 @@ public class ConfQueue {
     }
 
     public void add(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
-        //LOGGER.log(Level.INFO, "add {0} {1}", new Object[]{dot, conf});
-
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
+        ClientMetrics.queue("add;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" +  vertex.conf);
+
         // update indexes
         updateIndexes(dot, vertex);
 
@@ -135,17 +137,17 @@ public class ConfQueue {
     }
 
     private ConfQueueBox deleteMember(Dot member, HashSet<ByteString> colors) {
-        Vertex v = vertexIndex.remove(member);
-        //LOGGER.log(Level.INFO, "rmv {0} {1}", new Object[]{v.dot, v.conf});
+        Vertex vertex = vertexIndex.remove(member);
+        ClientMetrics.queue("rmv;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" +  vertex.conf);
 
         // update set of delivered colors
-        colors.addAll(v.colors);
+        colors.addAll(vertex.colors);
         // update pending index
-        for (ByteString color : v.colors) {
-            pendingIndex.get(color).remove(v);
+        for (ByteString color : vertex.colors) {
+            pendingIndex.get(color).remove(vertex);
         }
         // return box
-        return v.box;
+        return vertex.box;
     }
 
     public void tryPending(Collection<ByteString> colors) {
