@@ -42,7 +42,7 @@ public class ClientMetrics {
     }
 
     public static void chain(Integer size) {
-        CHAINS.append(size);
+        CHAINS.append(size).append("\n");
         CHAINS_AVG.add(size.longValue());
     }
 
