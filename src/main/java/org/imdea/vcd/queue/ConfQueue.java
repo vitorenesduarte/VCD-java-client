@@ -4,8 +4,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.*;
-import java.util.logging.Logger;
-import org.imdea.vcd.VCDLogger;
+import org.imdea.vcd.metrics.ClientMetrics;
 
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
@@ -18,8 +17,6 @@ import org.imdea.vcd.queue.clock.MaxInt;
  * @author Vitor Enes
  */
 public class ConfQueue {
-
-    private static final Logger LOGGER = VCDLogger.init(ConfQueue.class);
 
     private final HashMap<Dot, Vertex> vertexIndex = new HashMap<>();
     private final HashMap<ByteString, HashSet<Vertex>> pendingIndex = new HashMap<>();
@@ -35,6 +32,7 @@ public class ConfQueue {
     }
 
     public ConfQueue(Clock<ExceptionSet> committed, boolean batching, boolean optDelivery) {
+//        ClientMetrics.queue("init;" + System.currentTimeMillis() + ";" + committed);
         this.delivered = (Clock<ExceptionSet>) committed.clone();
         this.N = this.delivered.size();
         this.TRANSITIVE = isTransitive(batching);
@@ -54,7 +52,7 @@ public class ConfQueue {
     public void add(Dot dot, Message message, Clock<MaxInt> conf) throws InvalidProtocolBufferException {
         // create vertex
         Vertex vertex = new Vertex(dot, message, conf);
-//        ClientMetrics.queue("add;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" +  vertex.conf);
+//        ClientMetrics.queue("add;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" + vertex.conf);
 
         // update indexes
         updateIndexes(dot, vertex);
@@ -134,7 +132,7 @@ public class ConfQueue {
 
     private ConfQueueBox deleteMember(Dot member, HashSet<ByteString> colors) {
         Vertex vertex = vertexIndex.remove(member);
-//        ClientMetrics.queue("rmv;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" +  vertex.conf);
+//        ClientMetrics.queue("rmv;" + System.currentTimeMillis() + ";" + vertex.dot + ";" + Arrays.toString(vertex.colors.iterator().next().toByteArray()) + ";" + vertex.conf);
 
         // update set of delivered colors
         colors.addAll(vertex.colors);

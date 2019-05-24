@@ -19,7 +19,7 @@ public class ClientMetrics {
     private static final StringBuilder DELIVERED_TIMES = new StringBuilder();
     private static final StringBuilder TIMESERIES = new StringBuilder();
     private static final StringBuilder CHAINS = new StringBuilder();
-//    private static final StringBuilder QUEUE = new StringBuilder();
+    private static final StringBuilder QUEUE = new StringBuilder();
 
     public static Long start() {
         return time();
@@ -46,11 +46,11 @@ public class ClientMetrics {
         CHAINS_AVG.add(size.longValue());
     }
 
-//    public static void queue(String r) {
-//        synchronized (QUEUE) {
-//            QUEUE.append(r).append("\n");
-//        }
-//    }
+    public static void queue(String r) {
+        synchronized (QUEUE) {
+            QUEUE.append(r).append("\n");
+        }
+    }
 
     public static String show() {
         StringBuilder sb = new StringBuilder();
