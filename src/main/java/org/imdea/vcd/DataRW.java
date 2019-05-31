@@ -156,14 +156,12 @@ public class DataRW {
         private final DataInputStream in;
         private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<Reply> toParser;
-        private final Boolean batching;
         private final Parser parser;
 
         public SocketReader(DataInputStream in, LinkedBlockingQueue<Optional<MessageSet>> toClient, Config config) {
             this.in = in;
             this.toClient = toClient;
             this.toParser = new LinkedBlockingQueue<>();
-            this.batching = batching(config.getBatchWait());
             this.parser = new Parser(this.toClient, this.toParser, config);
         }
 
@@ -409,24 +407,27 @@ public class DataRW {
                     RWMetrics.COMPONENTS_COUNT.update(toDeliver.size());
 
                     final Timer.Context deliverLoopContext = RWMetrics.DELIVER_LOOP.time();
-                    // create message set builder
-                    MessageSet.Builder builder = MessageSet.newBuilder();
 
                     for (ConfQueueBox b : toDeliver) {
                         for (Dot d : b.getDots()) {
                             RWMetrics.endExecution(d);
                         }
+
+                        // create message set builder
+                        MessageSet.Builder builder = MessageSet.newBuilder();
+
                         // update message set builder
                         for (Message m : b.sortMessages()) {
                             builder.addAllMessages(Batch.unpack(m));
                         }
-                    }
-                    // build message
-                    builder.setStatus(MessageSet.Status.DELIVERED);
-                    MessageSet messageSet = builder.build();
+                        // build message
+                        builder.setStatus(MessageSet.Status.DELIVERED);
+                        MessageSet messageSet = builder.build();
 
-                    // send it to client
-                    toClient.put(Optional.of(messageSet));
+                        // send it to client
+                        toClient.put(Optional.of(messageSet));
+                    }
+
                     deliverLoopContext.stop();
                 }
             } catch (InterruptedException | InvalidProtocolBufferException e) {
