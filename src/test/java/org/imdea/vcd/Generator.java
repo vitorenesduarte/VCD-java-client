@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import org.apache.commons.math3.distribution.ZipfDistribution;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.queue.clock.Clock;
 import org.imdea.vcd.queue.clock.Dot;
@@ -20,6 +21,9 @@ public class Generator {
 
     private static final Integer KEY_SIZE = 8;
     public static final ByteString BLACK = repeat((byte) 1, 1);
+
+    public static final Integer ZIPF_ELEMENTS = 10 * 1000;
+    public static ZipfDistribution ZIPF;
 
     public static Message message() {
         return message(randomByteString(KEY_SIZE));
@@ -136,20 +140,33 @@ public class Generator {
     private static ByteString hash(Integer client, ByteString key, Config config) {
         Integer conflicts = config.getConflicts();
 
-        if (conflicts == 142) {
+        if (conflicts > 200) {
+            // we'll just have a single zipf object,
+            // assuming the config never changes during an experiment
+            if (ZIPF == null) {
+                // in order to have a coefficient of:
+                // - 0.75, set conflicts to 275
+                // - 1.50, set conflicts to 350
+                double zipfCoef = (conflicts - 200) / 100;
+                ZIPF = new ZipfDistribution(ZIPF_ELEMENTS, zipfCoef);
+            }
+            return intToByteString(ZIPF.sample());
+        } else if (conflicts == 142) {
             // two classes of clients
             if ((client + 1) % 2 == 0) {
                 return BLACK;
             } else {
                 return key;
             }
-        } else {
+        } else if (conflicts <= 100) {
             if (RANDOM().nextInt(100) < conflicts) {
                 return BLACK;
             } else {
                 // try to avoid conflicts with client random key
                 return key;
             }
+        } else {
+            throw new RuntimeException("conflict rate " + conflicts + " not supported!");
         }
     }
 
@@ -169,5 +186,17 @@ public class Generator {
 
     private static ByteString bs(byte[] ba) {
         return ByteString.copyFrom(ba);
+    }
+
+    private static ByteString intToByteString(int value) {
+        return ByteString.copyFrom(intToByteArray(value));
+    }
+
+    private static byte[] intToByteArray(int value) {
+        return new byte[]{
+            (byte) (value >>> 24),
+            (byte) (value >>> 16),
+            (byte) (value >>> 8),
+            (byte) value};
     }
 }
