@@ -19,11 +19,14 @@ public class Batch {
         // create a message set with all messages in the batch
         MessageSet.Builder builder = MessageSet.newBuilder();
         HashSet<ByteString> hashes = new HashSet<>();
+        boolean pure = true;
         for (Message m : ops) {
             // add message to the message set
             builder.addMessages(m);
             // collect all its hashes
             hashes.addAll(m.getHashesList());
+            // compute pure
+            pure = pure && m.getPure();
         }
         MessageSet batch = builder.build();
 
@@ -32,6 +35,7 @@ public class Batch {
         Proto.Message message = Message.newBuilder()
                 .addAllHashes(hashes)
                 .setData(batch.toByteString())
+                .setPure(pure)
                 .build();
 
         return message;
