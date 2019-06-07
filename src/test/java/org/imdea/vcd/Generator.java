@@ -22,7 +22,7 @@ public class Generator {
     private static final Integer KEY_SIZE = 8;
     public static final ByteString BLACK = repeat((byte) 1, 1);
 
-    public static final Integer ZIPF_ELEMENTS = 10 * 1000;
+    public static final Integer ZIPF_ELEMENTS = 100 * 1000;
     public static ZipfDistribution ZIPF;
 
     public static Message message() {
@@ -147,7 +147,7 @@ public class Generator {
                 // in order to have a coefficient of:
                 // - 0.75, set conflicts to 275
                 // - 1.50, set conflicts to 350
-                double zipfCoef = (conflicts - 200) / 100;
+                double zipfCoef = (double) (conflicts - 200) / 100;
                 ZIPF = new ZipfDistribution(ZIPF_ELEMENTS, zipfCoef);
             }
             return intToByteString(ZIPF.sample());
