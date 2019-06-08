@@ -142,7 +142,7 @@ public class Socket {
                 byte[] data = zk.getData(path, null, null);
                 nodes.add(Proto.NodeSpec.parseFrom(data));
             }
-        } catch(KeeperException e) {
+        } catch(KeeperException | NullPointerException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             return getAllNodes(config);
         } finally {
