@@ -114,7 +114,11 @@ public class Socket {
     }
 
     public static Proto.NodeSpec getClosestNode(Config config) throws IOException, InterruptedException {
-        List<Proto.NodeSpec> nodes = getAllNodes(config);
+        Integer minNodeNumber = config.getNodeNumber() - config.getMaxFaults();
+        List<Proto.NodeSpec> nodes;
+        do {
+            nodes = getAllNodes(config);
+        } while (nodes.size() < minNodeNumber);
 
         Float min = Float.MAX_VALUE;
         Proto.NodeSpec closest = null;
@@ -142,7 +146,7 @@ public class Socket {
                 byte[] data = zk.getData(path, null, null);
                 nodes.add(Proto.NodeSpec.parseFrom(data));
             }
-        } catch(KeeperException | NullPointerException e) {
+        } catch (KeeperException | NullPointerException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             return getAllNodes(config);
         } finally {
