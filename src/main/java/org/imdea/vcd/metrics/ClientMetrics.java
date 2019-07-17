@@ -110,6 +110,7 @@ public class ClientMetrics {
     private static String protocol(Config config, String protocolSuffix) {
         protocolSuffix += config.getBatching() ? "Batching" : "";
         protocolSuffix += !config.getOptDelivery() ? "NonOptDelivery" : "";
+        protocolSuffix += !config.getClosedLoop() ? "OpenLoop" + config.getSleep(): "";
         return protocolName(config) + protocolSuffix;
     }
 
