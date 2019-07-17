@@ -1,17 +1,18 @@
 package org.imdea.vcd;
 
+import com.codahale.metrics.Timer;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.imdea.vcd.metrics.ClientMetrics;
+import org.imdea.vcd.metrics.RWMetrics;
 import org.imdea.vcd.pb.Proto.Message;
 import org.imdea.vcd.pb.Proto.MessageSet;
 import redis.clients.jedis.Jedis;
@@ -38,46 +39,49 @@ public class OpenLoopClient {
 
     private static class ClientWriter extends Thread {
 
-        private final Config config;
-        private final int[] opsPerClient;
-        private final ByteString[] clientsKey;
-        private final Semaphore done;
+        private final Config CONFIG;
+        private Socket SOCKET;
+        private ConcurrentHashMap<ByteString, PerData> MAP;
+        private final int[] OPS_PER_CLIENT;
+        private final ByteString[] CLIENT_KEY;
+        private int CLIENTS_DONE;
 
-        private ConcurrentHashMap<ByteString, PerData> opToData;
-        private LinkedBlockingQueue<Integer> toWriter;
-        private Socket socket;
-        private int clientsDone;
-        private ClientReader reader;
+        private ClientReader READER;
+        private final Semaphore DONE;
 
         public ClientWriter(Config config) {
-            this.config = config;
-            this.opsPerClient = new int[this.config.getClients()];
-            this.clientsKey = new ByteString[this.config.getClients()];
+            this.CONFIG = config;
+            this.OPS_PER_CLIENT = new int[config.getClients()];
+            this.CLIENT_KEY = new ByteString[config.getClients()];
             // create a unique key for each client
-            for (int i = 0; i < this.config.getClients(); i++) {
-                this.clientsKey[i] = Generator.randomClientKey();
+            for (int i = 0; i < config.getClients(); i++) {
+                this.CLIENT_KEY[i] = Generator.randomClientKey();
             }
-            this.done = new Semaphore(0);
+            this.DONE = new Semaphore(0);
         }
 
         @Override
         public void run() {
             try {
-                this.init(false);
+                LOGGER.log(Level.INFO, "Optimized delivery is {0}", CONFIG.getOptDelivery() ? "enabled" : "disabled");
+                LOGGER.log(Level.INFO, "Payload size is {0}", CONFIG.getPayloadSize());
+                LOGGER.log(Level.INFO, "Conflict rate is {0}", CONFIG.getConflicts());
+
+                init(false);
                 LOGGER.log(Level.INFO, "Connect OK!");
 
                 // start write loop
-                this.writeLoop();
+                writeLoop();
 
                 // after all operations from all clients
                 // show metrics
-                this.done.acquire();
+                DONE.acquire();
                 LOGGER.log(Level.INFO, ClientMetrics.show());
 
                 // and push them to redis
-                this.redisPush();
+                redisPush();
 
-                this.socket.close();
+                SOCKET.close();
 
             } catch (IOException | InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
@@ -88,57 +92,46 @@ public class OpenLoopClient {
          * Connect to closest server and start reader thread.
          */
         private void init(boolean sendOps) throws IOException, InterruptedException {
-            if (this.reader != null) {
-                this.reader.close();
-                this.reader.interrupt();
+            if (READER != null) {
+                READER.close();
+                READER.interrupt();
             }
             // make all clients start from the same operation number
             // (the smallest one)
             int minOp = Integer.MAX_VALUE;
-            for (int client = 0; client < this.config.getClients(); client++) {
-                minOp = Math.min(minOp, this.opsPerClient[client]);
+            for (int client = 0; client < CONFIG.getClients(); client++) {
+                minOp = Math.min(minOp, OPS_PER_CLIENT[client]);
             }
-            for (int client = 0; client < this.config.getClients(); client++) {
-                this.opsPerClient[client] = minOp;
+            for (int client = 0; client < CONFIG.getClients(); client++) {
+                OPS_PER_CLIENT[client] = minOp;
             }
-            this.opToData = new ConcurrentHashMap<>();
-            this.toWriter = new LinkedBlockingQueue<>();
-            this.socket = Socket.create(this.config, CONNECT_RETRIES);
-            this.clientsDone = 0;
-            this.reader = new ClientReader(this.config, this.socket, this.opToData, this.done, this.toWriter);
-            reader.start();
+            MAP = new ConcurrentHashMap<>();
+            SOCKET = Socket.create(CONFIG, CONNECT_RETRIES);
+            CLIENTS_DONE = 0;
+
+            READER = new ClientReader(CONFIG, SOCKET, MAP, DONE);
+            READER.start();
 
             // maybe send an op per client
             if (sendOps) {
-                this.nextOps();
+                nextOps();
             }
         }
 
         private void writeLoop() throws IOException, InterruptedException {
             // start all clients
-            this.nextOps();
-            int nanoSleep = (int) Math.ceil(((float) this.config.getSleep() / this.config.getClients()) * 1000 * 1000);
+            nextOps();
+            int nanoSleep = (int) Math.ceil(((float) CONFIG.getSleep() / CONFIG.getClients()) * 1000 * 1000);
 
-            while (this.clientsDone != this.config.getClients()) {
+            while (CLIENTS_DONE != CONFIG.getClients()) {
                 try {
-                    if (this.config.getClosedLoop()) {
-                        int client = this.toWriter.take();
-
-                        if (client == -1) {
-                            // there was an error reading from the socket
-                            this.init(true);
-                        } else {
-                            this.nextOp(client);
-                        }
-                    } else {
-                        this.nextOps(nanoSleep);
-                    }
+                    nextOps(nanoSleep);
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);
                     // if at any point the socket errors inside this loop,
                     // reconnect to the closest server
                     // and start reader thread
-                    this.init(true);
+                    init(true);
                 }
             }
         }
@@ -148,65 +141,65 @@ public class OpenLoopClient {
         }
 
         private void nextOps(int nanoSleep) throws IOException, InterruptedException {
-            for (int client = 0; client < this.config.getClients(); client++) {
+            for (int client = 0; client < CONFIG.getClients(); client++) {
                 if (nanoSleep > 0) {
                     LockSupport.parkNanos(nanoSleep);
                 }
-                this.nextOp(client);
+                nextOp(client);
             }
         }
 
         private void nextOp(int client) throws IOException, InterruptedException {
-            this.opsPerClient[client]++;
+            OPS_PER_CLIENT[client]++;
 
-            if (this.opsPerClient[client] % 100 == 0) {
+            if (OPS_PER_CLIENT[client] % 100 == 0) {
                 LOGGER.log(Level.INFO, "({0}) {1} of {2}", new String[]{
                     String.valueOf(client),
-                    String.valueOf(opsPerClient[client]),
-                    String.valueOf(this.config.getOps())
+                    String.valueOf(OPS_PER_CLIENT[client]),
+                    String.valueOf(CONFIG.getOps())
                 });
             }
 
             // generate data
             ByteString data;
 
-            if (this.opsPerClient[client] < this.config.getOps()) {
+            if (OPS_PER_CLIENT[client] < CONFIG.getOps()) {
                 // normal op
                 do {
-                    data = Generator.messageData(this.config);
-                } while (this.opToData.containsKey(data));
+                    data = Generator.messageData(CONFIG);
+                } while (MAP.containsKey(data));
 
-            } else if (this.opsPerClient[client] == this.config.getOps()) {
+            } else if (OPS_PER_CLIENT[client] == CONFIG.getOps()) {
                 // last op
-                data = getLastOp(this.config, client);
-                this.clientsDone++;
+                data = getLastOp(CONFIG, client);
+                CLIENTS_DONE++;
 
             } else {
                 // client is done
                 return;
             }
 
-            this.sendOp(client, data);
+            sendOp(client, data);
         }
 
         private void sendOp(Integer client, ByteString data) throws IOException, InterruptedException {
             // generate message
-            ByteString from = this.clientsKey[client];
-            Message message = Generator.message(client, from, from, data, this.config);
+            ByteString from = CLIENT_KEY[client];
+            Message message = Generator.message(client, from, from, data, CONFIG);
 
             // store info
             PerData perData = new PerData(client, ClientMetrics.start());
-            this.opToData.put(data, perData);
+            MAP.put(data, perData);
 
             // send op
-            this.socket.send(message);
+            SOCKET.send(message);
         }
 
         private void redisPush() {
-            String redis = this.config.getRedis();
+            String redis = CONFIG.getRedis();
             if (redis != null) {
                 try (Jedis jedis = new Jedis(redis)) {
-                    Map<String, String> push = ClientMetrics.serialize(this.config);
+                    Map<String, String> push = ClientMetrics.serialize(CONFIG);
                     for (String key : push.keySet()) {
                         jedis.sadd(key, push.get(key));
                     }
@@ -219,31 +212,29 @@ public class OpenLoopClient {
     private static class ClientReader extends Thread {
 
         // shared with writer thread
-        private final Config config;
-        private final Socket socket;
-        private final ConcurrentHashMap<ByteString, PerData> opToData;
-        private final Semaphore done;
-        private final LinkedBlockingQueue<Integer> toWriter;
+        private final Config CONFIG;
+        private final Socket SOCKET;
+        private final ConcurrentHashMap<ByteString, PerData> MAP;
+        private final Semaphore DONE;
 
         // local
-        private int clientsDone;
+        private int CLIENTS_DONE;
 
         /**
          * Since we're only releasing the done semaphore once we see the last op
          * from all clients, this implementation assumes that by the time this
          * thread is created, no last op from any client was delivered.
          */
-        public ClientReader(Config config, Socket socket, ConcurrentHashMap<ByteString, PerData> ops, Semaphore done, LinkedBlockingQueue<Integer> toWriter) {
-            this.config = config;
-            this.socket = socket;
-            this.opToData = ops;
-            this.done = done;
-            this.toWriter = toWriter;
-            this.clientsDone = 0;
+        public ClientReader(Config config, Socket socket, ConcurrentHashMap<ByteString, PerData> ops, Semaphore done) {
+            this.CONFIG = config;
+            this.SOCKET = socket;
+            this.MAP = ops;
+            this.DONE = done;
+            this.CLIENTS_DONE = 0;
         }
 
         public void close() throws IOException {
-            this.socket.close();
+            SOCKET.close();
         }
 
         @Override
@@ -251,7 +242,7 @@ public class OpenLoopClient {
             try {
                 try {
                     while (true) {
-                        MessageSet messageSet = this.socket.receive();
+                        MessageSet messageSet = SOCKET.receive();
                         List<Message> messages = messageSet.getMessagesList();
                         MessageSet.Status status = messageSet.getStatus();
 
@@ -261,10 +252,11 @@ public class OpenLoopClient {
                             case COMMIT:
                                 for (Message message : messages) {
                                     data = message.getData();
-                                    perData = this.opToData.get(data);
+                                    perData = MAP.get(data);
                                     // record commit time, if perData exists
                                     if (perData != null) {
-                                        ClientMetrics.end(status, perData.getStartTime());
+                                        ClientMetrics.end(status, perData.startTime);
+                                        perData.commitContext.stop();
                                     }
                                 }
                                 // keep waiting
@@ -276,21 +268,19 @@ public class OpenLoopClient {
                                 // try to find operations from clients
                                 for (Message message : messages) {
                                     data = message.getData();
-                                    perData = this.opToData.remove(data);
+                                    perData = MAP.remove(data);
 
                                     // if it belongs to a client
                                     if (perData != null) {
-                                        int client = perData.getClient();
-                                        Long startTime = perData.getStartTime();
+                                        int client = perData.client;
+                                        Long startTime = perData.startTime;
 
                                         // record delivery time
                                         ClientMetrics.end(status, startTime);
-
-                                        // notify writer thread
-                                        this.maybeNotifyOp(client);
+                                        perData.deliverContext.stop();
 
                                         // if last op, notify writer thread, and exit
-                                        if (this.maybeNotifyLastOp(client, data)) {
+                                        if (maybeNotifyLastOp(client, data)) {
                                             return;
                                         }
                                     }
@@ -300,20 +290,9 @@ public class OpenLoopClient {
                     }
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, e.toString(), e);
-                    this.maybeNotifyOp(-1);
                 }
             } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
-            }
-        }
-
-        /**
-         * If close loop, notify writer thread of which client just delivered an
-         * operation.
-         */
-        private void maybeNotifyOp(int client) throws InterruptedException {
-            if (this.config.getClosedLoop()) {
-                this.toWriter.put(client);
             }
         }
 
@@ -323,13 +302,13 @@ public class OpenLoopClient {
          * semaphore.
          */
         private boolean maybeNotifyLastOp(int client, ByteString data) throws InterruptedException {
-            if (isLastOp(this.config, client, data)) {
-                this.clientsDone++;
+            if (isLastOp(CONFIG, client, data)) {
+                CLIENTS_DONE++;
             }
 
-            boolean allClientsAreDone = this.clientsDone == this.config.getClients();
+            boolean allClientsAreDone = CLIENTS_DONE == CONFIG.getClients();
             if (allClientsAreDone) {
-                this.done.release();
+                DONE.release();
             }
             return allClientsAreDone;
         }
@@ -352,18 +331,14 @@ public class OpenLoopClient {
 
         private final int client;
         private final Long startTime;
+        private final Timer.Context commitContext;
+        private final Timer.Context deliverContext;
 
         public PerData(int client, Long startTime) {
             this.client = client;
             this.startTime = startTime;
-        }
-
-        public int getClient() {
-            return client;
-        }
-
-        public long getStartTime() {
-            return startTime;
+            this.commitContext = RWMetrics.createCommitContext();
+            this.deliverContext = RWMetrics.createDeliverContext();
         }
     }
 }

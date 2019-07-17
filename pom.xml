@@ -96,8 +96,8 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.imdea.vcd.Client</mainClass>
-                            <!-- <mainClass>org.imdea.vcd.OpenLoopClient</mainClass> -->
+                            <mainClass>org.imdea.vcd.OpenLoopClient</mainClass>
+                            <!-- <mainClass>org.imdea.vcd.Client</mainClass> -->
                         </manifest>
                     </archive>
                     <descriptorRefs>
