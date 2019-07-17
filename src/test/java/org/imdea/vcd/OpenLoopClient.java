@@ -23,12 +23,11 @@ import redis.clients.jedis.Jedis;
  */
 public class OpenLoopClient {
 
-    private static final Logger LOGGER = VCDLogger.init(Client.class);
+    private static final Logger LOGGER = VCDLogger.init(ClosedLoopClient.class);
     private static final int CONNECT_RETRIES = 100;
 
-    public static void main(String[] args) {
+    public static void run(Config config) {
         try {
-            Config config = Config.parseArgs(args);
             ClientWriter writer = new ClientWriter(config);
             writer.start();
             writer.join();
