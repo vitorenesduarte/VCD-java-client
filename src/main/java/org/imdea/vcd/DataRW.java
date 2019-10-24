@@ -21,7 +21,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,20 +35,13 @@ public class DataRW {
     private final DataInputStream in;
     private final DataOutputStream out;
 
-    private final LinkedBlockingQueue<Message> toWriter;
     private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
-    private final Boolean batching;
-
-    private final Writer writer;
     private final SocketReader socketReader;
 
     public DataRW(DataInputStream in, DataOutputStream out, Config config) {
         this.in = in;
         this.out = out;
-        this.toWriter = new LinkedBlockingQueue<>();
         this.toClient = new LinkedBlockingQueue<>();
-        this.batching = batching(config.getBatchWait());
-        this.writer = new Writer(this.out, this.toWriter, config);
         this.socketReader = new SocketReader(this.in, this.toClient, config);
     }
 
@@ -58,16 +50,10 @@ public class DataRW {
     }
 
     public void start() {
-        if (this.batching) {
-            this.writer.start();
-        }
         this.socketReader.start();
     }
 
     public void close() throws IOException {
-        if (this.batching) {
-            this.writer.interrupt();
-        }
         this.socketReader.close();
         this.socketReader.interrupt();
         this.in.close();
@@ -83,11 +69,7 @@ public class DataRW {
     }
 
     public void write(Message message) throws IOException, InterruptedException {
-        if (this.batching) {
-            toWriter.put(message);
-        } else {
-            doWrite(Batch.pack(Arrays.asList(message)), this.out);
-        }
+        doWrite(Batch.pack(message), this.out);
     }
 
     private void doWrite(Message message, DataOutputStream o) throws IOException {
@@ -99,50 +81,6 @@ public class DataRW {
 
     private void notifyFailureToClient(LinkedBlockingQueue<Optional<MessageSet>> toClient) throws InterruptedException {
         toClient.put(Optional.empty());
-    }
-
-    private class Writer extends Thread {
-
-        private final Logger LOGGER = VCDLogger.init(Writer.class);
-
-        private final LinkedBlockingQueue<Message> toWriter;
-        private final DataOutputStream out;
-        private final Integer batchWait;
-
-        public Writer(DataOutputStream out, LinkedBlockingQueue<Message> toWriter, Config config) {
-            this.out = out;
-            this.toWriter = toWriter;
-            this.batchWait = config.getBatchWait();
-        }
-
-        @Override
-        public void run() {
-            LOGGER.log(Level.INFO, "Writer thread started...");
-            try {
-                try {
-                    while (true) {
-                        Message first = toWriter.take();
-                        List<Message> ops = new ArrayList<>();
-
-                        // wait, and drain the queue
-                        Thread.sleep(this.batchWait);
-                        toWriter.drainTo(ops);
-
-                        ops.add(first);
-
-                        // batch size metrics
-                        RWMetrics.BATCH_SIZE.update(ops.size());
-
-                        doWrite(Batch.pack(ops), this.out);
-                    }
-                } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, e.toString(), e);
-                    notifyFailureToClient(toClient);
-                }
-            } catch (InterruptedException e) {
-                LOGGER.log(Level.SEVERE, e.toString(), e);
-            }
-        }
     }
 
     // socket reader -> client | parser
@@ -417,9 +355,8 @@ public class DataRW {
                         MessageSet.Builder builder = MessageSet.newBuilder();
 
                         // update message set builder
-                        for (Message m : b.sortMessages()) {
-                            builder.addAllMessages(Batch.unpack(m));
-                        }
+                        builder.addAllMessages(b.sortMessages());
+
                         // build message
                         builder.setStatus(MessageSet.Status.DELIVERED);
                         MessageSet messageSet = builder.build();
@@ -430,7 +367,7 @@ public class DataRW {
 
                     deliverLoopContext.stop();
                 }
-            } catch (InterruptedException | InvalidProtocolBufferException e) {
+            } catch (InterruptedException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
