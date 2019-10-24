@@ -4,3 +4,6 @@ nbactions.xml
 /nbproject/
 *.swp
 *.DS_Store
+.classpath
+.project
+.settings/
