@@ -19,9 +19,9 @@ import redis.clients.jedis.Jedis;
  *
  * @author Vitor Enes
  */
-public class Client {
+public class ClosedLoopClient {
 
-    private static final Logger LOGGER = VCDLogger.init(Client.class);
+    private static final Logger LOGGER = VCDLogger.init(ClosedLoopClient.class);
     private static final int CONNECT_RETRIES = 100;
 
     private static Config CONFIG;
@@ -31,9 +31,9 @@ public class Client {
     private static ByteString[] CLIENT_KEY;
     private static int CLIENTS_DONE;
 
-    public static void main(String[] args) {
+    public static void run(Config config) {
         try {
-            CONFIG = Config.parseArgs(args);
+            CONFIG = config;
             LOGGER.log(Level.INFO, "Optimized delivery is {0}", CONFIG.getOptDelivery() ? "enabled" : "disabled");
             LOGGER.log(Level.INFO, "Payload size is {0}", CONFIG.getPayloadSize());
             LOGGER.log(Level.INFO, "Conflict rate is {0}", CONFIG.getConflicts());
