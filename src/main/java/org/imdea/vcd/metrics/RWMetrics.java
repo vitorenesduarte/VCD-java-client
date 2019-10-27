@@ -17,6 +17,7 @@ public class RWMetrics {
     // metrics
     public static final Timer PARSE = METRICS.timer(MetricRegistry.name("metrics", "Parse"));
     public static final Timer QUEUE_ADD = METRICS.timer(MetricRegistry.name("metrics", "QueueAdd"));
+    public static final Timer TO_DELIVER = METRICS.timer(MetricRegistry.name("metrics", "ToDeliver"));
     public static final Timer DELIVER_LOOP = METRICS.timer(MetricRegistry.name("metrics", "DeliverLoop"));
 
     private static final Timer MID_EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "MidExecution"));
@@ -34,12 +35,12 @@ public class RWMetrics {
     static {
         Set<MetricAttribute> disabledMetricAttributes
                 = new HashSet<>(Arrays.asList(new MetricAttribute[]{
-                MetricAttribute.MAX,
-                MetricAttribute.M1_RATE, MetricAttribute.M5_RATE,
-                MetricAttribute.M15_RATE, MetricAttribute.MIN,
-                MetricAttribute.P99, MetricAttribute.P50,
-                MetricAttribute.P75, MetricAttribute.P95,
-                MetricAttribute.P98, MetricAttribute.P999}));
+            MetricAttribute.MAX,
+            MetricAttribute.M1_RATE, MetricAttribute.M5_RATE,
+            MetricAttribute.M15_RATE, MetricAttribute.MIN,
+            MetricAttribute.P99, MetricAttribute.P50,
+            MetricAttribute.P75, MetricAttribute.P95,
+            MetricAttribute.P98, MetricAttribute.P999}));
         ConsoleReporter reporter = ConsoleReporter.forRegistry(METRICS)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MICROSECONDS)

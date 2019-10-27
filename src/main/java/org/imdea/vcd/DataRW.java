@@ -374,10 +374,13 @@ public class DataRW {
                         queue.add(msg.dot, msg.message, msg.conf);
                         queueAddContext.stop();
 
+                        final Timer.Context toDeliverContext = RWMetrics.TO_DELIVER.time();
                         List<ConfQueueBox> toDeliver = queue.getToDeliver();
                         if (!toDeliver.isEmpty()) {
                             toDeliverer.put(toDeliver);
                         }
+                        toDeliverContext.stop();
+
                         RWMetrics.QUEUE_ELEMENTS.update(queue.elements());
                     }
                 }
