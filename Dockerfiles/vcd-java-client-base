@@ -1,4 +1,4 @@
-FROM openjdk:8-slim
+FROM openjdk:14-slim
 
 MAINTAINER Vitor Enes <vitorenesduarte@gmail.com>
 
