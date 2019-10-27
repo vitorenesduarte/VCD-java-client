@@ -260,51 +260,54 @@ public class DataRW {
 
             try {
                 while (true) {
-                    Reply reply = toParser.take();
+                    List<Reply> msgs = new ArrayList<>();
+                    toParser.drainTo(msgs);
 
-                    switch (reply.getReplyCase()) {
-                        case INIT:
-                            // create committed clock
-                            Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
+                    for (Reply reply : msgs) {
+                        switch (reply.getReplyCase()) {
+                            case INIT:
+                                // create committed clock
+                                Clock<ExceptionSet> committed = Clock.eclock(reply.getInit().getCommittedMap());
 
-                            // store trace in redis
-                            if (RECORD_TRACE) {
-                                pushToRedis(committed);
-                            }
+                                // store trace in redis
+                                if (RECORD_TRACE) {
+                                    pushToRedis(committed);
+                                }
 
-                            // send to queue runner
-                            QueueRunnerMsg initMsg = new QueueRunnerMsg(committed);
-                            toQueueRunner.add(initMsg);
-                            break;
+                                // send to queue runner
+                                QueueRunnerMsg initMsg = new QueueRunnerMsg(committed);
+                                toQueueRunner.add(initMsg);
+                                break;
 
-                        case COMMIT:
-                            final Timer.Context parseContext = RWMetrics.PARSE.time();
+                            case COMMIT:
+                                final Timer.Context parseContext = RWMetrics.PARSE.time();
 
-                            // fetch dot, dep, message and conf
-                            Commit commit = reply.getCommit();
-                            Dot dot = Dot.dot(commit.getDot());
-                            Message message = commit.getMessage();
-                            Clock<MaxInt> conf = Clock.vclock(commit.getConfMap());
+                                // fetch dot, dep, message and conf
+                                Commit commit = reply.getCommit();
+                                Dot dot = Dot.dot(commit.getDot());
+                                Message message = commit.getMessage();
+                                Clock<MaxInt> conf = Clock.vclock(commit.getConfMap());
 
-                            parseContext.stop();
+                                parseContext.stop();
 
-                            // if commit, send notification to client
-                            // and forward it to dep queue thread
-                            toClient.put(Optional.of(Batch.unpack(commit.getMessage(), MessageSet.Status.COMMIT)));
-                            RWMetrics.endExecution0(dot);
+                                // if commit, send notification to client
+                                // and forward it to dep queue thread
+                                toClient.put(Optional.of(Batch.unpack(commit.getMessage(), MessageSet.Status.COMMIT)));
+                                RWMetrics.endExecution0(dot);
 
-                            // store trace in redis
-                            if (RECORD_TRACE) {
-                                pushToRedis(dot, conf);
-                            }
+                                // store trace in redis
+                                if (RECORD_TRACE) {
+                                    pushToRedis(dot, conf);
+                                }
 
-                            // send to queue runner
-                            QueueRunnerMsg commitMsg = new QueueRunnerMsg(dot, message, conf);
-                            toQueueRunner.add(commitMsg);
-                            break;
+                                // send to queue runner
+                                QueueRunnerMsg commitMsg = new QueueRunnerMsg(dot, message, conf);
+                                toQueueRunner.add(commitMsg);
+                                break;
 
-                        default:
-                            throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
+                            default:
+                                throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
+                        }
                     }
                 }
             } catch (InterruptedException | InvalidProtocolBufferException e) {
@@ -367,27 +370,30 @@ public class DataRW {
 
             try {
                 while (true) {
-                    QueueRunnerMsg msg = toQueueRunner.take();
+                    List<QueueRunnerMsg> msgs = new ArrayList<>();
+                    toQueueRunner.drainTo(msgs);
 
-                    if (msg.isInit) {
-                        // create delivery queue
-                        queue = new ConfQueue(msg.committed, this.batching, this.optDelivery);
-                    } else {
-                        // add to delivery queue
-                        RWMetrics.endExecution1(msg.dot);
+                    for (QueueRunnerMsg msg : msgs) {
+                        if (msg.isInit) {
+                            // create delivery queue
+                            queue = new ConfQueue(msg.committed, this.batching, this.optDelivery);
+                        } else {
+                            // add to delivery queue
+                            RWMetrics.endExecution1(msg.dot);
 
-                        final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
-                        queue.add(msg.dot, msg.message, msg.conf);
-                        queueAddContext.stop();
+                            final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
+                            queue.add(msg.dot, msg.message, msg.conf);
+                            queueAddContext.stop();
 
-                        final Timer.Context toDeliverContext = RWMetrics.TO_DELIVER.time();
-                        List<ConfQueueBox> toDeliver = queue.getToDeliver();
-                        if (!toDeliver.isEmpty()) {
-                            toDeliverer.put(toDeliver);
+                            final Timer.Context toDeliverContext = RWMetrics.TO_DELIVER.time();
+                            List<ConfQueueBox> toDeliver = queue.getToDeliver();
+                            if (!toDeliver.isEmpty()) {
+                                toDeliverer.put(toDeliver);
+                            }
+                            toDeliverContext.stop();
+
+                            RWMetrics.QUEUE_ELEMENTS.update(queue.elements());
                         }
-                        toDeliverContext.stop();
-
-                        RWMetrics.QUEUE_ELEMENTS.update(queue.elements());
                     }
                 }
             } catch (InterruptedException | InvalidProtocolBufferException e) {
@@ -412,32 +418,35 @@ public class DataRW {
             LOGGER.log(Level.INFO, "Deliverer thread started...");
             try {
                 while (true) {
-                    List<ConfQueueBox> toDeliver = toDeliverer.take();
-                    RWMetrics.COMPONENTS_COUNT.update(toDeliver.size());
+                    List<List<ConfQueueBox>> msgs = new ArrayList<>();
+                    toDeliverer.drainTo(msgs);
 
-                    final Timer.Context deliverLoopContext = RWMetrics.DELIVER_LOOP.time();
+                    for (List<ConfQueueBox> toDeliver : msgs) {
 
-                    for (ConfQueueBox b : toDeliver) {
-                        for (Dot d : b.getDots()) {
-                            RWMetrics.endExecution2(d);
+                        final Timer.Context deliverLoopContext = RWMetrics.DELIVER_LOOP.time();
+
+                        for (ConfQueueBox b : toDeliver) {
+                            for (Dot d : b.getDots()) {
+                                RWMetrics.endExecution2(d);
+                            }
+
+                            // create message set builder
+                            MessageSet.Builder builder = MessageSet.newBuilder();
+
+                            // update message set builder
+                            for (Message m : b.sortMessages()) {
+                                builder.addAllMessages(Batch.unpack(m));
+                            }
+                            // build message
+                            builder.setStatus(MessageSet.Status.DELIVERED);
+                            MessageSet messageSet = builder.build();
+
+                            // send it to client
+                            toClient.put(Optional.of(messageSet));
                         }
 
-                        // create message set builder
-                        MessageSet.Builder builder = MessageSet.newBuilder();
-
-                        // update message set builder
-                        for (Message m : b.sortMessages()) {
-                            builder.addAllMessages(Batch.unpack(m));
-                        }
-                        // build message
-                        builder.setStatus(MessageSet.Status.DELIVERED);
-                        MessageSet messageSet = builder.build();
-
-                        // send it to client
-                        toClient.put(Optional.of(messageSet));
+                        deliverLoopContext.stop();
                     }
-
-                    deliverLoopContext.stop();
                 }
             } catch (InterruptedException | InvalidProtocolBufferException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
