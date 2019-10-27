@@ -20,8 +20,10 @@ public class RWMetrics {
     public static final Timer TO_DELIVER = METRICS.timer(MetricRegistry.name("metrics", "ToDeliver"));
     public static final Timer DELIVER_LOOP = METRICS.timer(MetricRegistry.name("metrics", "DeliverLoop"));
 
-    private static final Timer MID_EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "MidExecution"));
-    private static final Timer EXECUTION = METRICS.timer(MetricRegistry.name("metrics", "Execution"));
+    private static final Timer EXECUTION0 = METRICS.timer(MetricRegistry.name("metrics", "Execution0"));
+    private static final Timer EXECUTION1 = METRICS.timer(MetricRegistry.name("metrics", "Execution1"));
+    private static final Timer EXECUTION2 = METRICS.timer(MetricRegistry.name("metrics", "Execution2"));
+
     private static final Timer COMMIT = METRICS.timer(MetricRegistry.name("metrics", "COMMIT"));
     private static final Timer DELIVER = METRICS.timer(MetricRegistry.name("metrics", "DELIVER"));
 
@@ -29,8 +31,9 @@ public class RWMetrics {
     public static final Histogram BATCH_SIZE = METRICS.histogram(MetricRegistry.name("metrics", "BatchSize"));
     public static final Histogram COMPONENTS_COUNT = METRICS.histogram(MetricRegistry.name("metrics", "ComponentsCount"));
 
-    private static final ConcurrentHashMap<Dot, Timer.Context> DOT_TO_MID_EXECUTION_CTX = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Dot, Timer.Context> DOT_TO_EXECUTION_CTX = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Dot, Timer.Context> DOT_TO_EXECUTION0_CTX = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Dot, Timer.Context> DOT_TO_EXECUTION1_CTX = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Dot, Timer.Context> DOT_TO_EXECUTION2_CTX = new ConcurrentHashMap<>();
 
     static {
         Set<MetricAttribute> disabledMetricAttributes
@@ -50,17 +53,23 @@ public class RWMetrics {
     }
 
     public static void startExecution(Dot dot) {
-        DOT_TO_MID_EXECUTION_CTX.put(dot, MID_EXECUTION.time());
-        DOT_TO_EXECUTION_CTX.put(dot, EXECUTION.time());
+        DOT_TO_EXECUTION0_CTX.put(dot, EXECUTION0.time());
+        DOT_TO_EXECUTION1_CTX.put(dot, EXECUTION1.time());
+        DOT_TO_EXECUTION2_CTX.put(dot, EXECUTION2.time());
     }
 
-    public static void endMidExecution(Dot dot) {
-        Timer.Context context = DOT_TO_MID_EXECUTION_CTX.remove(dot);
+    public static void endExecution0(Dot dot) {
+        Timer.Context context = DOT_TO_EXECUTION0_CTX.remove(dot);
         context.stop();
     }
 
-    public static void endExecution(Dot dot) {
-        Timer.Context context = DOT_TO_EXECUTION_CTX.remove(dot);
+    public static void endExecution1(Dot dot) {
+        Timer.Context context = DOT_TO_EXECUTION1_CTX.remove(dot);
+        context.stop();
+    }
+
+    public static void endExecution2(Dot dot) {
+        Timer.Context context = DOT_TO_EXECUTION2_CTX.remove(dot);
         context.stop();
     }
 

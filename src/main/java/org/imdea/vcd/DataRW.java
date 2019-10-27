@@ -185,13 +185,12 @@ public class DataRW {
                         in.readFully(data, 0, length);
                         Reply reply = Reply.parseFrom(data);
 
-                        // if commit, send notification to client
-                        // and forward it to dep queue thread
                         if (reply.hasCommit()) {
-                            Commit commit = reply.getCommit();
-                            RWMetrics.startExecution(Dot.dot(commit.getDot()));
-                            toClient.put(Optional.of(Batch.unpack(commit.getMessage(), MessageSet.Status.COMMIT)));
+                            // start execution
+                            Dot dot = Dot.dot(reply.getCommit().getDot());
+                            RWMetrics.startExecution(dot);
                         }
+
                         toParser.put(reply);
                     }
                 } catch (IOException e) {
@@ -211,6 +210,7 @@ public class DataRW {
         private final Logger LOGGER = VCDLogger.init(Parser.class);
 
         private final LinkedBlockingQueue<Reply> toParser;
+        private final LinkedBlockingQueue<Optional<MessageSet>> toClient;
         private final LinkedBlockingQueue<QueueRunnerMsg> toQueueRunner;
         private final QueueRunner queueRunner;
 
@@ -219,6 +219,7 @@ public class DataRW {
 
         public Parser(LinkedBlockingQueue<Optional<MessageSet>> toClient, LinkedBlockingQueue<Reply> toParser, Config config) {
             this.toParser = toParser;
+            this.toClient = toClient;
             this.toQueueRunner = new LinkedBlockingQueue<>();
             this.queueRunner = new QueueRunner(toClient, this.toQueueRunner, config);
             if (RECORD_TRACE) {
@@ -287,6 +288,11 @@ public class DataRW {
 
                             parseContext.stop();
 
+                            // if commit, send notification to client
+                            // and forward it to dep queue thread
+                            toClient.put(Optional.of(Batch.unpack(commit.getMessage(), MessageSet.Status.COMMIT)));
+                            RWMetrics.endExecution0(dot);
+
                             // store trace in redis
                             if (RECORD_TRACE) {
                                 pushToRedis(dot, conf);
@@ -301,7 +307,7 @@ public class DataRW {
                             throw new RuntimeException("Reply type not supported:" + reply.getReplyCase());
                     }
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | InvalidProtocolBufferException e) {
                 LOGGER.log(Level.SEVERE, e.toString(), e);
             }
         }
@@ -368,7 +374,7 @@ public class DataRW {
                         queue = new ConfQueue(msg.committed, this.batching, this.optDelivery);
                     } else {
                         // add to delivery queue
-                        RWMetrics.endMidExecution(msg.dot);
+                        RWMetrics.endExecution1(msg.dot);
 
                         final Timer.Context queueAddContext = RWMetrics.QUEUE_ADD.time();
                         queue.add(msg.dot, msg.message, msg.conf);
@@ -413,7 +419,7 @@ public class DataRW {
 
                     for (ConfQueueBox b : toDeliver) {
                         for (Dot d : b.getDots()) {
-                            RWMetrics.endExecution(d);
+                            RWMetrics.endExecution2(d);
                         }
 
                         // create message set builder
