@@ -39,7 +39,7 @@ public class Config {
     private Integer nodeNumber = 1;
 
     @Parameter(names = "-max_faults")
-    private Integer maxFaults;
+    private Integer maxFaults = 0;
 
     @Parameter(names = "-cluster")
     private String cluster = "undefined";
